@@ -6,12 +6,18 @@ import { useState, useEffect } from 'react';
 const STALL_MS = 4000;
 const CHECK_MS = 200;
 
-// Доля скачанного видео: 1, когда файл в буфере целиком (или не грузится из-за ошибки).
+// Доля скачанного видео: 1, когда файл в буфере почти целиком (или не грузится из-за ошибки).
+// Safari может держать буфер кусками и не дотягивать до самого конца, поэтому
+// складываем все куски и считаем 97% полной загрузкой.
 const bufferedShare = (video: HTMLVideoElement) => {
   if (video.error) return 1;
-  if (!video.buffered.length || !(video.duration > 0)) return 0;
-  const end = video.buffered.end(video.buffered.length - 1);
-  return end >= video.duration - 0.1 ? 1 : end / video.duration;
+  if (!(video.duration > 0)) return 0;
+  let seconds = 0;
+  for (let i = 0; i < video.buffered.length; i++) {
+    seconds += video.buffered.end(i) - video.buffered.start(i);
+  }
+  const share = Math.min(seconds / video.duration, 1);
+  return share >= 0.97 ? 1 : share;
 };
 
 // Прогресс загрузки нескольких видео (0–100) с весами по размеру файлов.
