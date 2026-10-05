@@ -10,12 +10,12 @@ import "./main-banner.css";
 import { NBSP, PRELOADER_HIDE_EVENT } from "@/app/constants";
 
 // Первый экран закреплён через position: sticky (без JS-пина, который дёргается на iOS),
-// секция выше окна на 2,2 экрана. Приближение видео привязано к прокрутке (scrub),
+// секция выше окна на 0,7 экрана. Приближение видео привязано к прокрутке (scrub),
 // а тексты не следуют за колесом: при переходе порога они целиком уходят и появляются
 // короткой анимацией, поэтому полупрозрачный текст не зависает, если прокрутку остановить.
 const HERO_SCRUB_SMOOTHING = 0.6;
 // доля пути прокрутки, после которой показывается второй экран
-const HERO_SECOND_SCENE_AT = 0.08;
+const HERO_SECOND_SCENE_AT = 0.2;
 
 export const MainBanner = () => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -110,8 +110,7 @@ export const MainBanner = () => {
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        // приближение идёт первую половину пути, дальше второй экран стоит
-        end: "50% bottom",
+        end: "bottom bottom",
         scrub: HERO_SCRUB_SMOOTHING,
       },
     });
