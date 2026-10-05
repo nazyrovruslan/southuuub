@@ -51,7 +51,9 @@
 .base-button { min-height: 44px; }
 @media (hover: none) {
   .header-burger { min-width: 44px; min-height: 44px; }
-  footer a, .footer a { display: inline-flex; align-items: center; min-height: 44px; }
+  /* только иконки и контакты: у ссылок-политик зона растянула бы подчёркивание вниз */
+  .footer-icons a, .footer-contacts-items a { display: inline-flex; align-items: center; min-height: 44px; }
+  .footer-contacts-items { align-items: center; }
 }
 
 /* 3. Шапка на телефонах не должна лежать на тексте.
