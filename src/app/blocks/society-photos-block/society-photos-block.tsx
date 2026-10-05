@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { IconS, IconO, IconU, IconT, IconH, IconB } from './cell-desktop';
@@ -24,9 +24,121 @@ import './society-photos-block.css';
 import { FONT_IBM_PLEX_SERIF_LIGHT, FONT_MONT_BOOK } from '@/app/fonts';
 import { DESKTOP_CELL_POSITIONS, TABLET_CELL_POSITIONS, MOBILE_CELL_POSITIONS } from './cell-desktop';
 
-// У букв 4 положения: 0 — основной экран, 1–3 — для фотографий (по макету),
-// поэтому фотографии используют только положения 1–3.
-const ANIMATION_SEQUENCE = [1, 2, 1, 3, 1, 2, 1, 3, 1, 2, 3, 2, 1, 3];
+type CellConfig = {
+    x: number;
+    y: number;
+    type: string;
+    src?: string;
+    text?: string;
+    colSpan?: number;
+};
+
+type Letter = {
+    id: string;
+    cell: CellConfig;
+    isNew?: boolean;
+    leaving?: boolean;
+};
+
+type Frame = {
+    // Положение букв: 0 — заставка (ролик из первого экрана), 1–3 — для фотографий
+    position: number;
+    // Десктоп: фото слегка увеличено от края, чтобы лица ушли из клеток с буквами
+    scale?: number;
+    origin?: string;
+};
+
+// Кадр 0 — короткий ролик из видео первого экрана, дальше 14 фотографий.
+// Положение и кадрирование подобраны под каждое фото, чтобы буквы не закрывали лица.
+const FRAMES: Frame[] = [
+    { position: 0 },
+    { position: 1, scale: 1.14, origin: '100% 50%' },
+    { position: 2 },
+    { position: 1 },
+    { position: 3, scale: 1.2, origin: '100% 15%' },
+    { position: 1 },
+    { position: 2, scale: 1.14, origin: '95% 15%' },
+    { position: 3, scale: 1.3, origin: '40% 100%' },
+    { position: 3 },
+    { position: 1, scale: 1.14, origin: '100% 35%' },
+    { position: 2, scale: 1.14, origin: '0% 60%' },
+    { position: 1, scale: 1.2, origin: '100% 25%' },
+    { position: 2, scale: 1.3, origin: '100% 15%' },
+    { position: 1 },
+    { position: 3 },
+];
+
+const PHOTOS = [
+    SocietyPhoto1, SocietyPhoto2, SocietyPhoto3, SocietyPhoto4, SocietyPhoto5, SocietyPhoto6, SocietyPhoto7,
+    SocietyPhoto8, SocietyPhoto9, SocietyPhoto10, SocietyPhoto11, SocietyPhoto12, SocietyPhoto13, SocietyPhoto14,
+];
+
+const PHOTO_DURATION_MS = 2000;
+// Ролик длится 5 с; если событие ended не пришло (например, видео не загрузилось), кадр всё равно сменится
+const CLIP_FALLBACK_MS = 6000;
+const CLIP_POSTER = '/v2/society/society-clip-poster.jpg';
+
+const getPositions = (device: string) => {
+    if (device === 'tablet') return TABLET_CELL_POSITIONS as CellConfig[][];
+    if (device === 'mobile') return MOBILE_CELL_POSITIONS as CellConfig[][];
+    return DESKTOP_CELL_POSITIONS as CellConfig[][];
+};
+
+const letterKind = (cell: CellConfig) => cell.type === 'text' ? 'text' : cell.src ?? '';
+
+// Каждая буква переезжает из своей клетки в новую: одинаковые буквы сопоставляются
+// по ближайшему расстоянию, лишние плавно гаснут, недостающие проявляются на месте.
+const placeLetters = (prev: Letter[], config: CellConfig[], nextId: () => string): Letter[] => {
+    const pool = prev.filter(letter => !letter.leaving);
+    const result: Letter[] = [];
+    const kinds = new Set([...pool.map(l => letterKind(l.cell)), ...config.map(letterKind)]);
+
+    kinds.forEach(kind => {
+        const olds = pool.filter(l => letterKind(l.cell) === kind);
+        const news = config.filter(cell => letterKind(cell) === kind);
+        const pairs: [number, number, number][] = [];
+
+        olds.forEach((old, i) => news.forEach((cell, j) => {
+            pairs.push([Math.hypot(old.cell.x - cell.x, old.cell.y - cell.y), i, j]);
+        }));
+        pairs.sort((a, b) => a[0] - b[0]);
+
+        const usedOld = new Set<number>();
+        const usedNew = new Set<number>();
+
+        pairs.forEach(([, i, j]) => {
+            if (usedOld.has(i) || usedNew.has(j)) return;
+            usedOld.add(i);
+            usedNew.add(j);
+            result.push({ id: olds[i].id, cell: news[j] });
+        });
+
+        news.forEach((cell, j) => {
+            if (!usedNew.has(j)) result.push({ id: nextId(), cell, isNew: prev.length > 0 });
+        });
+
+        olds.forEach((old, i) => {
+            if (!usedOld.has(i)) result.push({ ...old, isNew: false, leaving: true });
+        });
+    });
+
+    return result;
+};
+
+const renderLetterContent = (cell: CellConfig) => (
+    cell.type === 'text' ? (
+        <div className={`text-cell ${FONT_MONT_BOOK.className}`}>
+            {cell.text}
+        </div>
+    ) : (
+        cell.src === 'WordS' && <IconS className='society-cell-img' /> ||
+        cell.src === 'WordO' && <IconO className='society-cell-img' /> ||
+        cell.src === 'WordU' && <IconU className='society-cell-img' /> ||
+        cell.src === 'WordT' && <IconT className='society-cell-img' /> ||
+        cell.src === 'WordH' && <IconH className='society-cell-img' /> ||
+        cell.src === 'WordB' && <IconB className='society-cell-img' />
+    )
+);
 
 /**
  * TODO
@@ -43,10 +155,15 @@ const ANIMATION_SEQUENCE = [1, 2, 1, 3, 1, 2, 1, 3, 1, 2, 3, 2, 1, 3];
  */
 
 export const SocietyPhotosBlock = () => {
-    const [imgNumber, setImgNumber] = useState(0);
-    // После первой смены фото буквы анимируются: старая уезжает из своей клетки, новая заезжает
-    const [hasChanged, setHasChanged] = useState(false);
+    const [frame, setFrame] = useState(0);
     const [device, setDevice] = useState('desktop');
+    const [isVisible, setIsVisible] = useState(false);
+    const [clipSrc, setClipSrc] = useState<string | undefined>();
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const idCounterRef = useRef(0);
+    const nextId = useCallback(() => `letter-${idCounterRef.current++}`, []);
+    const [letters, setLetters] = useState<Letter[]>(() => placeLetters([], DESKTOP_CELL_POSITIONS[0] as CellConfig[], nextId));
 
     useEffect(() => {
         const header = document.querySelector('#header');
@@ -100,155 +217,118 @@ export const SocietyPhotosBlock = () => {
         };
     }, []);
 
+    // Слайдшоу и ролик работают, только пока блок виден
     useEffect(() => {
-        const interval = setInterval(() => {
-            setHasChanged(true);
-            setImgNumber((prev) => prev === 13 ? 0 : prev + 1)
-        }, 2000);
+        const wrapper = wrapperRef.current;
+        if (!wrapper) return;
 
-        return () => {
-            clearInterval(interval);
-        };
+        const observer = new IntersectionObserver(([entry]) => {
+            setIsVisible(entry.isIntersecting);
+            if (entry.isIntersecting) {
+                setClipSrc(src => src ?? (window.innerWidth * (window.devicePixelRatio || 1) > 1600
+                    ? '/v2/society/society-clip-1920.mp4'
+                    : '/v2/society/society-clip-1280.mp4'));
+            }
+        }, { rootMargin: '200px 0px' });
+
+        observer.observe(wrapper);
+
+        return () => observer.disconnect();
     }, []);
 
-    const getCellContent = useCallback((x: number, y: number, configIdx: number) => {
-        if (device === 'tablet') {
-            return TABLET_CELL_POSITIONS[ANIMATION_SEQUENCE[configIdx]].find(c => c.x === x && c.y === y);
+    useEffect(() => {
+        const video = videoRef.current;
+        const next = () => setFrame(prev => (prev + 1) % FRAMES.length);
+
+        if (frame !== 0) {
+            video?.pause();
+            if (!isVisible) return;
+            const timeout = setTimeout(next, PHOTO_DURATION_MS);
+            return () => clearTimeout(timeout);
         }
 
-        if (device === 'mobile') {
-            return MOBILE_CELL_POSITIONS[ANIMATION_SEQUENCE[configIdx]].find(c => c.x === x && c.y === y);
+        if (!isVisible || !video || !clipSrc) {
+            video?.pause();
+            return;
         }
 
-        return DESKTOP_CELL_POSITIONS[ANIMATION_SEQUENCE[configIdx]].find(c => c.x === x && c.y === y);
-    }, [device]);
+        video.currentTime = 0;
+        video.play().catch(() => {});
+        video.addEventListener('ended', next);
+        const timeout = setTimeout(next, CLIP_FALLBACK_MS);
+
+        return () => {
+            video.removeEventListener('ended', next);
+            clearTimeout(timeout);
+        };
+    }, [frame, isVisible, clipSrc]);
+
+    useEffect(() => {
+        const positions = getPositions(device);
+        setLetters(prev => placeLetters(prev, positions[FRAMES[frame].position] ?? positions[0], nextId));
+    }, [frame, device, nextId]);
+
+    const rows = device === 'tablet' ? 6 : device === 'mobile' ? 9 : 5;
+    const cols = device === 'tablet' ? 5 : device === 'mobile' ? 5 : 7;
 
     const renderGrid = useCallback(() => {
-        const rows = device === 'tablet' ? 6 : device === 'mobile' ? 9 : 5;
-        const cols = device === 'tablet' ? 5 : device === 'mobile' ? 5 : 7;
         const grid = [];
-        const prevNumber = (imgNumber + ANIMATION_SEQUENCE.length - 1) % ANIMATION_SEQUENCE.length;
+        const positions = getPositions(device);
+        const config = positions[FRAMES[frame].position] ?? positions[0];
 
-        // Создаем карту colSpan для текущей и следующей конфигурации
+        // Клетки с colSpan (на мобилке текст занимает две клетки)
         const colSpanMap = new Map();
-        
-        if (device === 'mobile') {
-            const currentConfig = MOBILE_CELL_POSITIONS[ANIMATION_SEQUENCE[imgNumber]];
-            const prevConfig = hasChanged ? MOBILE_CELL_POSITIONS[ANIMATION_SEQUENCE[prevNumber]] : [];
-            
-            // Отмечаем ячейки с colSpan
-            [...(currentConfig || []), ...(prevConfig || [])].forEach(cell => {
-                if (cell.colSpan === 2) {
-                    colSpanMap.set(`${cell.x}-${cell.y}`, cell.colSpan);
-                    // Отмечаем, что ячейка справа должна быть скрыта
-                    colSpanMap.set(`${cell.x + 1}-${cell.y}`, 'hidden');
-                }
-            });
-        }
+
+        config.forEach(cell => {
+            if (cell.colSpan === 2) {
+                colSpanMap.set(`${cell.x}-${cell.y}`, cell.colSpan);
+                colSpanMap.set(`${cell.x + 1}-${cell.y}`, 'hidden');
+            }
+        });
 
         for (let y = 0; y < rows; y++) {
             const row = [];
-            // Рассчитываем общий вес колонок в ряду
-            let totalFlexWeight = cols;
-            
+
             for (let x = 0; x < cols; x++) {
                 const cellKey = `${x}-${y}`;
                 const colSpanValue = colSpanMap.get(cellKey);
-                
-                // Пропускаем скрытые ячейки (они будут отрендерены как часть colSpan)
+
                 if (colSpanValue === 'hidden') {
                     continue;
                 }
-                
-                // Определяем flex вес для ячейки
-                let flexWeight = 1;
-                if (colSpanValue === 2) {
-                    flexWeight = 2;
-                    totalFlexWeight += 1; // Увеличиваем общий вес, так как мы добавляем +1 к flex
-                }
-                
-                const currentCell = getCellContent(x, y, imgNumber);
-                const prevCell = hasChanged ? getCellContent(x, y, prevNumber) : undefined;
-                
-                // Для ячеек с colSpan убираем правую границу
+
+                const flexWeight = colSpanValue === 2 ? 2 : 1;
                 const showBorderRight = x < cols - 1 && colSpanValue !== 2;
                 const showBorderBottom = y < rows - 1;
-                
-                // Буква меняется только внутри своей клетки: прежняя уезжает вниз за границу клетки,
-                // новая заезжает сверху. Клетка обрезает всё, что выходит за её контур.
-                const shouldAnimate = JSON.stringify(currentCell ?? null) !== JSON.stringify(prevCell ?? null);
-                const outgoingCell = shouldAnimate ? prevCell : undefined;
-                const isActive = currentCell || outgoingCell;
-                
+
                 row.push(
                     <div
                         key={cellKey}
                         className={`society-grid-cell ${!showBorderRight ? 'no-border-right' : ''} ${!showBorderBottom ? 'no-border-bottom' : ''}`}
                         style={{ flex: flexWeight }}
                     >
-                        {isActive && (
-                            <div
-                                key={shouldAnimate ? `animating-${imgNumber}` : 'static'}
-                                className={`cell-flip-container ${shouldAnimate ? 'animating' : ''}`}
-                            >
-                                {currentCell && (
-                                    <div className="cell-content current">
-                                        {currentCell.type === 'text' ? (
-                                            <div className={`text-cell ${FONT_MONT_BOOK.className}`}>
-                                                {currentCell.text}
-                                            </div>
-                                        ) : (
-                                            currentCell.src === 'WordS' && <IconS className='society-cell-img' /> ||
-                                            currentCell.src === 'WordO' && <IconO className='society-cell-img' /> ||
-                                            currentCell.src === 'WordU' && <IconU className='society-cell-img' /> ||
-                                            currentCell.src === 'WordT' && <IconT className='society-cell-img' /> ||
-                                            currentCell.src === 'WordH' && <IconH className='society-cell-img' /> ||
-                                            currentCell.src === 'WordB' && <IconB className='society-cell-img' />
-                                        )}
-                                    </div>
-                                )}
-
-                                {outgoingCell && (
-                                    <div className="cell-content prev">
-                                        {outgoingCell.type === 'text' ? (
-                                            <div className={`text-cell ${FONT_MONT_BOOK.className}`}>
-                                                {outgoingCell.text}
-                                            </div>
-                                        ) : (
-                                            outgoingCell.src === 'WordS' && <IconS className='society-cell-img' /> ||
-                                            outgoingCell.src === 'WordO' && <IconO className='society-cell-img' /> ||
-                                            outgoingCell.src === 'WordU' && <IconU className='society-cell-img' /> ||
-                                            outgoingCell.src === 'WordT' && <IconT className='society-cell-img' /> ||
-                                            outgoingCell.src === 'WordH' && <IconH className='society-cell-img' /> ||
-                                            outgoingCell.src === 'WordB' && <IconB className='society-cell-img' />
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {(
+                        {frame > 0 && (
                             (device === 'desktop' && y === 4 && x === 3) ||
                             (device === 'tablet' && y === 5 && x === 2) ||
                             (device === 'mobile' && y === 8 && x === 2)
                         ) && (
                             <div className={`${FONT_IBM_PLEX_SERIF_LIGHT.className} cell-content-count`}>
-                                {`${imgNumber + 1}/${14}`}
+                                {`${frame}/${PHOTOS.length}`}
                             </div>
                         )}
                     </div>
                 );
             }
-            
+
             grid.push(
                 <div key={`row-${y}`} className='society-grid-row'>
                     {row}
                 </div>
             );
         }
-        
+
         return grid;
-    }, [getCellContent, imgNumber, hasChanged, device]);
+    }, [frame, device, rows, cols]);
 
     useEffect(() => {
         const getDevice = () => {
@@ -268,26 +348,58 @@ export const SocietyPhotosBlock = () => {
     }, []);
 
     return (
-        <div className='society-photos-block-wrapper' id='society-photos-block'>
+        <div className='society-photos-block-wrapper' id='society-photos-block' ref={wrapperRef}>
             <div className='society-photos-block-img-wrapper'>
-                <Image src={SocietyPhoto1} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 0 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto2} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 1 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto3} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 2 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto4} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 3 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto5} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 4 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto6} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 5 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto7} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 6 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto8} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 7 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto9} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 8 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto10} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 9 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto11} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 10 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto12} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 11 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto13} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 12 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto14} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 13 ? 'visible' : 'hidden'}`} />
+                <video
+                    ref={videoRef}
+                    className={`society-photos-block-img society-photos-block-img-${frame === 0 ? 'visible' : 'hidden'}`}
+                    src={clipSrc}
+                    poster={CLIP_POSTER}
+                    preload='none'
+                    muted
+                    playsInline
+                    aria-hidden='true'
+                />
+                {PHOTOS.map((photo, i) => (
+                    <Image
+                        key={i}
+                        src={photo}
+                        sizes='100vw'
+                        alt=''
+                        className={`society-photos-block-img society-photos-block-img-${frame === i + 1 ? 'visible' : 'hidden'}`}
+                        style={{
+                            '--society-photo-scale': FRAMES[i + 1].scale ?? 1,
+                            '--society-photo-origin': FRAMES[i + 1].origin ?? '50% 50%',
+                        } as CSSProperties}
+                    />
+                ))}
             </div>
-            
+
             <div className='society-photos-block-grid-wrapper'>
                 {renderGrid()}
+
+                <div className='society-letters'>
+                    {letters.map(letter => {
+                        const span = letter.cell.colSpan ?? 1;
+
+                        return (
+                            <div
+                                key={letter.id}
+                                data-span={span}
+                                className={`society-letter ${letter.isNew ? 'entering' : ''} ${letter.leaving ? 'leaving' : ''}`}
+                                style={{
+                                    width: `${100 * span / cols}%`,
+                                    height: `${100 / rows}%`,
+                                    transform: `translate(${letter.cell.x * 100 / span}%, ${letter.cell.y * 100}%)`,
+                                }}
+                            >
+                                <div className='cell-content'>
+                                    {renderLetterContent(letter.cell)}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

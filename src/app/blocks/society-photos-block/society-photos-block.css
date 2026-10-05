@@ -62,7 +62,7 @@
     transition: flex 0.3s ease;
 }
 
-.society-grid-cell[style*="flex: 2"] .text-cell {
+.society-letter[data-span="2"] .text-cell {
     width: 100%;
     height: 100%;
     display: flex;
@@ -83,12 +83,43 @@
     border-bottom: none;
 }
 
-.cell-flip-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    perspective: 1000px;
+/* Буквы лежат отдельным слоем поверх сетки. При смене кадра каждая буква
+   переезжает из своей клетки в новую; лишние гаснут, новые проявляются. */
+.society-letters {
+    position: absolute;
+    inset: 0;
+}
+
+.society-letter {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.5s ease;
+    will-change: transform;
+}
+
+.society-letter.entering {
+    animation: society-letter-in 0.5s 0.4s ease both;
+}
+
+.society-letter.leaving {
+    opacity: 0;
+}
+
+@keyframes society-letter-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .society-letter {
+        transition: none;
+    }
+
+    .society-letter.entering {
+        animation: none;
+    }
 }
 
 .cell-content {
@@ -98,45 +129,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    backface-visibility: hidden;
     padding: 1px;
-}
-
-.cell-content.current {
-    transform: translateY(0);
-    z-index: 2;
-}
-
-/* Смена фото: в каждой клетке прежняя буква уезжает вниз, новая заезжает сверху.
-   Клетка (overflow: hidden) обрезает букву по линиям сетки. */
-.cell-flip-container.animating .cell-content.current {
-    animation: society-cell-in 0.8s cubic-bezier(0.65, 0, 0.35, 1) both;
-}
-
-.cell-flip-container.animating .cell-content.prev {
-    z-index: 1;
-    animation: society-cell-out 0.8s cubic-bezier(0.65, 0, 0.35, 1) both;
-}
-
-@keyframes society-cell-in {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(0); }
-}
-
-@keyframes society-cell-out {
-    from { transform: translateY(0); }
-    to { transform: translateY(100%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .cell-flip-container.animating .cell-content.current,
-    .cell-flip-container.animating .cell-content.prev {
-        animation: none;
-    }
-
-    .cell-flip-container.animating .cell-content.prev {
-        display: none;
-    }
 }
 
 .society-cell-img {
@@ -182,17 +175,13 @@
     }
 }
 
-.society-grid-cell .text-cell {
+.society-letter:not([data-span="2"]) .text-cell {
     width: 200%;
     position: relative;
     left: 0;
     z-index: 10;
 }
 
-/* Для первой ячейки текстовой группы */
-.society-grid-cell:has(+ .society-grid-cell .text-cell) .text-cell {
-    border-right: none;
-}
 /* Десктоп: клетки сетки держат пропорции макета (206×180 при 1440×900), поэтому на
    высоких экранах блок не растягивается выше, чем 900/1440 от ширины. */
 @media screen and (min-width: 1025px) {
@@ -202,5 +191,8 @@
 
     .society-photos-block-img {
         height: 100%;
+        /* Кадрирование под положение букв, чтобы они не закрывали лица */
+        transform: scale(var(--society-photo-scale, 1));
+        transform-origin: var(--society-photo-origin, 50% 50%);
     }
 }
