@@ -371,6 +371,15 @@ export const SocietyPhotosBlock = () => {
         setLetters(prev => placeLetters(prev, getFrameLayout(device, frame), nextId));
     }, [frame, device, nextId]);
 
+    // Фото грузятся не все сразу, а по мере показа: текущее и следующее (оно успевает
+    // загрузиться, пока идёт текущее). Уже показанные остаются в разметке.
+    const [loadedFrames, setLoadedFrames] = useState<Set<number>>(() => new Set());
+    useEffect(() => {
+        if (!isVisible) return;
+        const next = (frame + 1) % FRAMES.length;
+        setLoadedFrames(prev => (prev.has(frame) && prev.has(next) ? prev : new Set([...prev, frame, next])));
+    }, [frame, isVisible]);
+
     const rows = device === 'tablet' ? 6 : device === 'mobile' ? 9 : 5;
     const cols = device === 'tablet' ? 5 : device === 'mobile' ? 5 : 7;
 
@@ -551,7 +560,7 @@ export const SocietyPhotosBlock = () => {
                     playsInline
                     aria-hidden='true'
                 />
-                {PHOTOS.map((photo, i) => (
+                {PHOTOS.map((photo, i) => loadedFrames.has(i + 1) && (
                     <Image
                         key={i}
                         src={photo}

@@ -73,13 +73,14 @@
   html .main-banner-wrapper { max-width: none; }
   html .video-wrapper { max-width: none; }
   html .video-wrapper video { max-width: none; }
-  html .main-banner-text-1 { top: calc(50% - 5.2083vw); font-size: 4.8958vw; }
-  html .main-banner-text-2 { top: calc(50% + 0.7813vw); right: 3.125vw; font-size: 0.8333vw; }
-  html .main-banner-text-3 { top: calc(50% - 5.2083vw); }
+  html .main-banner-content { padding: 4.6875vw 0 7.8125vw; }
+  html .main-banner-group { gap: 0.8333vw; }
+  html .main-banner-text-1 { font-size: clamp(2.9167vw, 9vh, 4.8958vw); }
+  html .main-banner-text-2 { margin-left: calc(50% + 3.125vw); padding-right: 1.6667vw; font-size: 0.8333vw; }
   html .main-banner-text-3 > span { margin-right: 15.625vw; font-size: 1.1458vw; }
-  html .main-banner-text-3-netwarming { font-size: 6.6667vw; }
-  html .main-banner-text-4 { top: calc(50% + 3.6458vw); left: calc(50% - 13.5417vw); width: 28.125vw; font-size: 0.8333vw; }
-  html .main-banner-button-wrapper { bottom: 3.6458vw; }
+  html .main-banner-text-3-netwarming { font-size: clamp(3.3333vw, 11vh, 6.6667vw); }
+  html .main-banner-text-4 { margin-left: calc(50% - 13.5417vw); width: 28.125vw; max-width: calc(100% - 1.5625vw); font-size: 0.8333vw; }
+  html .main-banner-button-wrapper { bottom: 3.125vw; }
   /* src/app/blocks/more-new/more-new.css */
   html .more-new { max-width: none; padding: 8.3333vw 3.125vw 2.8125vw; gap: 2.6042vw; }
   html .more-new-cell { width: 2.6042vw; height: 2.6042vw; }

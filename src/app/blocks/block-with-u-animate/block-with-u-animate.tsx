@@ -54,49 +54,6 @@ export const BlockWithUAnimate = () => {
     const blockRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const header = document.querySelector('#header');
-        const targetBlock = document.querySelector('#block-with-u-animate');
-
-        if (!header || !targetBlock) return;
-
-        let lastScrollY = window.scrollY;
-
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            const blockRect = targetBlock.getBoundingClientRect();
-            const blockTop = blockRect.top - 70;
-            const isScrollingUp = currentScrollY < lastScrollY;
-            
-            // Проверяем, виден ли блок в области просмотра
-            const isVisible = blockRect.bottom > 0 && blockRect.top < window.innerHeight;
-
-            if (!isVisible) {
-                // Блок покинул область видимости → показываем хедер
-                header.classList.remove('header_hidden');
-            } else {
-                // Блок виден → применяем исходную логику
-                if (blockTop <= 0) {
-                    header.classList.add('header_hidden');
-                } 
-                else if (isScrollingUp && blockTop <= 70) {
-                    header.classList.add('header_hidden');
-                } else {
-                    header.classList.remove('header_hidden');
-                }
-            }
-            
-            lastScrollY = currentScrollY;
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        handleScroll(); // начальная проверка
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
-
-    useEffect(() => {
         const updateColumn = () => {
             const desktop_s = window.matchMedia("(max-width: 1280px)").matches;
             const tablet = window.matchMedia("(max-width: 1024px)").matches;

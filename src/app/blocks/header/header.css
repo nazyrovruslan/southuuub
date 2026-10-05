@@ -91,10 +91,6 @@
     }
 }
 
-.header_hidden {
-    display: none;
-}
-
 .header_hidden_logo {
     .header-logo {
         opacity: 0;

@@ -1,19 +1,18 @@
 /* main-banner.css */
-/* Первый экран высотой в окно: его шаги листаются жестами (main-banner.tsx), пока страница
-   стоит наверху, поэтому лишняя высота для прокрутки не нужна.
-   overflow не задаём: hidden у предка выключает sticky. */
+/* Первый экран — один экран без закрепления: обе фразы, подзаголовки и кнопка видны сразу,
+   страница прокручивается как обычно. svh — высота без панелей браузера на телефоне. */
 .main-banner-wrapper {
     position: relative;
     max-width: 1920px;
     height: 100vh;
+    height: 100svh;
     margin: 0 auto;
     padding: 0;
 }
 
 .main-banner-pin-wrapper {
-    position: sticky;
-    top: 0;
-    height: 100vh;
+    position: relative;
+    height: 100%;
     width: 100%;
     overflow: hidden;
 }
@@ -28,8 +27,6 @@
     margin: 0 auto;
     z-index: 1;
     pointer-events: none;
-    transform-origin: center center;
-    will-change: transform;
     transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
@@ -39,7 +36,7 @@
 .video-wrapper video {
     position: relative;
     object-fit: cover;
-    height: 100vh;
+    height: 100%;
     width: 100vw;
     max-width: 1920px;
     pointer-events: none;
@@ -50,54 +47,59 @@
 
 .main-banner-content {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     z-index: 10;
-    pointer-events: none;
-}
-
-.main-banner-text {
-    opacity: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 7vh;
+    padding: 90px 0 150px;
     color: white;
-    will-change: opacity, transform;
-}
-
-.main-banner-text-1 {
-    position: absolute;
-    top: calc(50% - 100px);
-    width: 100%;
-    text-align: center;
-    font-weight: 500;
-    font-size: 94px;
-    line-height: 100%;
     pointer-events: none;
 
     @media screen and (max-width: 1280px) {
-        font-size: 80px;
-    }
-
-    @media screen and (max-width: 1024px) {
-        white-space: break-spaces;
-        top: calc(50% - 150px);
+        padding-bottom: 130px;
     }
 
     @media screen and (max-width: 767px) {
-        font-size: 55px;
-        white-space: break-spaces;
-        top: calc(50% - 100px);
+        gap: 4.5vh;
+        padding: 64px 0 120px;
+    }
+}
+
+.main-banner-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    @media screen and (max-width: 767px) {
+        gap: 12px;
+    }
+}
+
+.main-banner-text-1 {
+    width: 100%;
+    text-align: center;
+    font-weight: 500;
+    font-size: clamp(56px, 9vh, 94px);
+    line-height: 100%;
+    white-space: break-spaces;
+
+    @media screen and (max-width: 1280px) {
+        font-size: clamp(52px, 8.5vh, 80px);
+    }
+
+    @media screen and (max-width: 767px) {
+        font-size: clamp(34px, 5.6vh, 50px);
     }
 }
 
 .main-banner-text-2 {
-    position: absolute;
-    top: calc(50% + 15px);
-    right: 60px;
+    margin-left: calc(50% + 60px);
+    padding-right: 32px;
     font-weight: 500;
     font-size: 16px;
     line-height: 130%;
-    pointer-events: none;
     white-space: break-spaces;
 
     @media screen and (max-width: 1280px) {
@@ -105,35 +107,26 @@
     }
 
     @media screen and (max-width: 1024px) {
-        left: 50%;
-        right: 0;
+        margin-left: 50%;
     }
 
     @media screen and (max-width: 767px) {
+        margin-left: calc(50% - 30px);
+        padding-right: 15px;
         white-space: initial;
-        font-size: 14px;
+        font-size: 13px;
     }
 }
 
 .main-banner-text-3 {
-    position: absolute;
-    top: calc(50% - 100px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    width: 100%;
-    pointer-events: none;
-
-    @media screen and (max-width: 1280px) {
-        top: calc(50% - 150px);
-    }
 
     @media screen and (max-width: 767px) {
-        width: calc(100% - 30px);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        top: calc(50% - 100px);
-        text-align: left;
         margin: 0 15px;
+        text-align: left;
     }
 }
 
@@ -142,6 +135,7 @@
     font-weight: 500;
     font-size: 22px;
     line-height: 110%;
+    white-space: break-spaces;
 
     @media screen and (max-width: 1280px) {
         margin-right: 180px;
@@ -149,25 +143,24 @@
     }
 
     @media screen and (max-width: 767px) {
-        font-size: 14px;
-        white-space: break-spaces;
+        font-size: 13px;
         line-height: 100%;
-        margin-right: 180px;
+        margin-right: 150px;
     }
 }
 
 .main-banner-text-3-netwarming {
     font-style: italic;
     font-weight: 500;
-    font-size: 128px;
+    font-size: clamp(64px, 11vh, 128px);
     line-height: 100%;
 
     @media screen and (max-width: 1280px) {
-        font-size: 100px;
+        font-size: clamp(60px, 10vh, 100px);
     }
 
     @media screen and (max-width: 767px) {
-        font-size: 67px;
+        font-size: clamp(40px, 6.5vh, 60px);
     }
 }
 
@@ -178,44 +171,40 @@
 }
 
 .main-banner-text-4 {
-    position: absolute;
-    top: calc(50% + 70px);
-    left: calc(50% - 260px);
+    margin-left: calc(50% - 260px);
     width: 540px;
+    max-width: calc(100% - 30px);
     font-weight: 500;
     font-size: 16px;
     line-height: 130%;
-    pointer-events: none;
 
     @media screen and (max-width: 1280px) {
-        top: calc(50% + 0px);
-        left: calc(50% - 200px);
+        margin-left: calc(50% - 200px);
         font-size: 15px;
-        width: 525px;
+        width: 480px;
     }
 
     @media screen and (max-width: 767px) {
-        top: calc(50% + 20px);
-        left: calc(50% - 105px);
-        right: 15px;
+        margin-left: calc(50% - 105px);
+        width: auto;
+        padding-right: 15px;
         font-size: 12px;
-        width: 279px;
     }
 }
 
 .main-banner-button-wrapper {
     position: absolute;
-    bottom: 70px;
+    bottom: 60px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 20;
     pointer-events: auto;
 
     @media screen and (max-width: 1280px) {
-        bottom: 50px;
+        bottom: 45px;
     }
 
     @media screen and (max-width: 767px) {
-        bottom: 75px;
+        bottom: 40px;
     }
 }
