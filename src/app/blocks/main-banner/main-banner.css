@@ -1,18 +1,19 @@
 /* main-banner.css */
-/* Первый экран — один экран без закрепления: обе фразы, подзаголовки и кнопка видны сразу,
-   страница прокручивается как обычно. svh — высота без панелей браузера на телефоне. */
+/* Первый экран высотой в окно: его шаги листаются жестами (main-banner.tsx), пока страница
+   стоит наверху, поэтому лишняя высота для прокрутки не нужна.
+   overflow не задаём: hidden у предка выключает sticky. */
 .main-banner-wrapper {
     position: relative;
     max-width: 1920px;
     height: 100vh;
-    height: 100svh;
     margin: 0 auto;
     padding: 0;
 }
 
 .main-banner-pin-wrapper {
-    position: relative;
-    height: 100%;
+    position: sticky;
+    top: 0;
+    height: 100vh;
     width: 100%;
     overflow: hidden;
 }
@@ -27,6 +28,8 @@
     margin: 0 auto;
     z-index: 1;
     pointer-events: none;
+    transform-origin: center center;
+    will-change: transform;
     transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
@@ -36,7 +39,7 @@
 .video-wrapper video {
     position: relative;
     object-fit: cover;
-    height: 100%;
+    height: 100vh;
     width: 100vw;
     max-width: 1920px;
     pointer-events: none;
@@ -47,59 +50,54 @@
 
 .main-banner-content {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 10;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 7vh;
-    padding: 90px 0 150px;
-    color: white;
     pointer-events: none;
-
-    @media screen and (max-width: 1280px) {
-        padding-bottom: 130px;
-    }
-
-    @media screen and (max-width: 767px) {
-        gap: 4.5vh;
-        padding: 64px 0 120px;
-    }
 }
 
-.main-banner-group {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-
-    @media screen and (max-width: 767px) {
-        gap: 12px;
-    }
+.main-banner-text {
+    opacity: 0;
+    color: white;
+    will-change: opacity, transform;
 }
 
 .main-banner-text-1 {
+    position: absolute;
+    top: calc(50% - 100px);
     width: 100%;
     text-align: center;
     font-weight: 500;
-    font-size: clamp(56px, 9vh, 94px);
+    font-size: 94px;
     line-height: 100%;
-    white-space: break-spaces;
+    pointer-events: none;
 
     @media screen and (max-width: 1280px) {
-        font-size: clamp(52px, 8.5vh, 80px);
+        font-size: 80px;
+    }
+
+    @media screen and (max-width: 1024px) {
+        white-space: break-spaces;
+        top: calc(50% - 150px);
     }
 
     @media screen and (max-width: 767px) {
-        font-size: clamp(34px, 5.6vh, 50px);
+        font-size: 55px;
+        white-space: break-spaces;
+        top: calc(50% - 100px);
     }
 }
 
 .main-banner-text-2 {
-    margin-left: calc(50% + 60px);
-    padding-right: 32px;
+    position: absolute;
+    top: calc(50% + 15px);
+    right: 60px;
     font-weight: 500;
     font-size: 16px;
     line-height: 130%;
+    pointer-events: none;
     white-space: break-spaces;
 
     @media screen and (max-width: 1280px) {
@@ -107,26 +105,35 @@
     }
 
     @media screen and (max-width: 1024px) {
-        margin-left: 50%;
+        left: 50%;
+        right: 0;
     }
 
     @media screen and (max-width: 767px) {
-        margin-left: calc(50% - 30px);
-        padding-right: 15px;
         white-space: initial;
-        font-size: 13px;
+        font-size: 14px;
     }
 }
 
 .main-banner-text-3 {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    position: absolute;
+    top: calc(50% - 100px);
     text-align: center;
+    width: 100%;
+    pointer-events: none;
+
+    @media screen and (max-width: 1280px) {
+        top: calc(50% - 150px);
+    }
 
     @media screen and (max-width: 767px) {
-        margin: 0 15px;
+        width: calc(100% - 30px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        top: calc(50% - 100px);
         text-align: left;
+        margin: 0 15px;
     }
 }
 
@@ -135,7 +142,6 @@
     font-weight: 500;
     font-size: 22px;
     line-height: 110%;
-    white-space: break-spaces;
 
     @media screen and (max-width: 1280px) {
         margin-right: 180px;
@@ -143,24 +149,25 @@
     }
 
     @media screen and (max-width: 767px) {
-        font-size: 13px;
+        font-size: 14px;
+        white-space: break-spaces;
         line-height: 100%;
-        margin-right: 150px;
+        margin-right: 180px;
     }
 }
 
 .main-banner-text-3-netwarming {
     font-style: italic;
     font-weight: 500;
-    font-size: clamp(64px, 11vh, 128px);
+    font-size: 128px;
     line-height: 100%;
 
     @media screen and (max-width: 1280px) {
-        font-size: clamp(60px, 10vh, 100px);
+        font-size: 100px;
     }
 
     @media screen and (max-width: 767px) {
-        font-size: clamp(40px, 6.5vh, 60px);
+        font-size: 67px;
     }
 }
 
@@ -171,40 +178,44 @@
 }
 
 .main-banner-text-4 {
-    margin-left: calc(50% - 260px);
+    position: absolute;
+    top: calc(50% + 70px);
+    left: calc(50% - 260px);
     width: 540px;
-    max-width: calc(100% - 30px);
     font-weight: 500;
     font-size: 16px;
     line-height: 130%;
+    pointer-events: none;
 
     @media screen and (max-width: 1280px) {
-        margin-left: calc(50% - 200px);
+        top: calc(50% + 0px);
+        left: calc(50% - 200px);
         font-size: 15px;
-        width: 480px;
+        width: 525px;
     }
 
     @media screen and (max-width: 767px) {
-        margin-left: calc(50% - 105px);
-        width: auto;
-        padding-right: 15px;
+        top: calc(50% + 20px);
+        left: calc(50% - 105px);
+        right: 15px;
         font-size: 12px;
+        width: 279px;
     }
 }
 
 .main-banner-button-wrapper {
     position: absolute;
-    bottom: 60px;
+    bottom: 70px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 20;
     pointer-events: auto;
 
     @media screen and (max-width: 1280px) {
-        bottom: 45px;
+        bottom: 50px;
     }
 
     @media screen and (max-width: 767px) {
-        bottom: 40px;
+        bottom: 75px;
     }
 }
