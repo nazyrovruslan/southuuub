@@ -213,10 +213,12 @@ export const MoreNew = () => {
 
         // Телефон: волна идёт за пальцем, в том числе пока страница прокручивается,
         // а иконкой становится крестик под пальцем. После касания иконка остаётся на месте.
+        let touchedCell = -1;
         const onTouch = (event: TouchEvent) => {
             const touch = event.touches[0];
             if (!touch) return;
             const nearest = wave(touch);
+            touchedCell = nearest;
             const cell = cells[nearest];
             if (cell?.dataset.row && cell.dataset.col) {
                 const row = Number(cell.dataset.row);
@@ -229,22 +231,31 @@ export const MoreNew = () => {
             }
         };
 
+        // палец убрали: иконка остаётся открытой, а соседние крестики так и стоят повёрнутыми
+        // вокруг неё, как вокруг курсора на десктопе
+        const onTouchEnd = () => {
+            const cell = cells[touchedCell];
+            if (!cell) return onLeave();
+            const r = cell.getBoundingClientRect();
+            wave({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+        };
+
         if (finePointer) {
             block.addEventListener('pointermove', onMove);
             block.addEventListener('pointerleave', onLeave);
         }
         block.addEventListener('touchstart', onTouch, { passive: true });
         block.addEventListener('touchmove', onTouch, { passive: true });
-        block.addEventListener('touchend', onLeave);
-        block.addEventListener('touchcancel', onLeave);
+        block.addEventListener('touchend', onTouchEnd);
+        block.addEventListener('touchcancel', onTouchEnd);
         return () => {
             window.removeEventListener('resize', updateHitArea);
             block.removeEventListener('pointermove', onMove);
             block.removeEventListener('pointerleave', onLeave);
             block.removeEventListener('touchstart', onTouch);
             block.removeEventListener('touchmove', onTouch);
-            block.removeEventListener('touchend', onLeave);
-            block.removeEventListener('touchcancel', onLeave);
+            block.removeEventListener('touchend', onTouchEnd);
+            block.removeEventListener('touchcancel', onTouchEnd);
             cancelAnimationFrame(frame);
             crosses.forEach((cross) => { if (cross) cross.style.transform = ''; });
         };
