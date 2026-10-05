@@ -48,6 +48,23 @@
     flex-shrink: 0;
 }
 
+/* Две части ролика лежат друг на друге, видна та, что сейчас играет */
+.video-wrapper .home-video {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.video-wrapper .home-video + .home-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.video-wrapper .home-video-active {
+    opacity: 1;
+}
+
 .main-banner-content {
     position: absolute;
     top: 0;

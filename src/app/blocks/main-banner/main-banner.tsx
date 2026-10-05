@@ -12,13 +12,11 @@ import { NBSP, PRELOADER_HIDE_EVENT } from "@/app/constants";
 // ровно один шаг, сколько бы ни тянули. Шаги: заголовок, заголовок с подзаголовком,
 // второй заголовок, второй заголовок с подзаголовком. Ролик поделён на две части:
 // под первым заголовком крутится начало (крупные планы), второй заголовок начинается
-// с кадра, где буква U видна целиком, видео приближается, и дальше крутится конец ролика. Пока шаги
+// с кадра, где буква U видна целиком, видео приближается, и дальше крутится конец ролика.
+// Части — отдельные файлы со своим loop: перемотка внутри одного ролика в Safari подвисала. Пока шаги
 // не пройдены, страница стоит наверху; после последнего шага следующий свайп прокручивает
 // страницу как обычно, а свайп вниз у самого верха возвращает шаги назад.
 const HERO_LAST_STEP = 3;
-// первая часть ролика — до этой секунды, вторая — с этой
-const HERO_PART1_END = 8.4;
-const HERO_PART2_START = 9;
 const HERO_VIDEO_ZOOM = 1.5;
 // жест закончился, если колесо молчит столько миллисекунд (инерция трекпада идёт дольше)
 const HERO_GESTURE_GAP_MS = 180;
@@ -32,6 +30,9 @@ export const MainBanner = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoWrapperRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const video2Ref = useRef<HTMLVideoElement>(null);
+  // часть ролика, которая сейчас на экране (её запускает и ставит на паузу IntersectionObserver)
+  const activeVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const mainBannerText1 = useRef<HTMLDivElement>(null);
   const mainBannerText2 = useRef<HTMLDivElement>(null);
@@ -68,11 +69,12 @@ export const MainBanner = () => {
   useEffect(() => {
     const videoWrapper = videoWrapperRef.current;
     const video = videoRef.current;
+    const video2 = video2Ref.current;
     const text1 = mainBannerText1.current;
     const text2 = mainBannerText2.current;
     const text3 = mainBannerText3.current;
     const text4 = mainBannerText4.current;
-    if (!videoWrapper || !video || !text1 || !text2 || !text3 || !text4) return;
+    if (!videoWrapper || !video || !video2 || !text1 || !text2 || !text3 || !text4) return;
 
     const texts = [text1, text2, text3, text4];
     // какие тексты видны на каждом шаге
@@ -80,6 +82,16 @@ export const MainBanner = () => {
 
     let step = 0;
     const secondPart = (s: number) => s >= 2;
+    // нужная часть ролика проявляется поверх другой и играет с начала, другая встаёт на паузу
+    const showPart = (second: boolean) => {
+      const [on, off] = second ? [video2, video] : [video, video2];
+      activeVideoRef.current = on;
+      on.currentTime = 0;
+      on.play().catch(() => {});
+      on.classList.add("home-video-active");
+      off.classList.remove("home-video-active");
+      off.pause();
+    };
     const showStep = (next: number) => {
       if (next === step) return;
       const prev = step;
@@ -88,9 +100,7 @@ export const MainBanner = () => {
       const entering = STEPS[next].filter((text) => !STEPS[step].includes(text));
       step = next;
 
-      if (secondPart(next) !== secondPart(prev)) {
-        video.currentTime = secondPart(next) ? HERO_PART2_START : 0;
-      }
+      if (secondPart(next) !== secondPart(prev)) showPart(secondPart(next));
       gsap.to(videoWrapper, {
         scale: secondPart(next) ? HERO_VIDEO_ZOOM : 1,
         duration: 0.9,
@@ -129,28 +139,7 @@ export const MainBanner = () => {
     gsap.set(STEPS[startStep], { opacity: 1, y: 0 });
     step = startStep;
     gsap.set(videoWrapper, { scale: secondPart(step) ? HERO_VIDEO_ZOOM : 1 });
-    if (secondPart(step)) video.currentTime = HERO_PART2_START;
-
-    // ролик крутится только в своей части: первая с начала до HERO_PART1_END,
-    // вторая с HERO_PART2_START до конца (loop у видео возвращает в 0 — переставляем).
-    // Проверка идёт по кадрам только пока видео играет.
-    let frame = 0;
-    const keepPart = () => {
-      frame = 0;
-      if (video.paused) return;
-      const time = video.currentTime;
-      if (secondPart(step)) {
-        if (time < HERO_PART2_START - 0.05) video.currentTime = HERO_PART2_START;
-      } else if (time >= HERO_PART1_END) {
-        video.currentTime = 0;
-      }
-      frame = requestAnimationFrame(keepPart);
-    };
-    const startKeepPart = () => {
-      if (!frame) frame = requestAnimationFrame(keepPart);
-    };
-    video.addEventListener("play", startKeepPart);
-    startKeepPart();
+    if (secondPart(step)) showPart(true);
 
     const atTop = () => window.scrollY <= 1;
     // жест забирает первый экран, если страница наверху и шаг в эту сторону ещё есть
@@ -224,8 +213,6 @@ export const MainBanner = () => {
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(frame);
-      video.removeEventListener("play", startKeepPart);
       gsap.killTweensOf([videoWrapper, ...texts]);
     };
   }, []);
@@ -233,10 +220,11 @@ export const MainBanner = () => {
   // Видео первого экрана не декодируется, пока его не видно
   useEffect(() => {
     const section = sectionRef.current;
-    const video = videoRef.current;
-    if (!section || !video) return;
+    if (!section || !videoRef.current) return;
 
     const observer = new IntersectionObserver(([entry]) => {
+      const video = activeVideoRef.current ?? videoRef.current;
+      if (!video) return;
       if (entry.isIntersecting) {
         if (video.paused) video.play().catch(() => {});
       } else {
@@ -253,14 +241,18 @@ export const MainBanner = () => {
   // Ставим атрибут явно и запускаем воспроизведение сами, когда видео готово.
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    const video2 = video2Ref.current;
+    if (!video || !video2) return;
 
-    video.muted = true;
-    video.setAttribute("muted", "");
-    video.setAttribute("playsinline", "");
+    [video, video2].forEach((element) => {
+      element.muted = true;
+      element.setAttribute("muted", "");
+      element.setAttribute("playsinline", "");
+    });
 
+    // запускаем только первую часть и только пока на экране она
     const tryPlay = () => {
-      if (video.paused) video.play().catch(() => {});
+      if (video.paused && (activeVideoRef.current ?? video) === video) video.play().catch(() => {});
     };
     tryPlay();
     video.addEventListener("loadeddata", tryPlay);
@@ -277,7 +269,7 @@ export const MainBanner = () => {
         <div className="video-wrapper" ref={videoWrapperRef}>
           <video
             ref={videoRef}
-            className="home-video"
+            className="home-video home-video-active"
             autoPlay
             muted
             loop
@@ -287,19 +279,43 @@ export const MainBanner = () => {
             poster="/v2/southuuub-poster.webp"
             disableRemotePlayback
           >
-            {/* Вертикальная версия для телефонов: 608×1080, ~2 МБ вместо 6 МБ */}
+            {/* Вертикальная версия для телефонов: 608×1080 */}
             <source
-              src="/v2/southuuub-mobile.mp4"
+              src="/v2/southuuub-mobile-a.mp4"
               type="video/mp4"
               media="(max-width: 767px) and (orientation: portrait)"
             />
-            {/* Ноутбуки без Retina: 720p, ~2 МБ вместо 4 МБ, на таких экранах разницы не видно */}
+            {/* Ноутбуки без Retina: 720p, на таких экранах разницы не видно */}
             <source
-              src="/v2/southuuub-720.mp4"
+              src="/v2/southuuub-720-a.mp4"
               type="video/mp4"
               media="(max-width: 1440px) and (max-resolution: 1.5dppx)"
             />
-            <source src="/v2/southuuub.mp4" type="video/mp4" />
+            <source src="/v2/southuuub-a.mp4" type="video/mp4" />
+          </video>
+          {/* Вторая часть: общий план с буквой U, для второго заголовка */}
+          <video
+            ref={video2Ref}
+            className="home-video"
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/v2/southuuub-b-poster.webp"
+            disableRemotePlayback
+            aria-hidden="true"
+          >
+            <source
+              src="/v2/southuuub-mobile-b.mp4"
+              type="video/mp4"
+              media="(max-width: 767px) and (orientation: portrait)"
+            />
+            <source
+              src="/v2/southuuub-720-b.mp4"
+              type="video/mp4"
+              media="(max-width: 1440px) and (max-resolution: 1.5dppx)"
+            />
+            <source src="/v2/southuuub-b.mp4" type="video/mp4" />
           </video>
         </div>
 
