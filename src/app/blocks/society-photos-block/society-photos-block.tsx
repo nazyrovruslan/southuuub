@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 
 import { IconS, IconO, IconU, IconT, IconH, IconB } from './cell-desktop';
@@ -125,6 +125,99 @@ const placeLetters = (prev: Letter[], config: CellConfig[], nextId: () => string
     return result;
 };
 
+type Point = { x: number; y: number };
+type Side = 'left' | 'right' | 'top' | 'bottom';
+
+const SIDES: Side[] = ['left', 'right', 'top', 'bottom'];
+const EASINGS = [
+    'cubic-bezier(0.65, 0, 0.35, 1)',
+    'cubic-bezier(0.22, 1, 0.36, 1)',
+    'cubic-bezier(0.83, 0, 0.17, 1)',
+    'cubic-bezier(0.34, 1.3, 0.64, 1)',
+];
+
+const random = (min: number, max: number) => min + Math.random() * (max - min);
+const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
+
+// Точка за краем блока со стороны side, в клетках относительно клетки (x, y)
+const offscreen = (side: Side, at: Point, cols: number, rows: number): Point => {
+    if (side === 'left') return { x: -1.3 - at.x, y: 0 };
+    if (side === 'right') return { x: cols + 0.3 - at.x, y: 0 };
+    if (side === 'top') return { x: 0, y: -1.3 - at.y };
+    return { x: 0, y: rows + 0.3 - at.y };
+};
+
+const toTranslate = ({ x, y }: Point, span: number) => `translate(${x * 100 / span}%, ${y * 100}%)`;
+
+// Смена кадра: буквы двигаются не строем. Часть переезжает в новую клетку со своей
+// задержкой, скоростью и характером движения, часть улетает за край блока и влетает
+// с другой стороны. Лишние улетают, новые влетают.
+const animateLetters = (
+    letters: Letter[],
+    prevPositions: Map<string, Point>,
+    elements: Map<string, HTMLDivElement>,
+    cols: number,
+    rows: number,
+) => {
+    letters.forEach(letter => {
+        const element = elements.get(letter.id);
+        const prev = prevPositions.get(letter.id);
+        const cell = letter.cell;
+        const span = cell.colSpan ?? 1;
+        if (!element) return;
+
+        const delay = random(0, 0.35) * 1000;
+
+        if (letter.leaving) {
+            if (!prev) return;
+            const exit = offscreen(pick(SIDES), cell, cols, rows);
+            element.animate(
+                [{ transform: toTranslate({ x: 0, y: 0 }, span) }, { transform: toTranslate(exit, span) }],
+                { duration: random(600, 900), delay, easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' },
+            );
+            return;
+        }
+
+        if (!prev) {
+            if (!letter.isNew) return;
+            const entry = offscreen(pick(SIDES), cell, cols, rows);
+            element.animate(
+                [{ transform: toTranslate(entry, span) }, { transform: toTranslate({ x: 0, y: 0 }, span) }],
+                { duration: random(700, 1000), delay: delay + 300, easing: pick(EASINGS), fill: 'backwards' },
+            );
+            return;
+        }
+
+        if (prev.x === cell.x && prev.y === cell.y) return;
+
+        const start = { x: prev.x - cell.x, y: prev.y - cell.y };
+
+        if (Math.random() < 0.4) {
+            // улетает за один край и влетает с другого
+            const outSide = pick(SIDES);
+            const inSide = pick(SIDES.filter(side => side !== outSide));
+            const exitFromPrev = offscreen(outSide, prev, cols, rows);
+            const exit = { x: start.x + exitFromPrev.x, y: start.y + exitFromPrev.y };
+            const entry = offscreen(inSide, cell, cols, rows);
+            element.animate(
+                [
+                    { transform: toTranslate(start, span), offset: 0, easing: 'cubic-bezier(0.55, 0, 1, 0.45)' },
+                    { transform: toTranslate(exit, span), offset: 0.45 },
+                    { transform: toTranslate(entry, span), offset: 0.45, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+                    { transform: toTranslate({ x: 0, y: 0 }, span), offset: 1 },
+                ],
+                { duration: random(1100, 1400), delay, fill: 'backwards' },
+            );
+            return;
+        }
+
+        element.animate(
+            [{ transform: toTranslate(start, span) }, { transform: toTranslate({ x: 0, y: 0 }, span) }],
+            { duration: random(650, 1100), delay, easing: pick(EASINGS), fill: 'backwards' },
+        );
+    });
+};
+
 const renderLetterContent = (cell: CellConfig) => (
     cell.type === 'text' ? (
         <div className={`text-cell ${FONT_MONT_BOOK.className}`}>
@@ -164,6 +257,8 @@ export const SocietyPhotosBlock = () => {
     const idCounterRef = useRef(0);
     const nextId = useCallback(() => `letter-${idCounterRef.current++}`, []);
     const [letters, setLetters] = useState<Letter[]>(() => placeLetters([], DESKTOP_CELL_POSITIONS[0] as CellConfig[], nextId));
+    const letterElementsRef = useRef(new Map<string, HTMLDivElement>());
+    const letterPositionsRef = useRef(new Map<string, Point>());
 
     useEffect(() => {
         const header = document.querySelector('#header');
@@ -270,6 +365,22 @@ export const SocietyPhotosBlock = () => {
 
     const rows = device === 'tablet' ? 6 : device === 'mobile' ? 9 : 5;
     const cols = device === 'tablet' ? 5 : device === 'mobile' ? 5 : 7;
+
+    // Движение букв запускаем до отрисовки кадра: буква стоит в новой клетке,
+    // а анимация ведёт её туда из прежней
+    useLayoutEffect(() => {
+        const positions = letterPositionsRef.current;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!reduceMotion && positions.size > 0) {
+            animateLetters(letters, positions, letterElementsRef.current, cols, rows);
+        }
+
+        positions.clear();
+        letters.forEach(letter => {
+            if (!letter.leaving) positions.set(letter.id, { x: letter.cell.x, y: letter.cell.y });
+        });
+    }, [letters, cols, rows]);
 
     const renderGrid = useCallback(() => {
         const grid = [];
@@ -386,15 +497,24 @@ export const SocietyPhotosBlock = () => {
                             <div
                                 key={letter.id}
                                 data-span={span}
-                                className={`society-letter ${letter.isNew ? 'entering' : ''} ${letter.leaving ? 'leaving' : ''}`}
+                                data-kind={letter.cell.type}
+                                className={`society-letter ${letter.leaving ? 'leaving' : ''}`}
                                 style={{
                                     width: `${100 * span / cols}%`,
                                     height: `${100 / rows}%`,
                                     transform: `translate(${letter.cell.x * 100 / span}%, ${letter.cell.y * 100}%)`,
                                 }}
                             >
-                                <div className='cell-content'>
-                                    {renderLetterContent(letter.cell)}
+                                <div
+                                    className='society-letter-inner'
+                                    ref={element => {
+                                        if (element) letterElementsRef.current.set(letter.id, element);
+                                        else letterElementsRef.current.delete(letter.id);
+                                    }}
+                                >
+                                    <div className='cell-content'>
+                                        {renderLetterContent(letter.cell)}
+                                    </div>
                                 </div>
                             </div>
                         );
