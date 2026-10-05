@@ -61,7 +61,7 @@
 
     /* крестик двигает волна покадрово, CSS-переход ей бы мешал */
     .more-new-svg-icon-cross {
-        transition: opacity 0.7s ease-in-out 250ms;
+        transition: opacity 0.2s ease-out;
     }
 }
 
@@ -105,8 +105,8 @@
 
 .more-new-svg-icon {
     position: absolute;
-    transition: transform 0.5s ease, opacity 0.7s ease-in-out;
-    transition-delay: 250ms;
+    /* смена крестика на иконку при наведении: быстро и без задержки */
+    transition: transform 0.5s ease, opacity 0.2s ease-out;
     display: block;
 }
 
