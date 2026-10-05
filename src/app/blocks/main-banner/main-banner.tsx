@@ -343,6 +343,29 @@ export const MainBanner = () => {
     setupSnapLogic,
   ]);
 
+  // Safari не всегда запускает autoPlay у видео, которое React вставил на клиенте:
+  // muted у React — свойство, а не атрибут, и Safari считает видео «со звуком».
+  // Ставим атрибут явно и запускаем воспроизведение сами, когда видео готово.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+
+    const tryPlay = () => {
+      if (video.paused) video.play().catch(() => {});
+    };
+    tryPlay();
+    video.addEventListener("loadeddata", tryPlay);
+    video.addEventListener("canplay", tryPlay);
+    return () => {
+      video.removeEventListener("loadeddata", tryPlay);
+      video.removeEventListener("canplay", tryPlay);
+    };
+  }, []);
+
   return (
     <div className="main-banner-wrapper" id="main-banner" ref={sectionRef}>
       <div className="main-banner-pin-wrapper" ref={pinRef}>
