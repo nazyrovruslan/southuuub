@@ -1,16 +1,17 @@
 /* main-banner.css */
+/* Высота секции = экран + путь прокрутки (2,2 экрана), первый экран закреплён sticky.
+   overflow не задаём: hidden у предка выключает sticky. */
 .main-banner-wrapper {
     position: relative;
     max-width: 1920px;
-    min-height: 100vh;
-    height: 100vh;
+    height: 320vh;
     margin: 0 auto;
-    overflow: hidden;
     padding: 0;
 }
 
 .main-banner-pin-wrapper {
-    position: relative;
+    position: sticky;
+    top: 0;
     height: 100vh;
     width: 100%;
     overflow: hidden;
