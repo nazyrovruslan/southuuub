@@ -15,17 +15,8 @@
   html .accordions-block-component .ant-collapse-expand-icon { width: 2.1875vw !important; height: 2.1875vw !important; }
   html .accordions-block-label { font-size: 2.5vw; }
   html .accordions-block-children { font-size: 1.25vw; }
-  /* src/app/blocks/accordions-block-animate/accordions-block.css */
-  html .accordions-block-wrapper { max-width: none; padding: 10.4167vw 3.125vw; }
-  html .accordions-block-title { padding-bottom: 10.4167vw; font-size: 3.6458vw; }
-  html .accordion-header { padding: 1.25vw 0; gap: 0.8333vw; }
-  html .accordions-block-label { font-size: 2.5vw; }
-  html .accordion-icon { width: 2.4479vw; height: 2.4479vw; }
-  html .accordion-content-inner { padding-bottom: 1.25vw; }
-  html .accordions-block-children { font-size: 1.25vw; }
   /* src/app/blocks/block-with-u-animate/block-with-u-animate.css */
   html .block-with-u-animate { max-width: none; padding: 1.5625vw 3.125vw; gap: 3.9583vw; }
-  html .block-with-u-animate-logo-icon-wrapper { height: 2.6042vw; }
   html .block-with-u-animate-logo-icon { height: 1.0938vw; }
   html .block-with-u-animate-row-0 { gap: calc((100% - (2.6042vw * var(--u-columns, 12))) / (var(--u-columns, 12) - 1)); }
   html .block-with-u-animate-row-0 div:first-child { width: calc(5.2083vw + ((100% - (2.6042vw * var(--u-columns, 12))) / (var(--u-columns, 12) - 1))); }
@@ -91,11 +82,9 @@
   html .main-banner-button-wrapper { bottom: 3.6458vw; }
   /* src/app/blocks/more-new/more-new.css */
   html .more-new { max-width: none; padding: 8.3333vw 3.125vw 2.8125vw; gap: 2.6042vw; }
-  html .more-new-logo-icon-wrapper { height: 2.6042vw; }
-  html .more-new-logo-icon { height: 2.6042vw; }
   html .more-new-cell { width: 2.6042vw; height: 2.6042vw; }
   html .more-new-special-cell-third-row { font-size: 2.9167vw; }
-  html .more-new-row-0, html .more-new-row-1, html .more-new-row-2, html .more-new-row-3, html .more-new-row-4, html .more-new-row-5, html .more-new-row-6, html .more-new-row-7 { gap: calc((100% - (2.6042vw * var(--more-new-columns, 13))) / (var(--more-new-columns, 13) - 1)); }
+  html .more-new-row-0, html .more-new-row-1, html .more-new-row-2, html .more-new-row-3, html .more-new-row-4, html .more-new-row-5, html .more-new-row-6 { gap: calc((100% - (2.6042vw * var(--more-new-columns, 13))) / (var(--more-new-columns, 13) - 1)); }
   html .more-new-row-3 .more-new-special-cell-wrapper { width: calc(18.2292vw + ((100% - (2.6042vw * var(--more-new-columns, 13))) / (var(--more-new-columns, 13) - 1)) * 6); }
   /* src/app/blocks/our-projects-scrollable-block/our-projects-scrollable-block.css */
   html .our-projects-scrollable-block-wrapper { max-width: none; padding: 0 0 0 4.1667vw; margin: 0.2083vw auto 0; }

@@ -343,14 +343,7 @@ export const MoreNew = () => {
 
     const getRowCells = (row: number) => {
         if (row === 3) {
-            if (device === 'desktop_s') {
-                return [
-                    { type: 'svg', col: 0, span: 1 },
-                    { type: 'special', col: 1, span: 7 },
-                    ...Array.from({ length: columns - 8 }, (_, i) => ({ type: 'svg', col: i + 8, span: 1 })),
-                ];
-            }
-
+            // desktop_s раскладывается так же, как десктоп (последний return)
             if (device === 'tablet') {
                 return [
                     { type: 'svg', col: 0, span: 1 },

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import Image from 'next/image';
 
-import { IconS, IconO, IconU, IconT, IconH, IconB } from './cell-desktop';
+import { IconS, IconO, IconU, IconT, IconH, IconB, DESKTOP_CELL_POSITIONS, TABLET_CELL_POSITIONS } from './cell-desktop';
 
 import SocietyPhoto1 from '../../../../public/v2/society/society-1.jpg';
 import SocietyPhoto2 from '../../../../public/v2/society/society-2.jpg';
@@ -22,7 +22,6 @@ import SocietyPhoto14 from '../../../../public/v2/society/society-14.jpg';
 
 import './society-photos-block.css';
 import { FONT_IBM_PLEX_SERIF_LIGHT, FONT_MONT_BOOK } from '@/app/fonts';
-import { DESKTOP_CELL_POSITIONS, TABLET_CELL_POSITIONS } from './cell-desktop';
 import { MOBILE_FRAME_LAYOUTS, MOBILE_PHOTO_X } from './mobile-frames';
 
 type CellConfig = {

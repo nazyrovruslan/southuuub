@@ -114,7 +114,7 @@ export const Preloader = () => {
                 entryTypes: ['resource'],
                 buffered: true 
             });
-        } catch (e) {
+        } catch {
             console.warn('PerformanceObserver not supported, using fallback');
         }
 

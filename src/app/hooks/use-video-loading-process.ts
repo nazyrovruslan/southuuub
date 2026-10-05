@@ -40,17 +40,21 @@ export const useVideoLoadingProgress = (videoSelector: string) => {
       }
     }
 
-    // Используем MutationObserver для отслеживания изменений в DOM
+    // Используем MutationObserver для отслеживания изменений в DOM,
+    // пока видео не найдено: дальше следить за всеми изменениями страницы незачем
     const observer = new MutationObserver(() => {
       if (!videoRef.current && findVideoElement() && videoRef.current) {
         attachEvents(videoRef.current);
+        observer.disconnect();
       }
     });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    if (!videoRef.current) {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
 
     // Видео готово, как только может начать играть (canplay): полной буферизации не ждём.
     // Ошибка загрузки тоже считается готовностью, чтобы прелоадер не зависал.

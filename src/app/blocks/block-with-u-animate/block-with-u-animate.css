@@ -25,13 +25,6 @@
     align-items: center;
 }
 
-.block-with-u-animate-logo-icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    height: 50px;
-}
-
 .block-with-u-animate-logo-icon {
     height: 21px;
 }
@@ -213,7 +206,6 @@
     justify-content: center;
 }
 
-.special-cell-first-row,
 .special-cell-third-row {
     width: 100%;
     height: 100%;

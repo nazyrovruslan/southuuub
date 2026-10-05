@@ -46,8 +46,6 @@ const WAVE_FADE = 0.06;         // скорость затухания за ка
  * 1) Они должны при просто наведении увеличиваться медленно и медленно затухать
  * 2) Если юыстро проводить курсором, то они быстро увеличиваются и так же медленно затухают
  * 3) Пространство между ними???
- * 4) Динамическое количество
- * 5) Верхнюю строчку сделать как на макете не по сетке
  */
 
 export const BlockWithUAnimate = () => {
@@ -254,49 +252,22 @@ export const BlockWithUAnimate = () => {
 
         return (
             <div className="block-with-u-animate-svg-container" data-wave-letter>
-                {isVisibleB() ? (
-                    <Image
-                        src={B}
-                        alt=''
-                        width={20}
-                        height={21}
-                        className='block-with-u-animate-svg-icon'
-                        unoptimized
-                    />
-                ) : (
-                    <Image
-                        src={U}
-                        alt=''
-                        width={20}
-                        height={21}
-                        className='block-with-u-animate-svg-icon'
-                        unoptimized
-                    />
-                )}
+                <Image
+                    src={isVisibleB() ? B : U}
+                    alt=''
+                    width={20}
+                    height={21}
+                    className='block-with-u-animate-svg-icon'
+                    unoptimized
+                />
             </div>
         );
     };
 
     // Первый ряд на десктопе как в макете: логотип SOUTHU слева, а за ним на одну букву
     // больше, чем столбцов до правого края; буквы равномерно занимают оставшуюся ширину.
+    // desktop_s раскладывается так же, как десктоп (последняя ветка)
     const getRowCells = (row: number) => {
-        if (device === 'desktop_s') {
-            if (row === 0) {
-                return [
-                    { type: 'special', col: 0, span: 1 },
-                    ...Array.from({ length: columns - 1 }, (_, i) => ({ type: 'svg', col: i + 1, span: 1 }))
-                ];
-            } else if (row === 2) {
-                return [
-                    ...Array.from({ length: columns - 5 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
-                    { type: 'special', col: columns - 5, span: 4 },
-                    { type: 'svg', col: columns - 1, span: 1 }
-                ];
-            } else {
-                return Array.from({ length: columns }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
-            }
-        }
-
         if (device === 'tablet') {
             if (row === 0) {
                 return [

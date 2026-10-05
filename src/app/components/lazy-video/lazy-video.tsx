@@ -24,15 +24,17 @@ export const LazyVideo = ({ src, poster, id, className }: Props) => {
     video.muted = true;
     video.setAttribute('muted', '');
 
+    // Safari может отклонить play() до готовности данных: повторяем на canplay
+    // (один обработчик на все отклонённые попытки, а не по одному на каждую прокрутку)
+    const retryPlay = () => video.play().catch(() => {});
     const start = () => {
       if (video.preload !== 'auto') {
         video.preload = 'auto';
         video.load();
       }
       if (!reduceMotion && video.paused) {
-        // Safari может отклонить play() до готовности данных: повторяем на canplay
         video.play().catch(() => {
-          video.addEventListener('canplay', () => video.play().catch(() => {}), { once: true });
+          video.addEventListener('canplay', retryPlay, { once: true });
         });
       }
     };
@@ -47,7 +49,10 @@ export const LazyVideo = ({ src, poster, id, className }: Props) => {
 
     if (!('IntersectionObserver' in window)) {
       start();
-      return () => window.removeEventListener('scroll', onScroll);
+      return () => {
+        window.removeEventListener('scroll', onScroll);
+        video.removeEventListener('canplay', retryPlay);
+      };
     }
 
     const observer = new IntersectionObserver(
@@ -64,6 +69,7 @@ export const LazyVideo = ({ src, poster, id, className }: Props) => {
     return () => {
       observer.disconnect();
       window.removeEventListener('scroll', onScroll);
+      video.removeEventListener('canplay', retryPlay);
     };
   }, []);
 

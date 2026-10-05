@@ -47,7 +47,8 @@ export const InfinityBanner = () => {
 
     const trackWidth = track.scrollWidth / 2;
 
-    function animate(timestamp: number) {
+    // стрелочная функция, а не function: в ней TypeScript помнит, что track не null
+    const animate = (timestamp: number) => {
       if (!isPausedRef.current && isVisibleRef.current) {
         if (lastTimeRef.current === 0) {
           lastTimeRef.current = timestamp;
@@ -57,8 +58,6 @@ export const InfinityBanner = () => {
         currentOffsetRef.current += delta * SPEED;
         currentOffsetRef.current %= trackWidth;
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         track.style.transform = `translateX(-${currentOffsetRef.current}px)`;
         lastTimeRef.current = timestamp;
       } else {
@@ -66,7 +65,7 @@ export const InfinityBanner = () => {
       }
 
       animationRef.current = requestAnimationFrame(animate);
-    }
+    };
 
     const start = () => {
       if (!animationRef.current) animationRef.current = requestAnimationFrame(animate);

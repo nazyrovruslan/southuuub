@@ -30,7 +30,6 @@ const HERO_SWIPE_PX = 30;
 export const MainBanner = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
-  const pinRef = useRef<HTMLDivElement>(null);
   const videoWrapperRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -38,8 +37,6 @@ export const MainBanner = () => {
   const mainBannerText2 = useRef<HTMLDivElement>(null);
   const mainBannerText3 = useRef<HTMLDivElement>(null);
   const mainBannerText4 = useRef<HTMLDivElement>(null);
-
-  const buttonRef = useRef<HTMLDivElement>(null);
 
   // Появление первого экрана: прелоадер уезжает вверх, под ним уже идёт видео,
   // а контент немного выезжает снизу из прозрачности.
@@ -268,7 +265,7 @@ export const MainBanner = () => {
 
   return (
     <div className="main-banner-wrapper" id="main-banner" ref={sectionRef}>
-      <div className="main-banner-pin-wrapper" ref={pinRef}>
+      <div className="main-banner-pin-wrapper">
         <div className="video-wrapper" ref={videoWrapperRef}>
           <video
             ref={videoRef}
@@ -336,7 +333,7 @@ export const MainBanner = () => {
             состояние души.
           </div>
 
-          <div ref={buttonRef} className="main-banner-button-wrapper">
+          <div className="main-banner-button-wrapper">
             <MainBannerButton />
           </div>
         </div>
