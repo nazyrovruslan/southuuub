@@ -121,6 +121,12 @@
     }
 }
 
+/* С блока U до конца страницы: шапка без логотипа, только меню */
+.header_no_logo .header-logo-white,
+.header_no_logo .header-logo-black {
+    visibility: hidden;
+}
+
 .header_black {
     .header_item {
         color: rgb(17,17,17);

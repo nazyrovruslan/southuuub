@@ -91,6 +91,8 @@ export const BlockWithUAnimate = () => {
             if (blockRect.top <= 70) {
                 header.classList.toggle('header_black', blockRect.bottom <= 70);
             }
+            // С блока U и до конца страницы логотип в шапке не нужен: ниже свой логотип
+            header.classList.toggle('header_no_logo', blockRect.top <= 70);
 
             lastScrollY = currentScrollY;
         };
