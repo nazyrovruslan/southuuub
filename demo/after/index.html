@@ -44,7 +44,10 @@ function move(e){if(!ok())return-1;if(sync())gaps();var c=cells.map(function(x){
 for(var i=0;i<c.length;i++){var dx=c[i][0]-e.clientX,dy=c[i][1]-e.clientY,len=Math.hypot(dx,dy);if(len<nd){nd=len;n=i}var d=len/rad;tgt[i]=Math.exp(-d*d);if(len>.5)dir[i]={x:dx/len,y:dy/len,a:Math.atan2(dx,-dy)*180/Math.PI}}if(n>=0)tgt[n]=0;run();return n}
 function leave(){for(var i=0;i<tgt.length;i++)tgt[i]=0;run()}
 /* телефон: волна за пальцем, крестик под пальцем становится иконкой; повторное касание открывает ссылку */
-function touch(e){var t=e.touches[0];if(!t)return;var n=move(t);var cl=cells[n];if(!cl||!window.__mnSetHover)return;var row=+cl.dataset.row,col=+cl.dataset.col,h=window.__mnHover;if(e.type==='touchstart')window.__mnTouchOpen=!!h&&h.row===row&&h.col===col;if(!h||h.row!==row||h.col!==col)window.__mnSetHover({row:row,col:col})}
+var touched=-1;
+function touch(e){var t=e.touches[0];if(!t)return;var n=move(t);touched=n;var cl=cells[n];if(!cl||!window.__mnSetHover)return;var row=+cl.dataset.row,col=+cl.dataset.col,h=window.__mnHover;if(e.type==='touchstart')window.__mnTouchOpen=!!h&&h.row===row&&h.col===col;if(!h||h.row!==row||h.col!==col)window.__mnSetHover({row:row,col:col})}
+/* палец убрали: иконка открыта, соседние крестики остаются повёрнутыми вокруг неё */
+function touchEnd(){var cl=cells[touched];if(!cl)return leave();var r=cl.getBoundingClientRect();move({clientX:r.left+r.width/2,clientY:r.top+r.height/2})}
 function mouse(e){if(e.pointerType!=='touch'&&matchMedia('(hover:hover) and (pointer:fine)').matches)move(e)}
-function bind(){var b=document.getElementById('more-new');if(b&&b!==block){block=b;b.addEventListener('pointermove',mouse);b.addEventListener('pointerleave',leave);b.addEventListener('touchstart',touch,{passive:true});b.addEventListener('touchmove',touch,{passive:true});b.addEventListener('touchend',leave);b.addEventListener('touchcancel',leave);gaps()}}
+function bind(){var b=document.getElementById('more-new');if(b&&b!==block){block=b;b.addEventListener('pointermove',mouse);b.addEventListener('pointerleave',leave);b.addEventListener('touchstart',touch,{passive:true});b.addEventListener('touchmove',touch,{passive:true});b.addEventListener('touchend',touchEnd);b.addEventListener('touchcancel',touchEnd);gaps()}}
 bind();new MutationObserver(bind).observe(document.documentElement,{childList:true,subtree:true});addEventListener('resize',gaps);addEventListener('load',gaps);setTimeout(gaps,1500);})();</script></body></html>
