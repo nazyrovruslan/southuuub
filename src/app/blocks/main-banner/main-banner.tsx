@@ -388,6 +388,12 @@ export const MainBanner = () => {
               type="video/mp4"
               media="(max-width: 767px) and (orientation: portrait)"
             />
+            {/* Ноутбуки без Retina: 720p, ~2 МБ вместо 4 МБ, на таких экранах разницы не видно */}
+            <source
+              src="/v2/southuuub-720.mp4"
+              type="video/mp4"
+              media="(max-width: 1440px) and (max-resolution: 1.5dppx)"
+            />
             <source src="/v2/southuuub.mp4" type="video/mp4" />
           </video>
         </div>
