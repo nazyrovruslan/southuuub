@@ -67,11 +67,11 @@ export const BlockWithUAnimate = () => {
             const blockTop = blockRect.top - 70;
             const isScrollingUp = currentScrollY < lastScrollY;
             
-            // Проверяем, виден ли блок в области просмотра
-            const isVisible = blockRect.bottom > 0 && blockRect.top < window.innerHeight;
+            // Блок ещё не доехал до экрана → шапка видна. После этого блока до конца
+            // страницы шапку не показываем (идёт подвал с логотипом median.agency).
+            const isReached = blockRect.top < window.innerHeight;
 
-            if (!isVisible) {
-                // Блок покинул область видимости → показываем хедер
+            if (!isReached) {
                 header.classList.remove('header_hidden');
             } else {
                 // Блок виден → применяем исходную логику
