@@ -30,13 +30,9 @@ const getDesktopColumns = () => {
     return Math.max(DESKTOP_MIN_COLUMNS, Math.floor((content + DESKTOP_PITCH - 50) / DESKTOP_PITCH));
 };
 
-const FIXED_CELLS: Record<'tablet' | 'mobile', { row: number; col: number }[]> = {
-    tablet: [{ row: 1, col: 1 }, { row: 2, col: 5 }, { row: 5, col: 3 }],
-    mobile: [{ row: 1, col: 1 }, { row: 2, col: 3 }, { row: 5, col: 2 }],
-};
-
-// Волна на десктопе, как в блоке с буквами U: крестики отталкиваются от курсора и
-// поворачиваются тем сильнее, чем ближе курсор. Быстро реагируют, медленно возвращаются.
+// Волна, как в блоке с буквами U: крестики отталкиваются от курсора (на телефоне — от пальца)
+// и поворачиваются тем сильнее, чем ближе курсор. Быстро реагируют, медленно возвращаются.
+// Ближайший крестик превращается в иконку, на телефоне повторное касание открывает ссылку.
 const WAVE_RADIUS = 1.1;        // радиус влияния в шагах сетки по горизонтали
 const WAVE_SHIFT = 14;          // максимальный сдвиг от курсора, px
 const WAVE_TURN = 0.75;         // поворот: доля угла направления от курсора
@@ -46,10 +42,12 @@ const WAVE_FADE = 0.06;
 export const MoreNew = () => {
     const [device, setDevice] = useState<'desktop' | 'desktop_s' | 'tablet' | 'mobile'>('desktop');
     const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
-    const [fixedCells, setFixedCells] = useState<{ row: number; col: number }[]>([]);
-    const [isMobileVisible, setMobileVisible] = useState(false);
     const [desktopColumns, setDesktopColumns] = useState(DESKTOP_MIN_COLUMNS);
     const blockRef = useRef<HTMLDivElement>(null);
+    const hoveredCellRef = useRef(hoveredCell);
+    hoveredCellRef.current = hoveredCell;
+    // касание открывает ссылку, только если иконка в этой клетке уже была показана
+    const touchOpensLinkRef = useRef<boolean | null>(null);
 
     const getLinkWIthUtm = useGetLinkWithUtm();
 
@@ -121,52 +119,9 @@ export const MoreNew = () => {
     }, []);
 
     useEffect(() => {
-        if (device !== 'tablet' && device !== 'mobile') {
-            setFixedCells([]);
-            setMobileVisible(false);
-            return;
-        }
-
-        const targetBlock = document.querySelector('#more-new') as HTMLElement;
-        if (!targetBlock) return;
-
-        let lastScrollY = window.scrollY;
-
-        const changeOpen = (open: boolean) => {
-            setFixedCells(open ? FIXED_CELLS[device] : []);
-            setMobileVisible(open);
-        }
-
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            const isScrollingDown = currentScrollY > lastScrollY;
-            const rect = targetBlock.getBoundingClientRect();
-            const blockHeight = targetBlock.offsetHeight;
-
-            if (isScrollingDown && rect.bottom <= 250) {
-                changeOpen(false);
-            } else if (isScrollingDown && rect.top <= 70) {
-                changeOpen(true);
-            } else if (!isScrollingDown && rect.top <= 0 && rect.top > -(blockHeight / 2)) {
-                changeOpen(true);
-            } else if (rect.bottom <= -70) {
-                changeOpen(false);
-            } else {
-                changeOpen(false);
-            }
-
-            lastScrollY = currentScrollY;
-        };
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [device]);
-
-    useEffect(() => {
         const block = blockRef.current;
-        if (!block || (device !== 'desktop' && device !== 'desktop_s')) return;
-        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+        if (!block) return;
+        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
         const cells = Array.from(block.querySelectorAll<HTMLElement>('[data-wave-cell]'));
         const crosses = cells.map((cell) => cell.querySelector<HTMLElement>('[data-wave-cross]'));
@@ -219,7 +174,7 @@ export const MoreNew = () => {
             if (!frame) frame = requestAnimationFrame(tick);
         };
 
-        const onMove = (event: PointerEvent) => {
+        const wave = (point: { clientX: number; clientY: number }) => {
             const centers = cells.map((cell) => {
                 const r = cell.getBoundingClientRect();
                 return [r.left + r.width / 2, r.top + r.height / 2];
@@ -230,8 +185,8 @@ export const MoreNew = () => {
             let nearest = -1;
             let nearestDist = Infinity;
             centers.forEach(([cx, cy], i) => {
-                const dx = cx - event.clientX;
-                const dy = cy - event.clientY;
+                const dx = cx - point.clientX;
+                const dy = cy - point.clientY;
                 const len = Math.hypot(dx, dy);
                 if (len < nearestDist) { nearestDist = len; nearest = i; }
                 const d = len / radius;
@@ -244,94 +199,58 @@ export const MoreNew = () => {
             // крестик под курсором превращается в иконку, его не двигаем
             if (nearest >= 0) target[nearest] = 0;
             run();
+            return nearest;
         };
         const onLeave = () => {
             target.fill(0);
             run();
         };
 
-        block.addEventListener('pointermove', onMove);
-        block.addEventListener('pointerleave', onLeave);
+        const onMove = (event: PointerEvent) => {
+            if (event.pointerType === 'touch') return;
+            wave(event);
+        };
+
+        // Телефон: волна идёт за пальцем, в том числе пока страница прокручивается,
+        // а иконкой становится крестик под пальцем. После касания иконка остаётся на месте.
+        const onTouch = (event: TouchEvent) => {
+            const touch = event.touches[0];
+            if (!touch) return;
+            const nearest = wave(touch);
+            const cell = cells[nearest];
+            if (cell?.dataset.row && cell.dataset.col) {
+                const row = Number(cell.dataset.row);
+                const col = Number(cell.dataset.col);
+                if (event.type === 'touchstart') {
+                    const shown = hoveredCellRef.current;
+                    touchOpensLinkRef.current = shown?.row === row && shown.col === col;
+                }
+                setHoveredCell((prev) => (prev?.row === row && prev.col === col ? prev : { row, col }));
+            }
+        };
+
+        if (finePointer) {
+            block.addEventListener('pointermove', onMove);
+            block.addEventListener('pointerleave', onLeave);
+        }
+        block.addEventListener('touchstart', onTouch, { passive: true });
+        block.addEventListener('touchmove', onTouch, { passive: true });
+        block.addEventListener('touchend', onLeave);
+        block.addEventListener('touchcancel', onLeave);
         return () => {
             window.removeEventListener('resize', updateHitArea);
             block.removeEventListener('pointermove', onMove);
             block.removeEventListener('pointerleave', onLeave);
+            block.removeEventListener('touchstart', onTouch);
+            block.removeEventListener('touchmove', onTouch);
+            block.removeEventListener('touchend', onLeave);
+            block.removeEventListener('touchcancel', onLeave);
             cancelAnimationFrame(frame);
             crosses.forEach((cross) => { if (cross) cross.style.transform = ''; });
         };
     }, [device, desktopColumns]);
 
-    // Returns active hover sources depending on device
-    const getActiveSources = (): { row: number; col: number }[] => {
-        if (device === 'tablet' || device === 'mobile') return fixedCells;
-        return hoveredCell ? [hoveredCell] : [];
-    };
-
-    const isSpecialCell = (row: number, col: number): boolean => {
-        if (device === 'mobile') {
-            return row === 3 && col === 0;
-        }
-        return row === 3 && col === 1;
-    };
-
-    const shouldRotate = (row: number, col: number): boolean => {
-        // на десктопе крестики двигает волна (см. эффект выше)
-        if (device === 'desktop' || device === 'desktop_s') return false;
-        const sources = getActiveSources();
-        if (sources.length === 0) return false;
-
-        return sources.some((source) => {
-            if (isSpecialCell(source.row, source.col)) return false;
-
-            const isNeighbor =
-                Math.abs(row - source.row) <= 1 &&
-                Math.abs(col - source.col) <= 1 &&
-                !(row === source.row && col === source.col);
-
-            if (isNeighbor && isSpecialCell(row, col)) return false;
-            return isNeighbor;
-        });
-    };
-
-    const getRotateIcon = (
-        row: number,
-        col: number
-    ): 'top' | 'top-right' | 'right' | 'bottom-right' | 'bottom' | 'bottom-left' | 'left' | 'top-left' | 'none' => {
-        if (!shouldRotate(row, col)) return 'none';
-
-        const sources = getActiveSources();
-
-        const source = sources.find((s) => {
-            if (isSpecialCell(s.row, s.col)) return false;
-            const isNeighbor =
-                Math.abs(row - s.row) <= 1 &&
-                Math.abs(col - s.col) <= 1 &&
-                !(row === s.row && col === s.col);
-            if (isNeighbor && isSpecialCell(row, col)) return false;
-            return isNeighbor;
-        });
-
-        if (!source) return 'none';
-
-        const rowDiff = row - source.row;
-        const colDiff = col - source.col;
-
-        if (rowDiff === -1 && colDiff === 0)  return 'top';
-        if (rowDiff === -1 && colDiff === 1)  return 'top-right';
-        if (rowDiff === 0  && colDiff === 1)  return 'right';
-        if (rowDiff === 1  && colDiff === 1)  return 'bottom-right';
-        if (rowDiff === 1  && colDiff === 0)  return 'bottom';
-        if (rowDiff === 1  && colDiff === -1) return 'bottom-left';
-        if (rowDiff === 0  && colDiff === -1) return 'left';
-        if (rowDiff === -1 && colDiff === -1) return 'top-left';
-
-        return 'none';
-    };
-
     const isHovered = (row: number, col: number): boolean => {
-        if (device === 'tablet' || device === 'mobile') {
-            return fixedCells.some((c) => c.row === row && c.col === col);
-        }
         if (!hoveredCell) return false;
         return hoveredCell.row === row && hoveredCell.col === col;
     };
@@ -348,118 +267,12 @@ export const MoreNew = () => {
             );
         }
 
-        const rotateIcon = getRotateIcon(row, col);
         const isCurrentlyHovered = isHovered(row, col);
 
-        const style = { transform: '' };
-
-        if (device === 'mobile' && isMobileVisible) {
-            if (row === 0 && col === 0) {
-                style.transform = `translate(0px, -10px) rotate(15deg)`;
-            } else if (row === 0 && col === 1) {
-                style.transform = `translate(0px, -10px) rotate(0)`;
-            } else if (row === 0 && col === 2) {
-                style.transform = `translate(0px, -10px) rotate(-15deg)`;
-            }
-
-            else if (row === 1 && col === 0) {
-                style.transform = `translate(0, 5px) rotate(0)`;
-            } else if (row === 1 && col === 2) {
-                style.transform = `translate(0px, 5px) rotate(15deg)`;
-            } else if (row === 1 && col === 3) {
-                style.transform = `translate(0px, -10px) rotate(0)`;
-            } else if (row === 1 && col === 4) {
-                style.transform = `translate(0px, -10px) rotate(-15deg)`;
-            }
-
-            else if (row === 2 && col === 0) {
-                style.transform = `translate(0, 10px) rotate(-15deg)`;
-            } else if (row === 2 && col === 1) {
-                style.transform = `translate(0px, 10px) rotate(0)`;
-            } else if (row === 2 && col === 2) {
-                style.transform = `translate(0px, 10px) rotate(-15deg)`;
-            } else if (row === 2 && col === 4) {
-                style.transform = `translate(0px, 10px) rotate(15deg)`;
-            }
-
-            else if (row === 4 && col === 1) {
-                style.transform = `translate(0, -10px) rotate(15deg)`;
-            } else if (row === 4 && col === 2) {
-                style.transform = `translate(0px, -10px) rotate(0)`;
-            } else if (row === 4 && col === 3) {
-                style.transform = `translate(0px, -10px) rotate(-15deg)`;
-            }
-
-            else if (row === 5 && col === 1) {
-                style.transform = `translate(-5px, 0) rotate(-15deg)`;
-            } else if (row === 5 && col === 3) {
-                style.transform = `translate(5px, 0) rotate(15deg)`;
-            }
-
-            else if (row === 6 && col === 1) {
-                style.transform = `translate(0, 10px) rotate(-15deg)`;
-            } else if (row === 6 && col === 2) {
-                style.transform = `translate(0px, 10px) rotate(0)`;
-            } else if (row === 6 && col === 3) {
-                style.transform = `translate(0px, 10px) rotate(15deg)`;
-            }
-        } else if (device === 'tablet' ? isMobileVisible : true) {
-            switch (rotateIcon) {
-                case 'top':
-                    style.transform = `translate(0px, -10px) rotate(35deg)`;
-                    break;
-                case 'bottom':
-                    style.transform = `translate(0px, 10px) rotate(-35deg)`;
-                    break;
-                case 'top-right':
-                    style.transform = `translate(10px, -10px) rotate(45deg)`;
-                    break;
-                case 'bottom-left':
-                    style.transform = `translate(-10px, 10px) rotate(-135deg)`;
-                    break;
-                case 'top-left':
-                    style.transform = `translate(-10px, -10px) rotate(-45deg)`;
-                    break;
-                case 'bottom-right':
-                    style.transform = `translate(10px, 10px) rotate(135deg)`;
-                    break;
-                case 'right':
-                    style.transform = `translate(10px, 0px) rotate(90deg)`;
-                    break;
-                case 'left':
-                    style.transform = `translate(-10px, 0px) rotate(-90deg)`;
-                    break;
-                default:
-                    break;
-            }
-        }
-
         const linkTo = () => {
-            if (device === 'tablet') {
-                if (row === 1 && col === 1) {
-                    return window.open(getLinkWIthUtm(TELEGRAM_CHANELL_LINK), '_blank');
-                }
-                if (row === 2 && col === 5) {
-                    return window.open(getLinkWIthUtm(YOUTUBE_PLAYLIST_LINK), '_blank');
-                }
-                if (row === 5 && col === 3) {
-                    return window.open(getLinkWIthUtm(SOUTHHUB_YOUTUBE), '_blank');
-                }
-                return;
-            }
-
-            if (device === 'mobile') {
-                if (row === 1 && col === 1) {
-                    return window.open(getLinkWIthUtm(TELEGRAM_CHANELL_LINK), '_blank');
-                }
-                if (row === 2 && col === 3) {
-                    return window.open(getLinkWIthUtm(YOUTUBE_PLAYLIST_LINK), '_blank');
-                }
-                if (row === 5 && col === 2) {
-                    return window.open(getLinkWIthUtm(SOUTHHUB_YOUTUBE), '_blank');
-                }
-                return;
-            }
+            const touchOpensLink = touchOpensLinkRef.current;
+            touchOpensLinkRef.current = null;
+            if (touchOpensLink === false) return;
 
             if ([0, 1].includes(row)) {
                 return window.open(getLinkWIthUtm(TELEGRAM_CHANELL_LINK), '_blank');
@@ -481,7 +294,7 @@ export const MoreNew = () => {
                     height={device === 'mobile' ? 30 : 50}
                     className="more-new-svg-icon more-new-svg-icon-cross"
                     data-wave-cross
-                    style={{ ...style, opacity: isCurrentlyHovered ? 0 : 1 }}
+                    style={{ opacity: isCurrentlyHovered ? 0 : 1 }}
                     unoptimized
                 />
                 <Image
@@ -549,16 +362,16 @@ export const MoreNew = () => {
         }
     };
 
+    // касание на телефоне ставит иконку само (волна выше), мышиные события браузер
+    // при касании тоже присылает, их пропускаем, чтобы иконка не пропадала
     const handleMouseEnter = (row: number, col: number, type: string) => {
-        if (device === 'desktop' || device === 'desktop_s') {
-            if (type === 'svg') {
-                setHoveredCell({ row, col });
-            }
+        if (type === 'svg' && window.matchMedia('(hover: hover)').matches) {
+            setHoveredCell({ row, col });
         }
     };
 
     const handleMouseLeave = () => {
-        if (device === 'desktop' || device === 'desktop_s') {
+        if (window.matchMedia('(hover: hover)').matches) {
             setHoveredCell(null);
         }
     };
@@ -582,6 +395,8 @@ export const MoreNew = () => {
                                     cell.type === 'special' ? 'more-new-special-cell-wrapper' : ''
                                 }`}
                                 data-wave-cell={cell.type === 'svg' ? '' : undefined}
+                                data-row={row}
+                                data-col={cell.col}
                                 onMouseEnter={() => handleMouseEnter(row, cell.col, cell.type)}
                                 onMouseLeave={handleMouseLeave}
                             >
