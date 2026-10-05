@@ -8,6 +8,7 @@ import Image from 'next/image';
 import PreloaderImg1 from '../../../../public/v2/preloader-icon-1.svg'
 import PreloaderImg2 from '../../../../public/v2/preloader-icon-2.svg'
 import PreloaderImg3 from '../../../../public/v2/preloader-icon-3.svg'
+import { useVideoLoadingProgress } from '@/app/hooks/use-video-loading-process';
 import { PRELOADER_HIDE_EVENT } from '@/app/constants';
 
 declare global {
@@ -21,12 +22,9 @@ const STEP_INTERVAL_MS = 500;
 // совпадает с transition в preloader.css: прелоадер успевает целиком уехать вверх
 const HIDE_ANIMATION_MS = 600;
 const OVERFLOW_RESTORE_DELAY_MS = 500;
-// Прелоадер не ждёт ни видео, ни картинок: уходит, как только готовы шрифты
-// (иначе текст первого экрана перескочит), но не раньше MIN_SHOW_MS, чтобы не мигать,
-// и не позже MAX_WAIT_MS, даже если шрифты не пришли. Видео первого экрана догружается
-// уже под постером.
-const MIN_SHOW_MS = 600;
-const MAX_WAIT_MS = 1500;
+// Прелоадер уходит не позже этого времени, даже если видео не загрузилось
+// (энергосбережение на iOS, экономия трафика, блокировщик, нет кодека).
+const MAX_WAIT_MS = 2500;
 
 export const Preloader = () => {
     const [isVisible, setVisible] = useState(true);
@@ -36,30 +34,22 @@ export const Preloader = () => {
 
     const overflowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const [isReady, setReady] = useState(false);
+    const [isTimedOut, setTimedOut] = useState(false);
 
-    const combinedProgress = isReady ? 100 : Math.min(pageLoadProgress, 99);
+    // Ждём только видео первого экрана: остальные грузятся при прокрутке.
+    const heroVideoProgress = useVideoLoadingProgress('main-video-banner');
+
+    const combinedProgress = isTimedOut ? 100 : Math.min(
+        Math.round((heroVideoProgress * 0.5) + (pageLoadProgress * 0.5)),
+        100
+    );
 
     useEffect(() => {
-        let cancelled = false;
-        const finish = () => {
-            if (!cancelled) setReady(true);
-        };
-        const timer = setTimeout(finish, MAX_WAIT_MS);
-        Promise.all([
-            document.fonts?.ready,
-            new Promise(resolve => setTimeout(resolve, MIN_SHOW_MS)),
-        ]).then(finish, finish);
-
-        return () => {
-            cancelled = true;
-            clearTimeout(timer);
-        };
+        const timer = setTimeout(() => setTimedOut(true), MAX_WAIT_MS);
+        return () => clearTimeout(timer);
     }, []);
 
-    // Проценты на прелоадере; после его ухода подсчёт останавливается
     useEffect(() => {
-        if (isReady) return;
         if (document.readyState === 'complete') {
             setPageLoadProgress(100);
             return;
@@ -143,7 +133,7 @@ export const Preloader = () => {
             }
             clearInterval(interval);
         };
-    }, [isReady]);
+    }, []);
 
     // Управление overflow с задержкой при скрытии
     useEffect(() => {
@@ -174,13 +164,12 @@ export const Preloader = () => {
     }, [isVisible]);
 
     useEffect(() => {
-        if (!isVisible) return;
         const interval = setInterval(() => {
             setActiveStep((prev) => (prev + 1) % PRELOADER_IMAGES.length);
         }, STEP_INTERVAL_MS);
 
         return () => clearInterval(interval);
-    }, [isVisible]);
+    }, []);
 
     useEffect(() => {
         if (combinedProgress < 100) return;
