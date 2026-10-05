@@ -103,6 +103,17 @@
     pointer-events: none;
 }
 
+/* Прокрутка вверх возвращает шапку целиком, с логотипом */
+.header.header.header_peek {
+    transform: none;
+    pointer-events: auto;
+}
+
+.header.header_peek.header_hidden_logo .header-logo {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .header_hidden_logo {
     .header-logo {
         opacity: 0;

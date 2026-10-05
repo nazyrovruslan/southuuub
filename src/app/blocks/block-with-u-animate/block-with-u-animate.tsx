@@ -85,6 +85,13 @@ export const BlockWithUAnimate = () => {
                 }
             }
             
+            // Цвет шапки, когда её вызвали прокруткой вверх: на чёрном блоке U — белая,
+            // ниже, на светлом подвале — чёрная. Обработчик подключён позже блока
+            // «как стать частью сообщества», поэтому его решение последнее.
+            if (blockRect.top <= 70) {
+                header.classList.toggle('header_black', blockRect.bottom <= 70);
+            }
+
             lastScrollY = currentScrollY;
         };
 
