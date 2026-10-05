@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 
 import './more-new.css';
 import { FONT_MONT_BOOK } from '@/app/fonts';
@@ -16,6 +16,18 @@ const columnGrid = {
     desktop_s: 11,
     tablet: 7,
     mobile: 5,
+};
+
+// Десктоп: шаг сетки как в макете 1440 (крестик 50px + промежуток ~56px). На экранах
+// шире 1440 добавляются столбцы, на более узких столбцов 13 и сетка сжимается в процентах.
+// Выше 1920 страница масштабируется целиком (wide-screen.css), столбцов столько же, сколько на 1920.
+const DESKTOP_MIN_COLUMNS = 13;
+const DESKTOP_PITCH = 106;
+const DESKTOP_SIDE_PADDING = 60;
+
+const getDesktopColumns = () => {
+    const content = Math.min(window.innerWidth, 1920) - DESKTOP_SIDE_PADDING * 2;
+    return Math.max(DESKTOP_MIN_COLUMNS, Math.floor((content + DESKTOP_PITCH - 50) / DESKTOP_PITCH));
 };
 
 const FIXED_CELLS: Record<'tablet' | 'mobile', { row: number; col: number }[]> = {
@@ -36,6 +48,7 @@ export const MoreNew = () => {
     const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
     const [fixedCells, setFixedCells] = useState<{ row: number; col: number }[]>([]);
     const [isMobileVisible, setMobileVisible] = useState(false);
+    const [desktopColumns, setDesktopColumns] = useState(DESKTOP_MIN_COLUMNS);
     const blockRef = useRef<HTMLDivElement>(null);
 
     const getLinkWIthUtm = useGetLinkWithUtm();
@@ -96,6 +109,7 @@ export const MoreNew = () => {
             if (tablet) { setDevice('tablet'); return; }
             if (desktop_s) { setDevice('desktop_s'); return; }
             setDevice('desktop');
+            setDesktopColumns(getDesktopColumns());
         };
 
         window.addEventListener('resize', updateColumn);
@@ -245,7 +259,7 @@ export const MoreNew = () => {
             cancelAnimationFrame(frame);
             crosses.forEach((cross) => { if (cross) cross.style.transform = ''; });
         };
-    }, [device]);
+    }, [device, desktopColumns]);
 
     // Returns active hover sources depending on device
     const getActiveSources = (): { row: number; col: number }[] => {
@@ -501,13 +515,15 @@ export const MoreNew = () => {
         );
     };
 
+    const columns = device === 'desktop' ? desktopColumns : columnGrid[device];
+
     const getRowCells = (row: number) => {
         if (row === 3) {
             if (device === 'desktop_s') {
                 return [
                     { type: 'svg', col: 0, span: 1 },
                     { type: 'special', col: 1, span: 7 },
-                    ...Array.from({ length: columnGrid[device] - 8 }, (_, i) => ({ type: 'svg', col: i + 8, span: 1 })),
+                    ...Array.from({ length: columns - 8 }, (_, i) => ({ type: 'svg', col: i + 8, span: 1 })),
                 ];
             }
 
@@ -515,7 +531,7 @@ export const MoreNew = () => {
                 return [
                     { type: 'svg', col: 0, span: 1 },
                     { type: 'special', col: 1, span: 5 },
-                    ...Array.from({ length: columnGrid[device] - 5 }, (_, i) => ({ type: 'svg', col: i + 5, span: 1 })),
+                    ...Array.from({ length: columns - 5 }, (_, i) => ({ type: 'svg', col: i + 5, span: 1 })),
                 ];
             }
 
@@ -526,10 +542,10 @@ export const MoreNew = () => {
             return [
                 { type: 'svg', col: 0, span: 1 },
                 { type: 'special', col: 1, span: 7 },
-                ...Array.from({ length: columnGrid[device] - 8 }, (_, i) => ({ type: 'svg', col: i + 8, span: 1 })),
+                ...Array.from({ length: columns - 8 }, (_, i) => ({ type: 'svg', col: i + 8, span: 1 })),
             ];
         } else {
-            return Array.from({ length: columnGrid[device] }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
+            return Array.from({ length: columns }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
         }
     };
 
@@ -548,7 +564,12 @@ export const MoreNew = () => {
     };
 
     return (
-        <div className="more-new" id="more-new" ref={blockRef}>
+        <div
+            className="more-new"
+            id="more-new"
+            ref={blockRef}
+            style={device === 'desktop' ? ({ '--more-new-columns': columns } as CSSProperties) : undefined}
+        >
             {[0, 1, 2, 3, 4, 5, 6].map((row) => {
                 const rowCells = getRowCells(row);
 

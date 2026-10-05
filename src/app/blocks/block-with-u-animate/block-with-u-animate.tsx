@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 
 import './block-with-u-animate.css';
 import { FONT_MONT_BOOK } from '@/app/fonts';
@@ -20,6 +20,18 @@ const columnGrid = {
     tablet: 10,
     mobile: 6,
 }
+
+// Десктоп: шаг сетки как в макете 1440 (буква 50px + промежуток ~66px). На экранах шире
+// 1440 добавляются столбцы с буквами, SOUTHU остаётся с левого края, B — справа в нижнем ряду.
+// Выше 1920 страница масштабируется целиком (wide-screen.css), столбцов столько же, сколько на 1920.
+const DESKTOP_MIN_COLUMNS = 12;
+const DESKTOP_PITCH = 115.5;
+const DESKTOP_SIDE_PADDING = 60;
+
+const getDesktopColumns = () => {
+    const content = Math.min(window.innerWidth, 1920) - DESKTOP_SIDE_PADDING * 2;
+    return Math.max(DESKTOP_MIN_COLUMNS, Math.floor((content + DESKTOP_PITCH - 50) / DESKTOP_PITCH));
+};
 
 const getAllTabletCells = () => {
     const cells = [];
@@ -66,6 +78,7 @@ export const BlockWithUAnimate = () => {
     const [device, setDevice] = useState<'desktop' | 'desktop_s' | 'tablet' | 'mobile'>('desktop');
     const [animatedCell, setAnimatedCell] = useState<{ row: number; col: number } | null>(null);
     const [isAnimating, setIsAnimating] = useState(false);
+    const [desktopColumns, setDesktopColumns] = useState(DESKTOP_MIN_COLUMNS);
     const blockRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -133,6 +146,7 @@ export const BlockWithUAnimate = () => {
             }
 
             setDevice('desktop');
+            setDesktopColumns(getDesktopColumns());
         }
 
         window.addEventListener('resize', updateColumn);
@@ -239,7 +253,9 @@ export const BlockWithUAnimate = () => {
             cancelAnimationFrame(frame);
             icons.forEach((icon) => { icon.style.transform = ''; });
         };
-    }, [device]);
+    }, [device, desktopColumns]);
+
+    const columns = device === 'desktop' ? desktopColumns : columnGrid[device];
 
     const shouldScale = (row: number, col: number): boolean => {
         if (device === 'tablet' || device === 'mobile') {
@@ -291,7 +307,7 @@ export const BlockWithUAnimate = () => {
         }
 
         if (
-            (device === 'desktop' && row === 2 && col === 7) ||
+            (device === 'desktop' && row === 2 && col === columns - 5) ||
             (device === 'desktop_s' && row === 2 && col === 5) ||
             (device === 'tablet' && row === 3 && col === 3) ||
             (device === 'mobile' && row === 3 && col === 1)
@@ -319,7 +335,7 @@ export const BlockWithUAnimate = () => {
         const isVisibleB = () => {
             switch(device) {
                 case 'desktop':
-                    return row === 4 && col === 11;
+                    return row === 4 && col === columns - 1;
                 case 'desktop_s':
                     return row === 4 && col === 9;
                 case 'tablet':
@@ -369,16 +385,16 @@ export const BlockWithUAnimate = () => {
             if (row === 0) {
                 return [
                     { type: 'special', col: 0, span: 2 },
-                    ...Array.from({ length: columnGrid[device] - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
+                    ...Array.from({ length: columns - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
                 ];
             } else if (row === 2) {
                 return [
-                    ...Array.from({ length: columnGrid[device] - 5 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
-                    { type: 'special', col: columnGrid[device] - 5, span: 4 },
-                    { type: 'svg', col: columnGrid[device] - 1, span: 1 }
+                    ...Array.from({ length: columns - 5 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
+                    { type: 'special', col: columns - 5, span: 4 },
+                    { type: 'svg', col: columns - 1, span: 1 }
                 ];
             } else {
-                return Array.from({ length: columnGrid[device] }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
+                return Array.from({ length: columns }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
             }
         }
 
@@ -386,16 +402,16 @@ export const BlockWithUAnimate = () => {
             if (row === 0) {
                 return [
                     { type: 'special', col: 0, span: 2 },
-                    ...Array.from({ length: columnGrid[device] - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
+                    ...Array.from({ length: columns - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
                 ];
             } else if (row === 3) {
                 return [
-                    ...Array.from({ length: columnGrid[device] - 7 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
-                    { type: 'special', col: columnGrid[device] - 7, span: 6 },
-                    { type: 'svg', col: columnGrid[device] - 1, span: 1 }
+                    ...Array.from({ length: columns - 7 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
+                    { type: 'special', col: columns - 7, span: 6 },
+                    { type: 'svg', col: columns - 1, span: 1 }
                 ];
             } else {
-                return Array.from({ length: columnGrid[device] }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
+                return Array.from({ length: columns }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
             }
         }
 
@@ -403,36 +419,41 @@ export const BlockWithUAnimate = () => {
             if (row === 0) {
                 return [
                     { type: 'special', col: 0, span: 2 },
-                    ...Array.from({ length: columnGrid[device] - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
+                    ...Array.from({ length: columns - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
                 ];
             } else if (row === 3) {
                 return [
-                    ...Array.from({ length: columnGrid[device] - 5 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
-                    { type: 'special', col: columnGrid[device] - 5, span: 5 },
+                    ...Array.from({ length: columns - 5 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
+                    { type: 'special', col: columns - 5, span: 5 },
                 ];
             } else {
-                return Array.from({ length: columnGrid[device] }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
+                return Array.from({ length: columns }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
             }
         }
 
         if (row === 0) {
             return [
                 { type: 'special', col: 0, span: 2 },
-                ...Array.from({ length: columnGrid[device] - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
+                ...Array.from({ length: columns - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
             ];
         } else if (row === 2) {
             return [
-                ...Array.from({ length: columnGrid[device] - 5 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
-                { type: 'special', col: columnGrid[device] - 5, span: 4 },
-                { type: 'svg', col: columnGrid[device] - 1, span: 1 }
+                ...Array.from({ length: columns - 5 }, (_, i) => ({ type: 'svg', col: i, span: 1 })),
+                { type: 'special', col: columns - 5, span: 4 },
+                { type: 'svg', col: columns - 1, span: 1 }
             ];
         } else {
-            return Array.from({ length: columnGrid[device] }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
+            return Array.from({ length: columns }, (_, i) => ({ type: 'svg', col: i, span: 1 }));
         }
     };
 
     return (
-        <div className="block-with-u-animate" id='block-with-u-animate' ref={blockRef}>
+        <div
+            className="block-with-u-animate"
+            id='block-with-u-animate'
+            ref={blockRef}
+            style={device === 'desktop' ? ({ '--u-columns': columns } as CSSProperties) : undefined}
+        >
             {rowGrid[device].map((row) => {
                 const rowCells = getRowCells(row);
                 

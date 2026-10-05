@@ -19,3 +19,6 @@ export const ENABLE_METRIC = process.env.ENABLE_METRIC;
 
 export const SHSITES_URL = process.env.NEXT_PUBLIC_SHSITES_URL;
 export const SHSITES_API_KEY = process.env.NEXT_PUBLIC_SHSITES_API_KEY;
+
+// Событие начала ухода прелоадера: первый экран в этот момент показывает контент
+export const PRELOADER_HIDE_EVENT = 'preloader:hide';

@@ -24,7 +24,9 @@ import './society-photos-block.css';
 import { FONT_IBM_PLEX_SERIF_LIGHT, FONT_MONT_BOOK } from '@/app/fonts';
 import { DESKTOP_CELL_POSITIONS, TABLET_CELL_POSITIONS, MOBILE_CELL_POSITIONS } from './cell-desktop';
 
-const ANIMATION_SEQUENCE = [1, 2, 1, 3, 1, 2, 0, 3, 1, 2, 3, 2, 1, 3];
+// У букв 4 положения: 0 — основной экран, 1–3 — для фотографий (по макету),
+// поэтому фотографии используют только положения 1–3.
+const ANIMATION_SEQUENCE = [1, 2, 1, 3, 1, 2, 1, 3, 1, 2, 3, 2, 1, 3];
 
 /**
  * TODO

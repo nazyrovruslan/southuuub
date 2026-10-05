@@ -9,10 +9,18 @@ import PreloaderImg1 from '../../../../public/v2/preloader-icon-1.svg'
 import PreloaderImg2 from '../../../../public/v2/preloader-icon-2.svg'
 import PreloaderImg3 from '../../../../public/v2/preloader-icon-3.svg'
 import { useVideoLoadingProgress } from '@/app/hooks/use-video-loading-process';
+import { PRELOADER_HIDE_EVENT } from '@/app/constants';
+
+declare global {
+    interface Window {
+        __preloaderHidden?: boolean;
+    }
+}
 
 const PRELOADER_IMAGES = [PreloaderImg1, PreloaderImg2, PreloaderImg3];
 const STEP_INTERVAL_MS = 500;
-const HIDE_ANIMATION_MS = 400;
+// совпадает с transition в preloader.css: прелоадер успевает целиком уехать вверх
+const HIDE_ANIMATION_MS = 600;
 const OVERFLOW_RESTORE_DELAY_MS = 500;
 // Прелоадер уходит не позже этого времени, даже если видео не загрузилось
 // (энергосбережение на iOS, экономия трафика, блокировщик, нет кодека).
@@ -170,6 +178,9 @@ export const Preloader = () => {
         if (combinedProgress < 100) return;
 
         setIsAnimating(true);
+        // Первый экран показывает контент, пока прелоадер уезжает вверх
+        window.__preloaderHidden = true;
+        window.dispatchEvent(new Event(PRELOADER_HIDE_EVENT));
 
         const timer = setTimeout(() => {
             window.scrollTo(0,0);

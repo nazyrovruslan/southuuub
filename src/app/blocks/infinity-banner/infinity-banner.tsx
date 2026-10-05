@@ -36,6 +36,8 @@ export const InfinityBanner = () => {
   const currentOffsetRef = useRef(0);
   const lastTimeRef = useRef(0);
   const isPausedRef = useRef(false);
+  // Полоса стоит, пока её не видно, и начинает ехать, когда появляется на экране
+  const isVisibleRef = useRef(false);
 
   const SPEED = 80;
 
@@ -46,7 +48,7 @@ export const InfinityBanner = () => {
     const trackWidth = track.scrollWidth / 2;
 
     function animate(timestamp: number) {
-      if (!isPausedRef.current) {
+      if (!isPausedRef.current && isVisibleRef.current) {
         if (lastTimeRef.current === 0) {
           lastTimeRef.current = timestamp;
         }
@@ -66,10 +68,25 @@ export const InfinityBanner = () => {
       animationRef.current = requestAnimationFrame(animate);
     }
 
-    animationRef.current = requestAnimationFrame(animate);
+    const start = () => {
+      if (!animationRef.current) animationRef.current = requestAnimationFrame(animate);
+    };
+    const stop = () => {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = 0;
+      lastTimeRef.current = 0;
+    };
+
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisibleRef.current = entry.isIntersecting;
+      if (entry.isIntersecting) start();
+      else stop();
+    });
+    observer.observe(track);
 
     return () => {
-      cancelAnimationFrame(animationRef.current);
+      observer.disconnect();
+      stop();
     };
   }, []);
 

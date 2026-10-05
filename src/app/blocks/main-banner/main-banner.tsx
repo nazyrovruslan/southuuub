@@ -8,7 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 
 import "./main-banner.css";
-import { NBSP } from "@/app/constants";
+import { NBSP, PRELOADER_HIDE_EVENT } from "@/app/constants";
 
 const ANIMATION_SPEED_FACTOR = 1.1;
 const SNAP_ZONE_START = 0.35; // 35% — конец text1/text2
@@ -93,18 +93,30 @@ export const MainBanner = () => {
     };
   }, []);
 
-  // Появление первого текста при загрузке
+  // Появление первого экрана: прелоадер уезжает вверх, под ним уже идёт видео,
+  // а контент немного выезжает снизу из прозрачности.
   useEffect(() => {
-    if (!mainBannerText1.current) return;
+    const content = contentRef.current;
+    if (!content) return;
 
-    gsap.set(mainBannerText1.current, { opacity: 0, y: 30 });
-    gsap.to(mainBannerText1.current, {
-      opacity: 1,
-      y: 0,
-      duration: 0.5,
-      delay: 0.5,
-      ease: "power3.out",
-    });
+    const reveal = () => {
+      gsap.to(content, {
+        opacity: 1,
+        y: 0,
+        duration: 0.9,
+        delay: 0.25,
+        ease: "power3.out",
+      });
+    };
+
+    if (window.__preloaderHidden || !document.querySelector(".preloader")) {
+      reveal();
+      return;
+    }
+
+    gsap.set(content, { opacity: 0, y: 40 });
+    window.addEventListener(PRELOADER_HIDE_EVENT, reveal, { once: true });
+    return () => window.removeEventListener(PRELOADER_HIDE_EVENT, reveal);
   }, []);
 
   // ============================================================
@@ -178,12 +190,12 @@ export const MainBanner = () => {
     const section = sectionRef.current;
     if (!section) return;
 
-    if (mainBannerText1.current) {
-      gsap.set(mainBannerText1.current, { opacity: 1, y: 0 });
-    }
+    // заголовок и подзаголовок первого экрана видны сразу, как в макете
+    [mainBannerText1.current, mainBannerText2.current].forEach((el) => {
+      if (el) gsap.set(el, { opacity: 1, y: 0 });
+    });
 
     [
-      mainBannerText2.current,
       mainBannerText3.current,
       mainBannerText4.current,
     ].forEach((el) => {
@@ -206,17 +218,16 @@ export const MainBanner = () => {
       textAnimationsRef.current.push(animation1);
     }
 
-    // text2 — все четыре колбэка (ваша логика)
+    // text2 — на первом экране вместе с заголовком и уходит вместе с ним
     if (mainBannerText2.current) {
       const animation2 = ScrollTrigger.create({
         trigger: section,
-        start: "top+=10% top",
+        start: "top top",
         end: "top+=35% top",
         refreshPriority: 0,
         onEnter: () => animateIn(mainBannerText2.current),
         onLeave: () => animateOut(mainBannerText2.current, "up"),
         onEnterBack: () => animateIn(mainBannerText2.current),
-        onLeaveBack: () => animateOut(mainBannerText2.current, "down"),
       });
       textAnimationsRef.current.push(animation2);
     }
@@ -224,7 +235,8 @@ export const MainBanner = () => {
     // text3 и text4 — появление без ухода (ваша логика)
     const otherElements = [
       { element: mainBannerText3.current, percent: 40 },
-      { element: mainBannerText4.current, percent: 65 },
+      // абзац появляется вместе с зумом видео (45%), второй экран меняется целиком
+      { element: mainBannerText4.current, percent: 45 },
     ];
 
     otherElements.forEach(({ element, percent }) => {
