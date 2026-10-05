@@ -20,6 +20,10 @@ export const LazyVideo = ({ src, poster, id, className }: Props) => {
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // для Safari: muted должен быть атрибутом, иначе play() отклоняется
+    video.muted = true;
+    video.setAttribute('muted', '');
+
     const start = () => {
       if (video.preload !== 'auto') {
         video.preload = 'auto';
