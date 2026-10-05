@@ -10,12 +10,12 @@ import "./main-banner.css";
 import { NBSP, PRELOADER_HIDE_EVENT } from "@/app/constants";
 
 // Первый экран закреплён через position: sticky (без JS-пина, который дёргается на iOS),
-// секция выше окна на один экран. Сцен две, и каждая стоит неподвижно на своём участке
-// прокрутки: первая до порога, вторая после него до конца закреплённого участка.
-// На пороге смена идёт короткой анимацией по времени (тексты и приближение видео),
-// а не за колесом, поэтому промежуточное состояние никогда не зависает на экране.
-// доля пути прокрутки, после которой показывается вторая сцена
-const HERO_SECOND_SCENE_AT = 0.3;
+// секция выше окна на полтора экрана. Прокрутка идёт по шагам, и каждый шаг стоит неподвижно
+// на своём участке: заголовок, заголовок с подзаголовком, второй заголовок (видео приближается),
+// второй заголовок с подзаголовком. Смена шага — короткая анимация по времени, а не за колесом,
+// поэтому промежуточное состояние никогда не зависает на экране.
+// доли пути прокрутки, на которых начинается каждый следующий шаг
+const HERO_STEPS_AT = [0.15, 0.4, 0.65];
 const HERO_VIDEO_ZOOM = 1.5;
 
 export const MainBanner = () => {
@@ -70,59 +70,67 @@ export const MainBanner = () => {
     const text4 = mainBannerText4.current;
     if (!section || !videoWrapper || !text1 || !text2 || !text3 || !text4) return;
 
-    const firstScene = [text1, text2];
-    const secondScene = [text3, text4];
+    const texts = [text1, text2, text3, text4];
+    // какие тексты видны на каждом шаге
+    const STEPS = [[text1], [text1, text2], [text3], [text3, text4]];
 
-    gsap.set(firstScene, { opacity: 1, y: 0 });
-    gsap.set(secondScene, { opacity: 0, y: 40 });
+    gsap.set(text1, { opacity: 1, y: 0 });
+    gsap.set([text2, text3, text4], { opacity: 0, y: 40 });
 
-    let showingSecond = false;
-    const showScene = (second: boolean) => {
-      if (second === showingSecond) return;
-      showingSecond = second;
+    let step = 0;
+    const showStep = (next: number) => {
+      if (next === step) return;
+      const forward = next > step;
+      const leaving = STEPS[step].filter((text) => !STEPS[next].includes(text));
+      const entering = STEPS[next].filter((text) => !STEPS[step].includes(text));
+      step = next;
+
       gsap.to(videoWrapper, {
-        scale: second ? HERO_VIDEO_ZOOM : 1,
+        scale: next >= 2 ? HERO_VIDEO_ZOOM : 1,
         duration: 0.9,
         ease: "power2.inOut",
         overwrite: "auto",
       });
-      const leaving = second ? firstScene : secondScene;
-      const entering = second ? secondScene : firstScene;
-      gsap.to(leaving, {
-        opacity: 0,
-        y: second ? -50 : 40,
-        duration: 0.3,
-        ease: "power2.in",
-        overwrite: "auto",
-      });
-      gsap.fromTo(
-        entering,
-        { opacity: 0, y: second ? 40 : -50 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.45,
-          // новая сцена начинается, когда старая уже ушла: тексты не накладываются
-          delay: 0.35,
-          ease: "power3.out",
-          stagger: 0.05,
+      if (leaving.length) {
+        gsap.to(leaving, {
+          opacity: 0,
+          y: forward ? -50 : 40,
+          duration: 0.3,
+          ease: "power2.in",
           overwrite: "auto",
-        },
-      );
+        });
+      }
+      if (entering.length) {
+        gsap.fromTo(
+          entering,
+          { opacity: 0, y: forward ? 40 : -50 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.45,
+            // новый текст появляется, когда старый уже ушёл: тексты не накладываются
+            delay: leaving.length ? 0.35 : 0,
+            ease: "power3.out",
+            stagger: 0.05,
+            overwrite: "auto",
+          },
+        );
+      }
     };
+    const stepAt = (progress: number) => HERO_STEPS_AT.filter((at) => progress > at).length;
 
     const sceneTrigger = ScrollTrigger.create({
       trigger: section,
       start: "top top",
       end: "bottom bottom",
-      onUpdate: (self) => showScene(self.progress > HERO_SECOND_SCENE_AT),
+      onUpdate: (self) => showStep(stepAt(self.progress)),
     });
     // страница могла открыться уже прокрученной
-    showScene(sceneTrigger.progress > HERO_SECOND_SCENE_AT);
+    showStep(stepAt(sceneTrigger.progress));
 
     return () => {
       sceneTrigger.kill();
-      gsap.killTweensOf([videoWrapper, ...firstScene, ...secondScene]);
+      gsap.killTweensOf([videoWrapper, ...texts]);
     };
   }, []);
 
