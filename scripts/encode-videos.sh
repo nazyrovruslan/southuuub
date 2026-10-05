@@ -3,7 +3,7 @@
 # Запуск: ./scripts/encode-videos.sh путь/к/исходникам public/v2
 set -euo pipefail
 SRC=${1:?папка с исходными mp4}; OUT=${2:-public/v2}; mkdir -p "$OUT"
-X264="-c:v libx264 -preset slow -profile:v high -pix_fmt yuv420p -an -movflags +faststart"
+X264="-c:v libx264 -preset slow -profile:v high -level:v 4.0 -pix_fmt yuv420p -an -movflags +faststart"
 
 # hero, десктоп: 1920×1080, ≈2,5 Мбит/с
 ffmpeg -y -i "$SRC/southuuub.mp4" $X264 -crf 25 -maxrate 3M -bufsize 6M "$OUT/southuuub.mp4"
