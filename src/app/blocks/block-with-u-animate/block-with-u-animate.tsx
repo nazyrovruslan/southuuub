@@ -33,31 +33,7 @@ const getDesktopColumns = () => {
     return Math.max(DESKTOP_MIN_COLUMNS, Math.floor((content + DESKTOP_PITCH - 50) / DESKTOP_PITCH));
 };
 
-const getAllTabletCells = () => {
-    const cells = [];
-    for (let row = 0; row <= 6; row++) {
-        for (let col = 0; col <= 9; col++) {
-            if (row === 0 && col === 0) continue;
-            if (row === 3 && col === 3) continue;
-            cells.push({ row, col });
-        }
-    }
-    return cells;
-};
-
-const getAllMobileCells = () => {
-    const cells = [];
-    for (let row = 0; row <= 6; row++) {
-        for (let col = 0; col <= 5; col++) {
-            if (row === 0 && col === 0) continue;
-            if (row === 3 && col === 1) continue;
-            cells.push({ row, col });
-        }
-    }
-    return cells;
-};
-
-// Волна на десктопе: каждая буква увеличивается по расстоянию от неё до курсора,
+// Волна: каждая буква увеличивается по расстоянию от неё до курсора (на телефоне — до пальца),
 // поэтому вместе с наведённой растут соседи по бокам, сверху и снизу, а зона
 // наведения непрерывная — каждая буква «ловит» курсор до середины пути к соседней.
 const WAVE_MAX_SCALE = 2;       // наведённая буква: 20px -> 40px, как раньше
@@ -76,8 +52,6 @@ const WAVE_FADE = 0.06;         // скорость затухания за ка
 
 export const BlockWithUAnimate = () => {
     const [device, setDevice] = useState<'desktop' | 'desktop_s' | 'tablet' | 'mobile'>('desktop');
-    const [animatedCell, setAnimatedCell] = useState<{ row: number; col: number } | null>(null);
-    const [isAnimating, setIsAnimating] = useState(false);
     const [desktopColumns, setDesktopColumns] = useState(DESKTOP_MIN_COLUMNS);
     const blockRef = useRef<HTMLDivElement>(null);
 
@@ -158,45 +132,8 @@ export const BlockWithUAnimate = () => {
     }, []);
 
     useEffect(() => {
-        if (device === 'desktop' || device === 'desktop_s') {
-            return;
-        }
-
-        const getRandomCell = () => {
-            const cells = device === 'tablet' ? getAllTabletCells() : getAllMobileCells();
-            const randomIndex = Math.floor(Math.random() * cells.length);
-            return cells[randomIndex];
-        };
-
-        const animateRandomCell = () => {
-            const randomCell = getRandomCell();
-            setAnimatedCell(randomCell);
-            setIsAnimating(true);
-            
-            setTimeout(() => {
-                setIsAnimating(false);
-            }, 500);
-            
-            setTimeout(() => {
-                setAnimatedCell(null);
-            }, 1000);
-        };
-
-        animateRandomCell();
-        
-        const interval = setInterval(() => {
-            animateRandomCell();
-        }, 1500);
-        
-        return () => {
-            clearInterval(interval);
-        };
-    }, [device]);
-
-    useEffect(() => {
         const block = blockRef.current;
-        if (!block || (device !== 'desktop' && device !== 'desktop_s')) return;
-        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+        if (!block) return;
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
         const icons = Array.from(block.querySelectorAll<HTMLElement>('[data-wave-letter]'));
@@ -222,7 +159,7 @@ export const BlockWithUAnimate = () => {
             if (!frame) frame = requestAnimationFrame(tick);
         };
 
-        const onMove = (event: PointerEvent) => {
+        const wave = (point: { clientX: number; clientY: number }) => {
             const rects = icons.map((icon) => icon.getBoundingClientRect());
             // шаг сетки по горизонтали: расстояние между двумя соседними буквами одной строки
             // (по центрам: масштаб меняет края прямоугольника, но не центр)
@@ -235,7 +172,7 @@ export const BlockWithUAnimate = () => {
             const radius = (Number.isFinite(pitch) ? pitch : 150) * WAVE_RADIUS;
 
             centers.forEach(([cx, cy], i) => {
-                const d = Math.hypot(event.clientX - cx, event.clientY - cy) / radius;
+                const d = Math.hypot(point.clientX - cx, point.clientY - cy) / radius;
                 target[i] = 1 + (WAVE_MAX_SCALE - 1) * Math.exp(-d * d);
             });
             run();
@@ -245,53 +182,34 @@ export const BlockWithUAnimate = () => {
             run();
         };
 
+        const onMove = (event: PointerEvent) => {
+            if (event.pointerType !== 'touch') wave(event);
+        };
+
+        // Телефон: волна идёт за пальцем, в том числе пока страница прокручивается
+        const onTouch = (event: TouchEvent) => {
+            if (event.touches[0]) wave(event.touches[0]);
+        };
+
         block.addEventListener('pointermove', onMove);
         block.addEventListener('pointerleave', onLeave);
+        block.addEventListener('touchstart', onTouch, { passive: true });
+        block.addEventListener('touchmove', onTouch, { passive: true });
+        block.addEventListener('touchend', onLeave);
+        block.addEventListener('touchcancel', onLeave);
         return () => {
             block.removeEventListener('pointermove', onMove);
             block.removeEventListener('pointerleave', onLeave);
+            block.removeEventListener('touchstart', onTouch);
+            block.removeEventListener('touchmove', onTouch);
+            block.removeEventListener('touchend', onLeave);
+            block.removeEventListener('touchcancel', onLeave);
             cancelAnimationFrame(frame);
             icons.forEach((icon) => { icon.style.transform = ''; });
         };
     }, [device, desktopColumns]);
 
     const columns = device === 'desktop' ? desktopColumns : columnGrid[device];
-
-    const shouldScale = (row: number, col: number): boolean => {
-        if (device === 'tablet' || device === 'mobile') {
-            if (!animatedCell || !isAnimating) return false;
-            
-            const isCenter = animatedCell.row === row && animatedCell.col === col;
-            // Изменено: только соседи по горизонтали (та же строка, соседние колонки)
-            const isHorizontalNeighbor = row === animatedCell.row && Math.abs(col - animatedCell.col) === 1;
-            
-            return isCenter || isHorizontalNeighbor;
-        }
-
-        // на десктопе размер задаёт волна (см. эффект выше)
-        return false;
-    };
-
-    const getScalePercent = (row: number, col: number): number => {
-        if (!shouldScale(row, col)) return 0;
-        
-        if (device === 'tablet' || device === 'mobile') {
-            if (animatedCell && animatedCell.row === row && animatedCell.col === col) {
-                return 100;
-            }
-
-            if (animatedCell) {
-                // Изменено: только горизонтальные соседи
-                const isHorizontalNeighbor = row === animatedCell.row && Math.abs(col - animatedCell.col) === 1;
-                if (isHorizontalNeighbor) {
-                    return 50;
-                }
-            }
-            return 0;
-        }
-
-        return 0;
-    };
 
     const renderCellContent = (row: number, col: number) => {
         if (row === 0 && col === 0) {
@@ -319,19 +237,6 @@ export const BlockWithUAnimate = () => {
             );
         }
 
-        const scalePercent = getScalePercent(row, col);
-        
-        let svgWidth = 20;
-        let svgHeight = 21;
-        
-        if (scalePercent === 100) {
-            svgWidth = 40;
-            svgHeight = 42;
-        } else if (scalePercent === 50) {
-            svgWidth = 30;
-            svgHeight = 31.5;
-        }
-
         const isVisibleB = () => {
             switch(device) {
                 case 'desktop':
@@ -356,10 +261,6 @@ export const BlockWithUAnimate = () => {
                         width={20}
                         height={21}
                         className='block-with-u-animate-svg-icon'
-                        style={{
-                            width: svgWidth,
-                            height: svgHeight,
-                        }}
                         unoptimized
                     />
                 ) : (
@@ -369,10 +270,6 @@ export const BlockWithUAnimate = () => {
                         width={20}
                         height={21}
                         className='block-with-u-animate-svg-icon'
-                        style={{
-                            width: svgWidth,
-                            height: svgHeight,
-                        }}
                         unoptimized
                     />
                 )}
