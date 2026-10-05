@@ -64,7 +64,7 @@
     backdrop-filter: blur(12px);
   }
   /* на светлых секциях, где показывается чёрный логотип */
-  .header.header--scrolled.header--light { background-color: rgba(236, 236, 234, .8); }
+  .header.header--scrolled.header_black { background-color: rgba(234, 234, 234, .85); }
 }
 
 /* 4. overflow:hidden на html/body ломает position:sticky и делает body контейнером прокрутки.
