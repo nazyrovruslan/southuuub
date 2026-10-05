@@ -10,10 +10,12 @@ import "./main-banner.css";
 import { NBSP, PRELOADER_HIDE_EVENT } from "@/app/constants";
 
 // Первый экран закреплён через position: sticky (без JS-пина, который дёргается на iOS),
-// секция выше окна на 2,2 экрана. Смена сцены привязана к прокрутке: с первого движения
-// колеса тексты первого экрана уходят, видео приближается, проявляется второй экран.
-// scrub сглаживает рывки колеса и трекпада; доводки до точки нет, прокрутка у пользователя.
+// секция выше окна на 2,2 экрана. Приближение видео привязано к прокрутке (scrub),
+// а тексты не следуют за колесом: при переходе порога они целиком уходят и появляются
+// короткой анимацией, поэтому полупрозрачный текст не зависает, если прокрутку остановить.
 const HERO_SCRUB_SMOOTHING = 0.6;
+// доля пути прокрутки, после которой показывается второй экран
+const HERO_SECOND_SCENE_AT = 0.08;
 
 export const MainBanner = () => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ export const MainBanner = () => {
     return () => window.removeEventListener(PRELOADER_HIDE_EVENT, reveal);
   }, []);
 
-  // Смена сцены по ходу прокрутки: на первых ~55% пути, дальше второй экран стоит
+  // Смена сцены по ходу прокрутки
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
@@ -67,31 +69,67 @@ export const MainBanner = () => {
     const text4 = mainBannerText4.current;
     if (!section || !videoWrapper || !text1 || !text2 || !text3 || !text4) return;
 
-    gsap.set([text1, text2], { opacity: 1, y: 0 });
-    gsap.set([text3, text4], { opacity: 0, y: 40 });
+    const firstScene = [text1, text2];
+    const secondScene = [text3, text4];
 
-    const timeline = gsap.timeline({
-      defaults: { ease: "none" },
+    gsap.set(firstScene, { opacity: 1, y: 0 });
+    gsap.set(secondScene, { opacity: 0, y: 40 });
+
+    let showingSecond = false;
+    const showScene = (second: boolean) => {
+      if (second === showingSecond) return;
+      showingSecond = second;
+      const leaving = second ? firstScene : secondScene;
+      const entering = second ? secondScene : firstScene;
+      gsap.to(leaving, {
+        opacity: 0,
+        y: second ? -50 : 40,
+        duration: 0.35,
+        ease: "power2.in",
+        stagger: 0.05,
+        overwrite: "auto",
+      });
+      gsap.fromTo(
+        entering,
+        { opacity: 0, y: second ? 40 : -50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          delay: 0.3,
+          ease: "power3.out",
+          stagger: 0.08,
+          overwrite: "auto",
+        },
+      );
+    };
+
+    const zoom = gsap.to(videoWrapper, {
+      scale: 1.5,
+      ease: "power1.inOut",
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: "bottom bottom",
+        // приближение идёт первую половину пути, дальше второй экран стоит
+        end: "50% bottom",
         scrub: HERO_SCRUB_SMOOTHING,
       },
     });
 
-    timeline
-      .to(videoWrapper, { scale: 1.5, duration: 0.5, ease: "power1.inOut" }, 0)
-      .to(text1, { opacity: 0, y: -60, duration: 0.25 }, 0.02)
-      .to(text2, { opacity: 0, y: -40, duration: 0.22 }, 0)
-      .to(text3, { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }, 0.25)
-      .to(text4, { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }, 0.33)
-      // второй экран держится до конца закреплённого участка
-      .to({}, { duration: 0.45 });
+    const sceneTrigger = ScrollTrigger.create({
+      trigger: section,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: (self) => showScene(self.progress > HERO_SECOND_SCENE_AT),
+    });
+    // страница могла открыться уже прокрученной
+    showScene(sceneTrigger.progress > HERO_SECOND_SCENE_AT);
 
     return () => {
-      timeline.scrollTrigger?.kill();
-      timeline.kill();
+      sceneTrigger.kill();
+      zoom.scrollTrigger?.kill();
+      zoom.kill();
+      gsap.killTweensOf([...firstScene, ...secondScene]);
     };
   }, []);
 

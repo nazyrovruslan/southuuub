@@ -90,6 +90,8 @@ const getFrameLayout = (device: string, frame: number): CellConfig[] => {
 
 // Свайп по нижнему ряду клеток листает кадры
 const SWIPE_THRESHOLD_PX = 40;
+// минимальный отрезок пути пальца на один кадр при перемотке
+const SWIPE_MIN_STEP_PX = 24;
 
 const letterKind = (cell: CellConfig) => cell.type === 'text' ? 'text' : cell.src ?? '';
 
@@ -367,42 +369,64 @@ export const SocietyPhotosBlock = () => {
     const rows = device === 'tablet' ? 6 : device === 'mobile' ? 9 : 5;
     const cols = device === 'tablet' ? 5 : device === 'mobile' ? 5 : 7;
 
-    const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+    // Свайп по нижнему ряду работает как перемотка: кадр меняется на каждом отрезке пути
+    // пальца, так что один жест через весь блок пролистывает все фото по очереди.
+    const swipeRef = useRef<{ x: number; y: number; steps: number; horizontal: boolean | null } | null>(null);
+
+    const stepFrames = (steps: number) => {
+        if (steps === 0) return;
+        setFrame(prev => (((prev + steps) % FRAMES.length) + FRAMES.length) % FRAMES.length);
+    };
+
+    const swipeStepPx = (zone: HTMLElement) => Math.max(SWIPE_MIN_STEP_PX, zone.clientWidth / FRAMES.length);
 
     const onSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
-        swipeStartRef.current = { x: event.clientX, y: event.clientY };
+        swipeRef.current = { x: event.clientX, y: event.clientY, steps: 0, horizontal: null };
+    };
+
+    const onSwipeMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+        const swipe = swipeRef.current;
+        if (!swipe) return;
+
+        const dx = event.clientX - swipe.x;
+        const dy = event.clientY - swipe.y;
+        if (swipe.horizontal === null) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) < 10) return;
+            swipe.horizontal = Math.abs(dx) > Math.abs(dy);
+            if (swipe.horizontal) event.currentTarget.setPointerCapture?.(event.pointerId);
+        }
+        if (!swipe.horizontal) return;
+
+        // влево — вперёд, вправо — назад
+        const steps = Math.trunc(-dx / swipeStepPx(event.currentTarget));
+        stepFrames(steps - swipe.steps);
+        swipe.steps = steps;
     };
 
     const onSwipeEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
-        const start = swipeStartRef.current;
-        swipeStartRef.current = null;
-        if (!start) return;
+        const swipe = swipeRef.current;
+        swipeRef.current = null;
+        if (!swipe || swipe.horizontal === false || swipe.steps !== 0) return;
 
-        const dx = event.clientX - start.x;
-        const dy = event.clientY - start.y;
-        if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) < Math.abs(dy)) return;
-
-        // влево — следующий кадр, вправо — предыдущий; таймер слайдшоу перезапускается сам
-        setFrame(prev => (prev + (dx < 0 ? 1 : -1) + FRAMES.length) % FRAMES.length);
+        // короткий рывок меньше одного отрезка тоже листает на один кадр
+        const dx = event.clientX - swipe.x;
+        if (Math.abs(dx) >= SWIPE_THRESHOLD_PX && Math.abs(dx) > Math.abs(event.clientY - swipe.y)) {
+            stepFrames(dx < 0 ? 1 : -1);
+        }
     };
 
-    // Трекпад: горизонтальный жест двумя пальцами над нижним рядом тоже листает кадры
-    const wheelRef = useRef({ sum: 0, lockedUntil: 0 });
+    // Трекпад: горизонтальный жест двумя пальцами над нижним рядом листает так же,
+    // кадр на каждый отрезок прокрутки
+    const wheelSumRef = useRef(0);
 
     const onSwipeWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
         if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
-        const wheel = wheelRef.current;
-        const now = performance.now();
-        if (now < wheel.lockedUntil) return;
-
-        wheel.sum += event.deltaX;
-        if (Math.abs(wheel.sum) < SWIPE_THRESHOLD_PX) return;
-
-        const direction = wheel.sum > 0 ? 1 : -1;
-        setFrame(prev => (prev + direction + FRAMES.length) % FRAMES.length);
-        wheel.sum = 0;
-        // один жест — один кадр: инерция трекпада не пролистывает дальше
-        wheel.lockedUntil = now + 700;
+        const stepPx = swipeStepPx(event.currentTarget);
+        wheelSumRef.current += event.deltaX;
+        const steps = Math.trunc(wheelSumRef.current / stepPx);
+        if (steps === 0) return;
+        wheelSumRef.current -= steps * stepPx;
+        stepFrames(steps);
     };
 
     // Движение букв запускаем до отрисовки кадра: буква стоит в новой клетке,
@@ -532,8 +556,9 @@ export const SocietyPhotosBlock = () => {
                     className='society-swipe-zone'
                     style={{ height: `${100 / rows}%` }}
                     onPointerDown={onSwipeStart}
+                    onPointerMove={onSwipeMove}
                     onPointerUp={onSwipeEnd}
-                    onPointerCancel={() => { swipeStartRef.current = null; }}
+                    onPointerCancel={() => { swipeRef.current = null; }}
                     onWheel={onSwipeWheel}
                     aria-hidden='true'
                 />

@@ -36,32 +36,6 @@
     height: 21px;
 }
 
-/* логотип в волне: каждая буква растёт от своего левого края и раздвигает следующие */
-#block-with-u-animate .block-with-u-animate-logo-wave {
-    position: relative;
-    display: flex;
-    /* перебивает .block-with-u-animate-row-0 div:first-child { width: ... } */
-    width: max-content !important;
-}
-
-#block-with-u-animate .block-with-u-animate-logo-letter {
-    display: block;
-    flex-shrink: 0;
-    transform-origin: left center;
-}
-
-/* ширина буквы = высота × пропорция буквы (--logo-letter-ratio) */
-#block-with-u-animate .block-with-u-animate-logo-letter .block-with-u-animate-logo-icon {
-    display: block;
-    width: calc(21px * var(--logo-letter-ratio));
-}
-
-@media screen and (min-width: 1921px) {
-    #block-with-u-animate .block-with-u-animate-logo-letter .block-with-u-animate-logo-icon {
-        width: calc(1.0938vw * var(--logo-letter-ratio));
-    }
-}
-
 .block-with-u-animate-row-0 {
     display: flex;
     width: 100%;
