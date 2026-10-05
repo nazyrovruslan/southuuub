@@ -84,9 +84,8 @@ export const MainBanner = () => {
       gsap.to(leaving, {
         opacity: 0,
         y: second ? -50 : 40,
-        duration: 0.35,
+        duration: 0.3,
         ease: "power2.in",
-        stagger: 0.05,
         overwrite: "auto",
       });
       gsap.fromTo(
@@ -95,10 +94,11 @@ export const MainBanner = () => {
         {
           opacity: 1,
           y: 0,
-          duration: 0.6,
-          delay: 0.3,
+          duration: 0.45,
+          // новая сцена начинается, когда старая уже ушла: тексты не накладываются
+          delay: 0.35,
           ease: "power3.out",
-          stagger: 0.08,
+          stagger: 0.05,
           overwrite: "auto",
         },
       );
