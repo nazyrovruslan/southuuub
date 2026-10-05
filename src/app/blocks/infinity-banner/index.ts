@@ -1,0 +1,1 @@
+export { InfinityBanner } from './infinity-banner';

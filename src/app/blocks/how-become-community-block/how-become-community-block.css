@@ -1,0 +1,66 @@
+.how-become-community-block-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    padding: 0 60px;
+    max-width: 1920px;
+    margin: 0 auto;
+
+    @media screen and (max-width: 1024px) {
+        padding: 0 32px;
+    }
+
+    @media screen and (max-width: 767px) {
+        padding: 0 15px;
+    }
+}
+
+.how-become-community-block-title {
+    width: 480px;
+    font-weight: 500;
+    font-size: 70px;
+    line-height: 100%;
+    text-transform: lowercase;
+    color: rgb(17,17,17);
+    white-space: pre-wrap;
+    margin-bottom: 25px;
+
+    @media screen and (max-width: 1024px) {
+        width: 344px;
+        font-size: 50px;
+        margin-bottom: 22px;
+    }
+
+    @media screen and (max-width: 767px) {
+        width: 270px;
+        font-size: 39px;
+        margin-bottom: 15px;
+    }
+}
+
+.how-become-community-block-description {
+    width: 480px;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 110%;
+    text-transform: lowercase;
+    color: rgb(17,17,17);
+    white-space: pre-wrap;
+    margin-bottom: 60px;
+
+    @media screen and (max-width: 1024px) {
+        width: 344px;
+        font-size: 15px;
+        margin-bottom: 30px;
+    }
+
+    @media screen and (max-width: 767px) {
+        width: 270px;
+        font-size: 14px;
+        margin-bottom: 40px;
+        white-space: normal;
+    }
+}

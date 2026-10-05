@@ -1,0 +1,273 @@
+.our-projects-scrollable-block-wrapper {
+    width: 100%;
+    max-width: 1920px;
+    padding: 0 0 0 80px;
+    margin: 4px auto 0;
+    background-color: rgba(17, 17, 17, 1);
+
+    @media screen and (max-width: 1280px) {
+        padding: 0 0 60px 40px;
+    }
+
+    @media screen and (max-width: 1024px) {
+        padding: 0 32px;
+    }
+
+    @media screen and (max-width: 767px) {
+        padding: 0 15px;
+    }
+}
+
+.our-projects-scrollable-block {
+    display: flex;
+    justify-content: space-between;
+    gap: 60px;
+
+    @media screen and (max-width: 1280px) {
+        gap: 30px
+    }
+
+    @media screen and (max-width: 1024px) {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+.our-projects-item-left {
+    display: flex;
+    flex-direction: column;
+    width: 320px;
+    min-width: 320px;
+
+    @media screen and (max-width: 1024px) {
+        max-width: 350px;
+        width: 100%;
+        min-width: 350px;
+        order: 2;
+        margin: -72px 0 0;
+    }
+
+    @media screen and (max-width: 767px) {
+        max-width: 290px;
+        min-width: 290px;
+    }
+}
+
+/** КАРТИНКА */
+.our-projects-item-right {
+    flex-shrink: 0;
+    height: 100vh;
+    max-width: 900px;
+    width: calc(100vw - 60px - 520px - 60px);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    @media screen and (max-width: 1280px) {
+        width: calc(100vw - 40px - 440px - 30px);
+    }
+
+    @media screen and (max-width: 1024px) {
+        max-width: calc(1024px - 64px);
+        width: 100%;
+        min-width: 288px;
+        height: 396px;
+        min-height: 288px;
+        margin: 90px auto 0;
+        order: 1;
+    }
+
+    @media screen and (max-width: 767px) {
+        max-width: calc(767px - 30px);
+        height: 250px;
+        min-height: 194px;
+    }
+}
+
+.our-projects-item-right-title {
+    position: absolute;
+    top: calc(50% - 335px);
+    font-weight: 500;
+    font-size: 70px;
+    line-height: 100%;
+    color: #fff;
+
+    @media screen and (max-width: 1480px) {
+        top: calc(50% - 314px);
+    }
+
+    @media screen and (max-width: 1380px) {
+        top: calc(50% - 285px);
+        font-size: 60px;
+    }
+
+    @media screen and (max-width: 1280px) {
+        top: calc(50% - 300px);
+    }
+
+    @media screen and (max-width: 1180px) {
+        top: calc(50% - 265px);
+        font-size: 55px;
+    }
+
+    @media screen and (max-width: 1080px) {
+        top: calc(50% - 235px);
+        font-size: 55px;
+    }
+
+    @media screen and (max-width: 1024px) {
+        display: flex;
+        width: 100%;
+        height: 70px;
+        top: calc(50% - 215px);
+        align-items: center;
+        background-color: rgb(17,17,17);
+        font-size: 50px;
+    }
+
+    @media screen and (max-width: 767px) {
+        height: 75px;
+        font-size: 32px;
+        top: calc(50% - 209px);
+    }
+}
+
+.our-projects-item-right-img-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 506px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+
+    @media screen and (max-width: 1480px) {
+        height: 450px;
+    }
+
+    @media screen and (max-width: 1380px) {
+        height: 393px;
+    }
+
+    @media screen and (max-width: 1280px) {
+        height: 433px;
+    }
+
+    @media screen and (max-width: 1180px) {
+        height: 376px;
+    }
+
+    @media screen and (max-width: 1080px) {
+        height: 320px;
+    }
+
+    @media screen and (max-width: 1024px) {
+      height: 396px;
+      top: 0;
+      transform: none;
+    }
+
+    @media screen and (max-width: 767px) {
+      height: 320px;
+    }
+
+    @media screen and (max-width: 520px) {
+      height: 240px;
+    }
+}
+
+.our-projects-item-left-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    height: 100vh;
+
+    @media screen and (max-width: 1024px) {
+        height: 100vh;
+        padding: 0;
+        justify-content: center;
+        min-height: 500px;
+    }
+}
+
+@media screen and (max-width: 1024px) {
+    .our-projects-item-left-info:nth-child(1) {
+        height: calc(100vh - 225px);
+
+        > h2 { padding-top: 60px; }
+    }
+    .our-projects-item-left-info:nth-child(2) > h2 { padding-top: 175px; }
+    .our-projects-item-left-info:nth-child(3) > h2 { padding-top: 250px; }
+    .our-projects-item-left-info:nth-child(4) > h2 { padding-top: 300px; }
+    .our-projects-item-left-info:nth-child(5) > h2 { padding-top: 350px; }
+    .our-projects-item-left-info:nth-child(6) > h2 { padding-top: 400px; }
+}
+
+@media screen and (max-width: 767px) {
+    .our-projects-item-left-info:nth-child(1) {
+        height: calc(100vh - 225px);
+
+        > h2 { padding-top: 60px; }
+    }
+    .our-projects-item-left-info:nth-child(2) > h2 { padding-top: 175px; }
+    .our-projects-item-left-info:nth-child(3) > h2 { padding-top: 250px; }
+    .our-projects-item-left-info:nth-child(4) > h2 { padding-top: 300px; }
+    .our-projects-item-left-info:nth-child(5) > h2 { padding-top: 350px; }
+    .our-projects-item-left-info:nth-child(6) > h2 { padding-top: 275px; }
+}
+
+
+.our-projects-item-right-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/** ------------------------ */
+.our-projects-item-left-info-title {
+    font-weight: 500;
+    font-size: 38px;
+    line-height: 110%;
+    text-transform: lowercase;
+    color: #fff;
+    white-space: pre-wrap;
+
+    @media screen and (max-width: 1280px) {
+        font-size: 32px;
+    }
+
+    @media screen and (max-width: 767px) {
+        font-size: 28px;
+    }
+}
+
+.our-projects-item-left-info-description {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 130%;
+    color: #fff;
+    white-space: pre-wrap;
+
+    @media screen and (max-width: 1280px) {
+        font-size: 15px;
+    }
+
+    @media screen and (max-width: 767px) {
+        font-size: 14px;
+    }
+}
+
+.our-projects-item-left-info-button {
+    color: #fff;
+}
+
+/* .our-projects-item-left-info:nth-child(1) { background-color: red }
+.our-projects-item-left-info:nth-child(2) { background-color: yellow }
+.our-projects-item-left-info:nth-child(3) { background-color: red }
+.our-projects-item-left-info:nth-child(4) { background-color: yellow }
+.our-projects-item-left-info:nth-child(5) { background-color: red }
+.our-projects-item-left-info:nth-child(6) { background-color: yellow } */

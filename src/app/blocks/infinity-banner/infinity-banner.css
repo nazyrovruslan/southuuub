@@ -1,0 +1,111 @@
+.infinity-banner-wrapper {
+    display: block;
+    overflow: hidden;
+    background-color: #111;
+    cursor: pointer;
+    padding: 32px 0;
+
+    @media screen and (max-width: 1024px) {
+        padding: 20px 0;
+        gap: 30px;
+    }
+
+    @media screen and (max-width: 767px) {
+        padding: 18px 0;
+        gap: 20px;
+    }
+}
+
+.infinity-banner-track {
+  width: 100%;
+}
+
+.infinity-banner-items {
+  display: flex;
+  gap: 44px;
+  will-change: transform;
+
+    @media screen and (max-width: 1024px) {
+        gap: 30px;
+    }
+
+    @media screen and (max-width: 767px) {
+        gap: 20px;
+    }
+}
+
+.infinity-banner-item {
+    display: flex;
+    align-items: center;
+    gap: 44px;
+    flex-shrink: 0;
+
+    @media screen and (max-width: 1024px) {
+        gap: 30px;
+    }
+
+    @media screen and (max-width: 767px) {
+        gap: 20px;
+    }
+}
+
+.infinity-banner-marquee {
+    animation: scroll 60s linear infinite;
+}
+
+.infinity-banner-text {
+    font-weight: 500;
+    font-size: 16px;
+    margin-top: 5px;
+    text-transform: uppercase;
+    color: #fff;
+
+    @media screen and (max-width: 1024px) {
+        font-size: 15px;
+    }
+
+    @media screen and (max-width: 767px) {
+        font-size: 14px;
+        margin-top: 4px;
+    }
+}
+
+.infinity-banner-tg {
+    width: 36px;
+    height: 36px;
+
+    @media screen and (max-width: 1024px) {
+        width: 36px;
+        height: 36px;
+    }
+
+    @media screen and (max-width: 767px) {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+.infinity-banner-logo {
+    width: 220px;
+    height: 24px;
+
+    @media screen and (max-width: 1024px) {
+        width: 191px;
+        height: 21px;
+    }
+
+    @media screen and (max-width: 767px) {
+        width: 167px;
+        height: 18px;
+    }
+}
+
+
+@keyframes scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(calc(-100% - 20px));
+    }
+}
