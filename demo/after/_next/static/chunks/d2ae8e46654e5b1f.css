@@ -97,4 +97,3 @@ html, body { overflow-x: clip; }
 
 #block-with-u-animate .block-with-u-animate-logo-wave{position:relative;display:flex;width:max-content!important}#block-with-u-animate .block-with-u-animate-logo-letter{display:block;flex-shrink:0;transform-origin:left center}#block-with-u-animate .block-with-u-animate-logo-letter .block-with-u-animate-logo-icon{display:block;width:calc(21px*var(--logo-letter-ratio))}@media screen and (min-width:1921px){#block-with-u-animate .block-with-u-animate-logo-letter .block-with-u-animate-logo-icon{width:calc(1.0938vw*var(--logo-letter-ratio))}}
 
-.society-letter-inner.moving .society-cell-img{overflow:visible}
