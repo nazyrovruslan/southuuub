@@ -100,3 +100,7 @@ html, body { overflow-x: clip; }
 @media screen and (max-width:767px){.footer-contacts-first{gap:0}.footer-contacts-second{gap:14px}.footer-contacts-second>p:first-child{margin-bottom:-10px}.footer-contacts-label-dashed{border-bottom:none;text-decoration:underline;text-decoration-color:rgba(17,17,17,.4);text-underline-offset:4px;line-height:130%}.footer-contacts-second>p:last-child{margin-top:14px;color:rgba(17,17,17,.6)}}
 
 .society-scrubbing .society-photos-block-img{transition-duration:.15s}
+
+.video-wrapper .home-video{opacity:0;transition:opacity .3s ease}
+.video-wrapper .home-video+.home-video{position:absolute;inset:0;width:100%;height:100%}
+.video-wrapper .home-video-active{opacity:1}
