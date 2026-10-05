@@ -107,6 +107,11 @@
     overflow: hidden;
 }
 
+/* S и O по макету срезаны верхней линией клетки; в движении срезанная часть появляется */
+.society-letter-inner.moving .society-cell-img {
+    overflow: visible;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .society-letter.leaving {
         visibility: hidden;
