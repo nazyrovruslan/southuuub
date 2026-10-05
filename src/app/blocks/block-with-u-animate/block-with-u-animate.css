@@ -36,6 +36,13 @@
     height: 21px;
 }
 
+/* логотип в волне растёт от левого края, в сторону букв */
+#block-with-u-animate .block-with-u-animate-logo-wave {
+    display: flex;
+    width: max-content;
+    transform-origin: left center;
+}
+
 .block-with-u-animate-row-0 {
     display: flex;
     width: 100%;

@@ -61,6 +61,7 @@ const getAllMobileCells = () => {
 // поэтому вместе с наведённой растут соседи по бокам, сверху и снизу, а зона
 // наведения непрерывная — каждая буква «ловит» курсор до середины пути к соседней.
 const WAVE_MAX_SCALE = 2;       // наведённая буква: 20px -> 40px, как раньше
+const WAVE_LOGO_MAX_SCALE = 1.35; // логотип SOUTHU шире буквы: растёт меньше, чтобы не наезжать на U
 const WAVE_RADIUS = 1.1;        // радиус влияния в шагах сетки по горизонтали
 const WAVE_GROW = 0.22;         // скорость увеличения за кадр (быстро)
 const WAVE_FADE = 0.06;         // скорость затухания за кадр (медленно)
@@ -235,6 +236,18 @@ export const BlockWithUAnimate = () => {
             const radius = (Number.isFinite(pitch) ? pitch : 150) * WAVE_RADIUS;
 
             centers.forEach(([cx, cy], i) => {
+                const icon = icons[i];
+                if (icon.dataset.waveLogo !== undefined) {
+                    // логотип растёт от левого края: расстояние считаем до его прямоугольника без масштаба
+                    const left = rects[i].left;
+                    const right = left + icon.offsetWidth;
+                    const half = icon.offsetHeight / 2;
+                    const dx = Math.max(left - event.clientX, 0, event.clientX - right);
+                    const dy = Math.max(Math.abs(event.clientY - cy) - half, 0);
+                    const d = Math.hypot(dx, dy) / radius;
+                    target[i] = 1 + (WAVE_LOGO_MAX_SCALE - 1) * Math.exp(-d * d);
+                    return;
+                }
                 const d = Math.hypot(event.clientX - cx, event.clientY - cy) / radius;
                 target[i] = 1 + (WAVE_MAX_SCALE - 1) * Math.exp(-d * d);
             });
@@ -296,13 +309,15 @@ export const BlockWithUAnimate = () => {
     const renderCellContent = (row: number, col: number) => {
         if (row === 0 && col === 0) {
             return (
-                <Image
-                    src={Logo}
-                    alt=''
-                    height={21}
-                    className='block-with-u-animate-logo-icon'
-                    unoptimized
-                />
+                <div className='block-with-u-animate-logo-wave' data-wave-letter data-wave-logo>
+                    <Image
+                        src={Logo}
+                        alt=''
+                        height={21}
+                        className='block-with-u-animate-logo-icon'
+                        unoptimized
+                    />
+                </div>
             );
         }
 
