@@ -49,5 +49,10 @@ function touch(e){var t=e.touches[0];if(!t)return;var n=move(t);touched=n;var cl
 /* палец убрали: иконка открыта, соседние крестики остаются повёрнутыми вокруг неё */
 function touchEnd(){var cl=cells[touched];if(!cl)return leave();var r=cl.getBoundingClientRect();move({clientX:r.left+r.width/2,clientY:r.top+r.height/2})}
 function mouse(e){if(e.pointerType!=='touch'&&matchMedia('(hover:hover) and (pointer:fine)').matches)move(e)}
-function bind(){var b=document.getElementById('more-new');if(b&&b!==block){block=b;b.addEventListener('pointermove',mouse);b.addEventListener('pointerleave',leave);b.addEventListener('touchstart',touch,{passive:true});b.addEventListener('touchmove',touch,{passive:true});b.addEventListener('touchend',touchEnd);b.addEventListener('touchcancel',touchEnd);gaps()}}
+/* телефон и планшет: при прокрутке крестики по одному превращаются в иконки, в перемешанном, но постоянном порядке */
+var order=null,sCell=-1;
+function shuffle(n){var o=[],i,s=7;for(i=0;i<n;i++)o.push(i);for(i=n-1;i>0;i--){s=s*16807%2147483647;var j=s%(i+1),t=o[i];o[i]=o[j];o[j]=t}return o}
+function onScroll(){if(!block||!ok()||matchMedia('(hover:hover) and (pointer:fine)').matches)return;if(sync())gaps();if(!cells.length)return;if(!order||order.length!==cells.length){order=shuffle(cells.length);sCell=-1}var r=block.getBoundingClientRect(),vh=innerHeight,st=vh*.85,p=(st-r.top)/(r.height+st-vh*.25);if(p<0||p>=1)return;var n=order[Math.floor(p*cells.length)];if(n===sCell)return;sCell=n;touched=n;var cl=cells[n],c=cl.getBoundingClientRect();move({clientX:c.left+c.width/2,clientY:c.top+c.height/2});if(window.__mnSetHover)window.__mnSetHover({row:+cl.dataset.row,col:+cl.dataset.col})}
+addEventListener('scroll',onScroll,{passive:true});
+function bind(){var b=document.getElementById('more-new');if(b&&b!==block){block=b;b.addEventListener('pointermove',mouse);b.addEventListener('pointerleave',leave);b.addEventListener('touchstart',touch,{passive:true});b.addEventListener('touchend',touchEnd);b.addEventListener('touchcancel',touchEnd);gaps()}}
 bind();new MutationObserver(bind).observe(document.documentElement,{childList:true,subtree:true});addEventListener('resize',gaps);addEventListener('load',gaps);setTimeout(gaps,1500);})();</script></body></html>
