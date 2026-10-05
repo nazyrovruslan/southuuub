@@ -7,7 +7,11 @@ const hs=()=>{const h=document.querySelector(".header");if(h)h.classList.toggle(
 addEventListener("scroll",hs,{passive:!0});
 // видео проектов: загрузка и проигрывание только в зоне видимости
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-const io=new IntersectionObserver(es=>{for(const e of es){const v=e.target;if(e.isIntersecting){if(!reduce)v.play().catch(()=>{})}else v.pause()}},{rootMargin:"300px 0px"});
+const start=v=>{v.muted=!0;v.setAttribute("muted","");if(v.preload!=="auto"){v.preload="auto";v.load()}if(!reduce&&v.paused){v.play().catch(()=>{v.addEventListener("canplay",()=>v.play().catch(()=>{}),{once:!0})})}};
+const near=v=>{const r=v.getBoundingClientRect();return r.bottom>-300&&r.top<innerHeight+300};
+const io=new IntersectionObserver(es=>{for(const e of es){const v=e.target;if(e.isIntersecting)start(v);else v.pause()}},{rootMargin:"300px 0px"});
+// запасной вариант: при закреплённом GSAP блоке Safari не всегда сообщает о пересечении
+addEventListener("scroll",()=>{document.querySelectorAll("video[data-lazy-video]").forEach(v=>{if(near(v))start(v)})},{passive:!0});
 const seen=new WeakSet();
 new MutationObserver(()=>{document.querySelectorAll("video[data-lazy-video]").forEach(v=>{if(!seen.has(v)){seen.add(v);io.observe(v)}})}).observe(document.documentElement,{childList:!0,subtree:!0});
 })();
