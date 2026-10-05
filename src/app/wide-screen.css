@@ -28,7 +28,7 @@
   html .block-with-u-animate-cell { width: 2.6042vw; height: 2.6042vw; }
   html .special-cell-third-row { font-size: 1.1458vw; }
   /* src/app/blocks/community-in-numbers/community-in-numbers.css */
-  html .community-in-numbers-wrapper { max-width: none; margin: 0 auto 0.2083vw; padding: 5.2083vw 3.125vw; }
+  html .community-in-numbers-wrapper { max-width: none; margin: 0 auto; padding: 5.2083vw 3.125vw; }
   html .community-in-numbers-title { font-size: 3.6458vw; margin-bottom: 4.1667vw; }
   html .community-in-numbers-infographic-item:not(:first-child) .community-in-numbers-infographic-item-content { left: 1.5625vw; }
   html .community-in-numbers-infographic-item-line { margin-right: 1.5625vw; }
@@ -87,7 +87,7 @@
   html .more-new-row-0, html .more-new-row-1, html .more-new-row-2, html .more-new-row-3, html .more-new-row-4, html .more-new-row-5, html .more-new-row-6 { gap: calc((100% - (2.6042vw * var(--more-new-columns, 13))) / (var(--more-new-columns, 13) - 1)); }
   html .more-new-row-3 .more-new-special-cell-wrapper { width: calc(18.2292vw + ((100% - (2.6042vw * var(--more-new-columns, 13))) / (var(--more-new-columns, 13) - 1)) * 6); }
   /* src/app/blocks/our-projects-scrollable-block/our-projects-scrollable-block.css */
-  html .our-projects-scrollable-block-wrapper { max-width: none; padding: 0 0 0 4.1667vw; margin: 0.2083vw auto 0; }
+  html .our-projects-scrollable-block-wrapper { max-width: none; padding: 0 0 0 4.1667vw; margin: 0 auto; }
   html .our-projects-scrollable-block { gap: 3.125vw; }
   html .our-projects-item-left { width: 16.6667vw; min-width: 16.6667vw; }
   html .our-projects-item-right { max-width: 46.875vw; width: calc(100vw - 3.125vw - 27.0833vw - 3.125vw); }

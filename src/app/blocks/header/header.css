@@ -62,7 +62,7 @@
 }
 
 .header {
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: transform 0.4s ease, opacity 0.3s ease, visibility 0.3s ease;
     position: fixed;
     width: 100vw;
     z-index: 99;
@@ -75,7 +75,7 @@
 /* Подложка после начала прокрутки (класс ставит header.tsx), чтобы шапка не лежала на тексте */
 @media screen and (max-width: 1024px) {
     .header {
-        transition: background-color 0.3s ease, backdrop-filter 0.3s ease, padding 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+        transition: transform 0.4s ease, background-color 0.3s ease, backdrop-filter 0.3s ease, padding 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
     }
 
     .header.header_scrolled {
@@ -89,10 +89,18 @@
     .header.header_scrolled.header_black {
         background-color: rgba(234, 234, 234, 0.85);
     }
+
+    /* Без логотипа на подложке остаётся только бургер: шапка уезжает целиком */
+    .header.header_hidden_logo {
+        transform: translateY(-100%);
+        pointer-events: none;
+    }
 }
 
-.header_hidden {
-    display: none;
+/* Шапка не исчезает рывком, а уезжает вверх и возвращается тем же путём */
+.header.header_hidden {
+    transform: translateY(-100%);
+    pointer-events: none;
 }
 
 .header_hidden_logo {
