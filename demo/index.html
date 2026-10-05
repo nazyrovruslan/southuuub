@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Демо southhub.ru</title>
+<style>
+/* Layout: одна узкая колонка, две крупные ссылки-карточки «после» и «до» */
+:root{--bg:#f1f1ef;--surface:#fff;--fg:#1b1b1d;--muted:#5f5f66;--line:#dcdcd8;--accent:#c4501f;--ok:#2e7d4f;--bad:#c62828;
+--body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#141416;--surface:#1d1d20;--fg:#ececec;--muted:#a3a3ab;--line:#313136;--accent:#ff8a57;--ok:#6fcf97;--bad:#ff6b6b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141416;--surface:#1d1d20;--fg:#ececec;--muted:#a3a3ab;--line:#313136;--accent:#ff8a57;--ok:#6fcf97;--bad:#ff6b6b;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--body)}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:40px 64px}
+h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em;text-wrap:balance}
+p{margin:.5em 0;max-width:65ch}.muted{color:var(--muted);font-size:.92rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:24px 0}
+a.card{display:block;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:16px 18px;color:var(--fg);text-decoration:none;min-width:0}
+a.card.before{border-left-color:var(--bad)}
+a.card:hover{border-color:var(--accent)}a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a.card b{display:block;font-size:1.1rem;margin-bottom:4px}
+ul{padding-left:1.2em}li{margin:.3em 0}
+</style>
+<div class="wrap">
+  <h1>Демо southhub.ru</h1>
+  <p>Копия главной страницы southhub.ru в двух вариантах: с исправлениями из аудита и без них. Удобнее всего сравнивать на телефоне через мобильный интернет.</p>
+  <div class="cards">
+    <a class="card" href="after/index.html"><b>После исправлений</b>Прелоадер ждёт только первое видео и уходит не позже чем через 2,5 с. Для телефонов отдельное лёгкое видео.</a>
+    <a class="card before" href="before/index.html"><b>Как сейчас</b>Прелоадер ждёт все три видео, 11 МБ.</a>
+  </div>
+  <p><b>Что изменено в версии «после»</b></p>
+  <ul>
+    <li>Прелоадер ждёт только hero-видео (событие canplay) и загрузку страницы, таймаут 2,5 с.</li>
+    <li>Видео пережаты: 7 МБ вместо 11; на телефоне hero 2 МБ вместо 6,4.</li>
+    <li>Видео проектов грузятся, только когда до них долистали; у всех есть постеры.</li>
+    <li>14 фото галереи грузятся лениво и по ширине экрана (на телефоне 640–1200 px вместо 1920).</li>
+    <li>Анимации столбцов «мы в цифрах» на transform, учтена настройка «уменьшить движение».</li>
+    <li>Фон под шапкой при прокрутке, «ІТ» исправлено на «IT».</li>
+  </ul>
+  <p class="muted">Это статическая копия: ссылки ведут на настоящий сайт, Яндекс Метрика отключена, внешний вид секции «где встречаемся» и тексты не менялись. Скорость загрузки зависит от хостинга копии, поэтому сравнивать стоит две версии между собой, а не с southhub.ru.</p>
+</div>
