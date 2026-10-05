@@ -110,10 +110,7 @@ export const Preloader = () => {
                 }
             });
 
-            performanceObserver.observe({ 
-                entryTypes: ['resource'],
-                buffered: true 
-            });
+            performanceObserver.observe({ type: 'resource', buffered: true });
         } catch {
             console.warn('PerformanceObserver not supported, using fallback');
         }

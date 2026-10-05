@@ -132,9 +132,12 @@ export const MainBanner = () => {
     if (secondPart(step)) video.currentTime = HERO_PART2_START;
 
     // ролик крутится только в своей части: первая с начала до HERO_PART1_END,
-    // вторая с HERO_PART2_START до конца (loop у видео возвращает в 0 — переставляем)
+    // вторая с HERO_PART2_START до конца (loop у видео возвращает в 0 — переставляем).
+    // Проверка идёт по кадрам только пока видео играет.
     let frame = 0;
     const keepPart = () => {
+      frame = 0;
+      if (video.paused) return;
       const time = video.currentTime;
       if (secondPart(step)) {
         if (time < HERO_PART2_START - 0.05) video.currentTime = HERO_PART2_START;
@@ -143,7 +146,11 @@ export const MainBanner = () => {
       }
       frame = requestAnimationFrame(keepPart);
     };
-    frame = requestAnimationFrame(keepPart);
+    const startKeepPart = () => {
+      if (!frame) frame = requestAnimationFrame(keepPart);
+    };
+    video.addEventListener("play", startKeepPart);
+    startKeepPart();
 
     const atTop = () => window.scrollY <= 1;
     // жест забирает первый экран, если страница наверху и шаг в эту сторону ещё есть
@@ -218,6 +225,7 @@ export const MainBanner = () => {
       window.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(frame);
+      video.removeEventListener("play", startKeepPart);
       gsap.killTweensOf([videoWrapper, ...texts]);
     };
   }, []);
