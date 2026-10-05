@@ -22,9 +22,13 @@ const STEP_INTERVAL_MS = 500;
 // совпадает с transition в preloader.css: прелоадер успевает целиком уехать вверх
 const HIDE_ANIMATION_MS = 600;
 const OVERFLOW_RESTORE_DELAY_MS = 500;
-// Прелоадер уходит не позже этого времени, даже если видео не загрузилось
-// (энергосбережение на iOS, экономия трафика, блокировщик, нет кодека).
-const MAX_WAIT_MS = 2500;
+// Прелоадер держится, пока видео первого экрана не скачается целиком,
+// но не дольше этого времени на совсем медленном интернете.
+const MAX_WAIT_MS = 20000;
+// Минимальное время показа, чтобы прелоадер не мигал, когда видео уже в кэше.
+const MIN_SHOW_MS = 1200;
+// Первая часть видео первого экрана; вторая (общий план) короткая и догружается следом.
+const HERO_VIDEOS = [{ id: 'main-video-banner', weight: 1 }];
 
 export const Preloader = () => {
     const [isVisible, setVisible] = useState(true);
@@ -35,18 +39,23 @@ export const Preloader = () => {
     const overflowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [isTimedOut, setTimedOut] = useState(false);
+    const [isMinShown, setMinShown] = useState(false);
 
     // Ждём только видео первого экрана: остальные грузятся при прокрутке.
-    const heroVideoProgress = useVideoLoadingProgress('main-video-banner');
+    const heroVideoProgress = useVideoLoadingProgress(HERO_VIDEOS);
 
     const combinedProgress = isTimedOut ? 100 : Math.min(
-        Math.round((heroVideoProgress * 0.5) + (pageLoadProgress * 0.5)),
+        Math.round((heroVideoProgress * 0.8) + (pageLoadProgress * 0.2)),
         100
     );
 
     useEffect(() => {
         const timer = setTimeout(() => setTimedOut(true), MAX_WAIT_MS);
-        return () => clearTimeout(timer);
+        const minTimer = setTimeout(() => setMinShown(true), MIN_SHOW_MS);
+        return () => {
+            clearTimeout(timer);
+            clearTimeout(minTimer);
+        };
     }, []);
 
     useEffect(() => {
@@ -172,7 +181,7 @@ export const Preloader = () => {
     }, []);
 
     useEffect(() => {
-        if (combinedProgress < 100) return;
+        if (combinedProgress < 100 || !isMinShown) return;
 
         setIsAnimating(true);
         // Первый экран показывает контент, пока прелоадер уезжает вверх
@@ -185,7 +194,7 @@ export const Preloader = () => {
         }, HIDE_ANIMATION_MS);
 
         return () => clearTimeout(timer);
-    }, [combinedProgress]);
+    }, [combinedProgress, isMinShown]);
 
     if (!isVisible) {
         return null;

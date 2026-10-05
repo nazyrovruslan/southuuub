@@ -1,91 +1,54 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
-export const useVideoLoadingProgress = (videoSelector: string) => {
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+// Если загрузка не двигается столько времени, дальше не ждём:
+// так бывает в режиме энергосбережения на iOS, при экономии трафика или без кодека.
+const STALL_MS = 4000;
+const CHECK_MS = 200;
 
-  const updateProgress = useCallback(() => {
-    const video = videoRef.current;
-    if (video && video.buffered.length > 0 && video.duration > 0) {
-      const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-      const duration = video.duration;
-      const progress = Math.min(Math.round((bufferedEnd / duration) * 100), 100);
-      setLoadingProgress(progress);
-    }
-  }, []);
+// Доля скачанного видео: 1, когда файл в буфере целиком (или не грузится из-за ошибки).
+const bufferedShare = (video: HTMLVideoElement) => {
+  if (video.error) return 1;
+  if (!video.buffered.length || !(video.duration > 0)) return 0;
+  const end = video.buffered.end(video.buffered.length - 1);
+  return end >= video.duration - 0.1 ? 1 : end / video.duration;
+};
+
+// Прогресс загрузки нескольких видео (0–100) с весами по размеру файлов.
+export const useVideoLoadingProgress = (videos: { id: string; weight: number }[]) => {
+  const [progress, setProgress] = useState(0);
+  const key = videos.map((v) => `${v.id}:${v.weight}`).join(',');
 
   useEffect(() => {
-    // Функция для поиска видео элемента
-    const findVideoElement = () => {
-      const element = document.getElementById(videoSelector) as HTMLVideoElement;
+    const total = videos.reduce((sum, v) => sum + v.weight, 0);
+    let last = -1;
+    let lastChangeAt = Date.now();
 
-      if (element && element !== videoRef.current) {
-        videoRef.current = element;
-        return true;
+    const tick = () => {
+      let sum = 0;
+      for (const { id, weight } of videos) {
+        const video = document.getElementById(id) as HTMLVideoElement | null;
+        if (video) sum += weight * bufferedShare(video);
       }
-      return false;
+
+      let next = Math.round((sum / total) * 100);
+      const now = Date.now();
+      if (next !== last) {
+        last = next;
+        lastChangeAt = now;
+      } else if (now - lastChangeAt > STALL_MS) {
+        next = 100;
+      }
+
+      setProgress((prev) => Math.max(prev, next));
+      if (next >= 100) clearInterval(interval);
     };
 
-    // Если элемент уже существует
-    if (findVideoElement() && videoRef.current) {
-      const video = videoRef.current;
-      
-      if (video.readyState >= 1) {
-        updateProgress();
-      }
-      
-      if (video.readyState >= 3) {
-        setLoadingProgress(100);
-      }
-    }
+    const interval = setInterval(tick, CHECK_MS);
+    tick();
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
-    // Используем MutationObserver для отслеживания изменений в DOM,
-    // пока видео не найдено: дальше следить за всеми изменениями страницы незачем
-    const observer = new MutationObserver(() => {
-      if (!videoRef.current && findVideoElement() && videoRef.current) {
-        attachEvents(videoRef.current);
-        observer.disconnect();
-      }
-    });
-
-    if (!videoRef.current) {
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-    }
-
-    // Видео готово, как только может начать играть (canplay): полной буферизации не ждём.
-    // Ошибка загрузки тоже считается готовностью, чтобы прелоадер не зависал.
-    const setReady = () => setLoadingProgress(100);
-
-    // Функция для прикрепления обработчиков событий
-    const attachEvents = (video: HTMLVideoElement) => {
-      video.addEventListener('progress', updateProgress);
-      video.addEventListener('loadedmetadata', updateProgress);
-      video.addEventListener('canplay', setReady);
-      video.addEventListener('error', setReady);
-      video.addEventListener('loadeddata', updateProgress);
-    };
-
-    // Прикрепляем обработчики если элемент существует
-    if (videoRef.current) {
-      attachEvents(videoRef.current);
-    }
-
-    // Очистка
-    return () => {
-      observer.disconnect();
-      if (videoRef.current) {
-        videoRef.current.removeEventListener('progress', updateProgress);
-        videoRef.current.removeEventListener('loadedmetadata', updateProgress);
-        videoRef.current.removeEventListener('canplay', setReady);
-        videoRef.current.removeEventListener('error', setReady);
-        videoRef.current.removeEventListener('loadeddata', updateProgress);
-      }
-    };
-  }, [videoSelector, updateProgress]);
-
-  return loadingProgress;
+  return progress;
 };

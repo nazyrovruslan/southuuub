@@ -279,7 +279,14 @@ export const MainBanner = () => {
             poster="/v2/southuuub-poster.webp"
             disableRemotePlayback
           >
+            {/* HEVC вдвое легче H.264: его берут Safari, iPhone и Chrome с аппаратным
+                декодером, остальные браузеры пропускают и берут H.264 ниже */}
             {/* Вертикальная версия для телефонов: 608×1080 */}
+            <source
+              src="/v2/southuuub-mobile-a.hevc.mp4"
+              type='video/mp4; codecs="hvc1.1.6.L93.B0"'
+              media="(max-width: 767px) and (orientation: portrait)"
+            />
             <source
               src="/v2/southuuub-mobile-a.mp4"
               type="video/mp4"
@@ -287,9 +294,18 @@ export const MainBanner = () => {
             />
             {/* Ноутбуки без Retina: 720p, на таких экранах разницы не видно */}
             <source
+              src="/v2/southuuub-720-a.hevc.mp4"
+              type='video/mp4; codecs="hvc1.1.6.L93.B0"'
+              media="(max-width: 1440px) and (max-resolution: 1.5dppx)"
+            />
+            <source
               src="/v2/southuuub-720-a.mp4"
               type="video/mp4"
               media="(max-width: 1440px) and (max-resolution: 1.5dppx)"
+            />
+            <source
+              src="/v2/southuuub-a.hevc.mp4"
+              type='video/mp4; codecs="hvc1.1.6.L120.B0"'
             />
             <source src="/v2/southuuub-a.mp4" type="video/mp4" />
           </video>
@@ -302,6 +318,7 @@ export const MainBanner = () => {
             playsInline
             preload="auto"
             poster="/v2/southuuub-b-poster.webp"
+            id="main-video-banner-b"
             disableRemotePlayback
             aria-hidden="true"
           >
