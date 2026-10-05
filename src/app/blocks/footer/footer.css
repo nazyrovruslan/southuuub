@@ -186,3 +186,32 @@
         }
     }
 }
+
+/* Телефон: политики отдельными строками с воздухом между ними, подчёркивание у самого текста,
+   реквизиты парой, копирайт отдельно внизу */
+@media screen and (max-width: 767px) {
+    .footer-contacts-first {
+        gap: 0;
+    }
+
+    .footer-contacts-second {
+        gap: 14px;
+    }
+
+    .footer-contacts-second > p:first-child {
+        margin-bottom: -10px;
+    }
+
+    .footer-contacts-label-dashed {
+        border-bottom: none;
+        text-decoration: underline;
+        text-decoration-color: rgba(17, 17, 17, 0.4);
+        text-underline-offset: 4px;
+        line-height: 130%;
+    }
+
+    .footer-contacts-second > p:last-child {
+        margin-top: 14px;
+        color: rgba(17, 17, 17, 0.6);
+    }
+}
