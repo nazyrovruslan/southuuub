@@ -380,12 +380,14 @@ export const BlockWithUAnimate = () => {
         );
     };
 
+    // Первый ряд на десктопе как в макете: логотип SOUTHU слева, а за ним на одну букву
+    // больше, чем столбцов до правого края; буквы равномерно занимают оставшуюся ширину.
     const getRowCells = (row: number) => {
         if (device === 'desktop_s') {
             if (row === 0) {
                 return [
-                    { type: 'special', col: 0, span: 2 },
-                    ...Array.from({ length: columns - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
+                    { type: 'special', col: 0, span: 1 },
+                    ...Array.from({ length: columns - 1 }, (_, i) => ({ type: 'svg', col: i + 1, span: 1 }))
                 ];
             } else if (row === 2) {
                 return [
@@ -433,8 +435,8 @@ export const BlockWithUAnimate = () => {
 
         if (row === 0) {
             return [
-                { type: 'special', col: 0, span: 2 },
-                ...Array.from({ length: columns - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 }))
+                { type: 'special', col: 0, span: 1 },
+                ...Array.from({ length: columns - 1 }, (_, i) => ({ type: 'svg', col: i + 1, span: 1 }))
             ];
         } else if (row === 2) {
             return [

@@ -5,7 +5,7 @@
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 70px;
+    gap: 76px;
 
 
     @media screen and (max-width: 1280px) {
@@ -246,4 +246,24 @@
 .block-with-u-animate-svg-icon {
     transition: width 0.5s ease-in-out, height 0.5s ease-in-out;
     display: block;
+}
+
+/* Десктоп по макету 1440: в первом ряду логотип SOUTHU стоит слева, а буквы равномерно
+   занимают ширину от 162px до правого края (выше 1920 отступ растёт вместе со страницей). */
+@media screen and (min-width: 1025px) {
+    #block-with-u-animate .block-with-u-animate-row-0 {
+        position: relative;
+        justify-content: space-between;
+        gap: 0;
+        padding-left: max(162px, 8.4375vw);
+    }
+
+    #block-with-u-animate .block-with-u-animate-row-0 > .special-cell-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: max(121px, 6.3021vw);
+        height: 100%;
+        justify-content: flex-start;
+    }
 }

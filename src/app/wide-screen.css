@@ -24,7 +24,7 @@
   html .accordion-content-inner { padding-bottom: 1.25vw; }
   html .accordions-block-children { font-size: 1.25vw; }
   /* src/app/blocks/block-with-u-animate/block-with-u-animate.css */
-  html .block-with-u-animate { max-width: none; padding: 1.5625vw 3.125vw; gap: 3.6458vw; }
+  html .block-with-u-animate { max-width: none; padding: 1.5625vw 3.125vw; gap: 3.9583vw; }
   html .block-with-u-animate-logo-icon-wrapper { height: 2.6042vw; }
   html .block-with-u-animate-logo-icon { height: 1.0938vw; }
   html .block-with-u-animate-row-0 { gap: calc((100% - (2.6042vw * var(--u-columns, 12))) / (var(--u-columns, 12) - 1)); }
