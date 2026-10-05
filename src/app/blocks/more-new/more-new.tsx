@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import './more-new.css';
 import { FONT_MONT_BOOK } from '@/app/fonts';
@@ -23,11 +23,20 @@ const FIXED_CELLS: Record<'tablet' | 'mobile', { row: number; col: number }[]> =
     mobile: [{ row: 1, col: 1 }, { row: 2, col: 3 }, { row: 5, col: 2 }],
 };
 
+// Волна на десктопе, как в блоке с буквами U: крестики отталкиваются от курсора и
+// поворачиваются тем сильнее, чем ближе курсор. Быстро реагируют, медленно возвращаются.
+const WAVE_RADIUS = 1.1;        // радиус влияния в шагах сетки по горизонтали
+const WAVE_SHIFT = 14;          // максимальный сдвиг от курсора, px
+const WAVE_TURN = 0.75;         // поворот: доля угла направления от курсора
+const WAVE_GROW = 0.22;
+const WAVE_FADE = 0.06;
+
 export const MoreNew = () => {
     const [device, setDevice] = useState<'desktop' | 'desktop_s' | 'tablet' | 'mobile'>('desktop');
     const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
     const [fixedCells, setFixedCells] = useState<{ row: number; col: number }[]>([]);
     const [isMobileVisible, setMobileVisible] = useState(false);
+    const blockRef = useRef<HTMLDivElement>(null);
 
     const getLinkWIthUtm = useGetLinkWithUtm();
 
@@ -140,6 +149,104 @@ export const MoreNew = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [device]);
 
+    useEffect(() => {
+        const block = blockRef.current;
+        if (!block || (device !== 'desktop' && device !== 'desktop_s')) return;
+        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+        const cells = Array.from(block.querySelectorAll<HTMLElement>('[data-wave-cell]'));
+        const crosses = cells.map((cell) => cell.querySelector<HTMLElement>('[data-wave-cross]'));
+
+        // Зона наведения каждой клетки растягивается до середины пути к соседним
+        // (псевдоэлемент в CSS), поэтому между крестиками нет «мёртвых» промежутков.
+        const updateHitArea = () => {
+            if (cells.length < 2) return;
+            const a = cells[0].getBoundingClientRect();
+            const b = cells[1].getBoundingClientRect();
+            const row = block.querySelectorAll('.more-new-row');
+            const rowGap = row.length > 1
+                ? row[1].getBoundingClientRect().top - row[0].getBoundingClientRect().bottom
+                : 0;
+            block.style.setProperty('--wave-gap-x', `${Math.max(0, (b.left - a.right) / 2)}px`);
+            block.style.setProperty('--wave-gap-y', `${Math.max(0, rowGap / 2)}px`);
+        };
+        updateHitArea();
+        window.addEventListener('resize', updateHitArea);
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return () => window.removeEventListener('resize', updateHitArea);
+        }
+
+        const current = cells.map(() => 0);
+        const target = cells.map(() => 0);
+        const dir = cells.map(() => ({ x: 0, y: 0, angle: 0 }));
+        let frame = 0;
+
+        const tick = () => {
+            let moving = false;
+            crosses.forEach((cross, i) => {
+                const diff = target[i] - current[i];
+                if (Math.abs(diff) < 0.002) {
+                    current[i] = target[i];
+                } else {
+                    current[i] += diff * (diff > 0 ? WAVE_GROW : WAVE_FADE);
+                    moving = true;
+                }
+                if (!cross) return;
+                const k = current[i];
+                const { x, y, angle } = dir[i];
+                cross.style.transform = k === 0
+                    ? ''
+                    : `translate(${(x * WAVE_SHIFT * k).toFixed(2)}px, ${(y * WAVE_SHIFT * k).toFixed(2)}px) rotate(${(angle * WAVE_TURN * k).toFixed(1)}deg)`;
+            });
+            frame = moving ? requestAnimationFrame(tick) : 0;
+        };
+        const run = () => {
+            if (!frame) frame = requestAnimationFrame(tick);
+        };
+
+        const onMove = (event: PointerEvent) => {
+            const centers = cells.map((cell) => {
+                const r = cell.getBoundingClientRect();
+                return [r.left + r.width / 2, r.top + r.height / 2];
+            });
+            const pitch = centers.length > 1 ? Math.abs(centers[1][0] - centers[0][0]) || 150 : 150;
+            const radius = pitch * WAVE_RADIUS;
+
+            let nearest = -1;
+            let nearestDist = Infinity;
+            centers.forEach(([cx, cy], i) => {
+                const dx = cx - event.clientX;
+                const dy = cy - event.clientY;
+                const len = Math.hypot(dx, dy);
+                if (len < nearestDist) { nearestDist = len; nearest = i; }
+                const d = len / radius;
+                target[i] = Math.exp(-d * d);
+                if (len > 0.5) {
+                    // угол направления от курсора: 0° — сверху, 90° — справа, ±180° — снизу
+                    dir[i] = { x: dx / len, y: dy / len, angle: (Math.atan2(dx, -dy) * 180) / Math.PI };
+                }
+            });
+            // крестик под курсором превращается в иконку, его не двигаем
+            if (nearest >= 0) target[nearest] = 0;
+            run();
+        };
+        const onLeave = () => {
+            target.fill(0);
+            run();
+        };
+
+        block.addEventListener('pointermove', onMove);
+        block.addEventListener('pointerleave', onLeave);
+        return () => {
+            window.removeEventListener('resize', updateHitArea);
+            block.removeEventListener('pointermove', onMove);
+            block.removeEventListener('pointerleave', onLeave);
+            cancelAnimationFrame(frame);
+            crosses.forEach((cross) => { if (cross) cross.style.transform = ''; });
+        };
+    }, [device]);
+
     // Returns active hover sources depending on device
     const getActiveSources = (): { row: number; col: number }[] => {
         if (device === 'tablet' || device === 'mobile') return fixedCells;
@@ -154,6 +261,8 @@ export const MoreNew = () => {
     };
 
     const shouldRotate = (row: number, col: number): boolean => {
+        // на десктопе крестики двигает волна (см. эффект выше)
+        if (device === 'desktop' || device === 'desktop_s') return false;
         const sources = getActiveSources();
         if (sources.length === 0) return false;
 
@@ -356,7 +465,8 @@ export const MoreNew = () => {
                     alt=""
                     width={device === 'mobile' ? 30 : 50}
                     height={device === 'mobile' ? 30 : 50}
-                    className="more-new-svg-icon"
+                    className="more-new-svg-icon more-new-svg-icon-cross"
+                    data-wave-cross
                     style={{ ...style, opacity: isCurrentlyHovered ? 0 : 1 }}
                     unoptimized
                 />
@@ -438,7 +548,7 @@ export const MoreNew = () => {
     };
 
     return (
-        <div className="more-new" id="more-new">
+        <div className="more-new" id="more-new" ref={blockRef}>
             {[0, 1, 2, 3, 4, 5, 6].map((row) => {
                 const rowCells = getRowCells(row);
 
@@ -450,6 +560,7 @@ export const MoreNew = () => {
                                 className={`more-new-cell ${
                                     cell.type === 'special' ? 'more-new-special-cell-wrapper' : ''
                                 }`}
+                                data-wave-cell={cell.type === 'svg' ? '' : undefined}
                                 onMouseEnter={() => handleMouseEnter(row, cell.col, cell.type)}
                                 onMouseLeave={handleMouseLeave}
                             >

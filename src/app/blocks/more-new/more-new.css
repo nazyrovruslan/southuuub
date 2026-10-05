@@ -45,6 +45,26 @@
     position: relative;
 }
 
+/* Широкая зона наведения и клика: клетка ловит курсор до середины пути к соседним.
+   Размер промежутков выставляет more-new.tsx в --wave-gap-x / --wave-gap-y. */
+[data-wave-cell] .more-new-svg-container {
+    position: relative;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1025px) {
+    /* псевдоэлемент внутри контейнера: по нему работают и наведение, и клик по ссылке */
+    [data-wave-cell] .more-new-svg-container::before {
+        content: '';
+        position: absolute;
+        inset: calc(var(--wave-gap-y, 0px) * -1) calc(var(--wave-gap-x, 0px) * -1);
+    }
+
+    /* крестик двигает волна покадрово, CSS-переход ей бы мешал */
+    .more-new-svg-icon-cross {
+        transition: opacity 0.7s ease-in-out 250ms;
+    }
+}
+
 .more-new-special-cell {
     width: 100%;
     height: 100%;
