@@ -75,13 +75,15 @@
 /* Подложка после начала прокрутки (класс ставит header.tsx), чтобы шапка не лежала на тексте */
 @media screen and (max-width: 1024px) {
     .header {
-        transition: background-color 0.3s ease, backdrop-filter 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+        transition: background-color 0.3s ease, backdrop-filter 0.3s ease, padding 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
     }
 
     .header.header_scrolled {
         background-color: rgba(17, 17, 17, 0.72);
         -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
+        /* логотип стоит по нижнему краю строки шапки, без отступа подложка срезает его снизу */
+        padding-bottom: 10px;
     }
 
     .header.header_scrolled.header_black {
