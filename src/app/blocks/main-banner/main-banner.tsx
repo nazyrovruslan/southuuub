@@ -10,12 +10,13 @@ import "./main-banner.css";
 import { NBSP, PRELOADER_HIDE_EVENT } from "@/app/constants";
 
 // Первый экран закреплён через position: sticky (без JS-пина, который дёргается на iOS),
-// секция выше окна на 0,7 экрана. Приближение видео привязано к прокрутке (scrub),
-// а тексты не следуют за колесом: при переходе порога они целиком уходят и появляются
-// короткой анимацией, поэтому полупрозрачный текст не зависает, если прокрутку остановить.
-const HERO_SCRUB_SMOOTHING = 0.6;
-// доля пути прокрутки, после которой показывается второй экран
-const HERO_SECOND_SCENE_AT = 0.2;
+// секция выше окна на один экран. Сцен две, и каждая стоит неподвижно на своём участке
+// прокрутки: первая до порога, вторая после него до конца закреплённого участка.
+// На пороге смена идёт короткой анимацией по времени (тексты и приближение видео),
+// а не за колесом, поэтому промежуточное состояние никогда не зависает на экране.
+// доля пути прокрутки, после которой показывается вторая сцена
+const HERO_SECOND_SCENE_AT = 0.3;
+const HERO_VIDEO_ZOOM = 1.5;
 
 export const MainBanner = () => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -79,6 +80,12 @@ export const MainBanner = () => {
     const showScene = (second: boolean) => {
       if (second === showingSecond) return;
       showingSecond = second;
+      gsap.to(videoWrapper, {
+        scale: second ? HERO_VIDEO_ZOOM : 1,
+        duration: 0.9,
+        ease: "power2.inOut",
+        overwrite: "auto",
+      });
       const leaving = second ? firstScene : secondScene;
       const entering = second ? secondScene : firstScene;
       gsap.to(leaving, {
@@ -104,17 +111,6 @@ export const MainBanner = () => {
       );
     };
 
-    const zoom = gsap.to(videoWrapper, {
-      scale: 1.5,
-      ease: "power1.inOut",
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: HERO_SCRUB_SMOOTHING,
-      },
-    });
-
     const sceneTrigger = ScrollTrigger.create({
       trigger: section,
       start: "top top",
@@ -126,9 +122,7 @@ export const MainBanner = () => {
 
     return () => {
       sceneTrigger.kill();
-      zoom.scrollTrigger?.kill();
-      zoom.kill();
-      gsap.killTweensOf([...firstScene, ...secondScene]);
+      gsap.killTweensOf([videoWrapper, ...firstScene, ...secondScene]);
     };
   }, []);
 
