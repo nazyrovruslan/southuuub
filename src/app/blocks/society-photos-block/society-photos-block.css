@@ -83,6 +83,23 @@
     border-bottom: none;
 }
 
+/* Нижний ряд клеток: свайп влево/вправо листает кадры. Вертикальная прокрутка страницы
+   здесь работает как обычно (touch-action: pan-y). */
+.society-swipe-zone {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    pointer-events: auto;
+    touch-action: pan-y;
+    cursor: grab;
+}
+
+.society-swipe-zone:active {
+    cursor: grabbing;
+}
+
 /* Буквы лежат отдельным слоем поверх сетки. Внешний слой стоит в клетке,
    внутренний ведёт букву из прежней (соседней) клетки (Web Animations в tsx). */
 .society-letters {
@@ -185,5 +202,12 @@
         /* Кадрирование под положение букв, чтобы они не закрывали лица */
         transform: scale(var(--society-photo-scale, 1));
         transform-origin: var(--society-photo-origin, 50% 50%);
+    }
+}
+
+/* Телефон: кадрирование фото по горизонтали подобрано под раскладку букв (mobile-frames.ts) */
+@media screen and (max-width: 767px) {
+    .society-photos-block-img {
+        object-position: var(--society-photo-x, 50%) 50%;
     }
 }

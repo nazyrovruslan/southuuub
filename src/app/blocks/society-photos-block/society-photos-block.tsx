@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import Image from 'next/image';
 
 import { IconS, IconO, IconU, IconT, IconH, IconB } from './cell-desktop';
@@ -22,7 +22,8 @@ import SocietyPhoto14 from '../../../../public/v2/society/society-14.jpg';
 
 import './society-photos-block.css';
 import { FONT_IBM_PLEX_SERIF_LIGHT, FONT_MONT_BOOK } from '@/app/fonts';
-import { DESKTOP_CELL_POSITIONS, TABLET_CELL_POSITIONS, MOBILE_CELL_POSITIONS } from './cell-desktop';
+import { DESKTOP_CELL_POSITIONS, TABLET_CELL_POSITIONS } from './cell-desktop';
+import { MOBILE_FRAME_LAYOUTS, MOBILE_PHOTO_X } from './mobile-frames';
 
 type CellConfig = {
     x: number;
@@ -80,11 +81,15 @@ const PHOTO_DURATION_MS = 2000;
 const CLIP_FALLBACK_MS = 6000;
 const CLIP_POSTER = '/v2/society/society-clip-poster.jpg';
 
-const getPositions = (device: string) => {
-    if (device === 'tablet') return TABLET_CELL_POSITIONS as CellConfig[][];
-    if (device === 'mobile') return MOBILE_CELL_POSITIONS as CellConfig[][];
-    return DESKTOP_CELL_POSITIONS as CellConfig[][];
+// На телефоне у каждого кадра своя раскладка (mobile-frames.ts), на планшете и десктопе — одно из 4 положений
+const getFrameLayout = (device: string, frame: number): CellConfig[] => {
+    if (device === 'mobile') return MOBILE_FRAME_LAYOUTS[frame] as CellConfig[];
+    const positions = (device === 'tablet' ? TABLET_CELL_POSITIONS : DESKTOP_CELL_POSITIONS) as CellConfig[][];
+    return positions[FRAMES[frame].position] ?? positions[0];
 };
+
+// Свайп по нижнему ряду клеток листает кадры
+const SWIPE_THRESHOLD_PX = 40;
 
 const letterKind = (cell: CellConfig) => cell.type === 'text' ? 'text' : cell.src ?? '';
 
@@ -356,12 +361,49 @@ export const SocietyPhotosBlock = () => {
     }, [frame, isVisible, clipSrc]);
 
     useEffect(() => {
-        const positions = getPositions(device);
-        setLetters(prev => placeLetters(prev, positions[FRAMES[frame].position] ?? positions[0], nextId));
+        setLetters(prev => placeLetters(prev, getFrameLayout(device, frame), nextId));
     }, [frame, device, nextId]);
 
     const rows = device === 'tablet' ? 6 : device === 'mobile' ? 9 : 5;
     const cols = device === 'tablet' ? 5 : device === 'mobile' ? 5 : 7;
+
+    const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+
+    const onSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+        swipeStartRef.current = { x: event.clientX, y: event.clientY };
+    };
+
+    const onSwipeEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+        const start = swipeStartRef.current;
+        swipeStartRef.current = null;
+        if (!start) return;
+
+        const dx = event.clientX - start.x;
+        const dy = event.clientY - start.y;
+        if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) < Math.abs(dy)) return;
+
+        // влево — следующий кадр, вправо — предыдущий; таймер слайдшоу перезапускается сам
+        setFrame(prev => (prev + (dx < 0 ? 1 : -1) + FRAMES.length) % FRAMES.length);
+    };
+
+    // Трекпад: горизонтальный жест двумя пальцами над нижним рядом тоже листает кадры
+    const wheelRef = useRef({ sum: 0, lockedUntil: 0 });
+
+    const onSwipeWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+        if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+        const wheel = wheelRef.current;
+        const now = performance.now();
+        if (now < wheel.lockedUntil) return;
+
+        wheel.sum += event.deltaX;
+        if (Math.abs(wheel.sum) < SWIPE_THRESHOLD_PX) return;
+
+        const direction = wheel.sum > 0 ? 1 : -1;
+        setFrame(prev => (prev + direction + FRAMES.length) % FRAMES.length);
+        wheel.sum = 0;
+        // один жест — один кадр: инерция трекпада не пролистывает дальше
+        wheel.lockedUntil = now + 700;
+    };
 
     // Движение букв запускаем до отрисовки кадра: буква стоит в новой клетке,
     // а анимация ведёт её туда из прежней
@@ -381,8 +423,7 @@ export const SocietyPhotosBlock = () => {
 
     const renderGrid = useCallback(() => {
         const grid = [];
-        const positions = getPositions(device);
-        const config = positions[FRAMES[frame].position] ?? positions[0];
+        const config = getFrameLayout(device, frame);
 
         // Клетки с colSpan (на мобилке текст занимает две клетки)
         const colSpanMap = new Map();
@@ -478,6 +519,7 @@ export const SocietyPhotosBlock = () => {
                         style={{
                             '--society-photo-scale': FRAMES[i + 1].scale ?? 1,
                             '--society-photo-origin': FRAMES[i + 1].origin ?? '50% 50%',
+                            '--society-photo-x': MOBILE_PHOTO_X[i + 1],
                         } as CSSProperties}
                     />
                 ))}
@@ -485,6 +527,16 @@ export const SocietyPhotosBlock = () => {
 
             <div className='society-photos-block-grid-wrapper'>
                 {renderGrid()}
+
+                <div
+                    className='society-swipe-zone'
+                    style={{ height: `${100 / rows}%` }}
+                    onPointerDown={onSwipeStart}
+                    onPointerUp={onSwipeEnd}
+                    onPointerCancel={() => { swipeStartRef.current = null; }}
+                    onWheel={onSwipeWheel}
+                    aria-hidden='true'
+                />
 
                 <div className='society-letters'>
                     {letters.map(letter => {
