@@ -10,7 +10,7 @@ const styles = {
     preserveAspectRatio: "xMidYMid meet",
 }
 
-// S и O по макету срезаны сверху рамкой клетки (в движении срезанная часть видна, см. .moving в css).
+// S и O по макету срезаны сверху рамкой буквы, в движении тоже.
 // H и T раньше срезались справа: их viewBox охватывает контур целиком.
 export const IconS = ({ className }: Props) => (
     <svg className={className} {...styles} viewBox="0 0 166 181" fill="none" xmlns="http://www.w3.org/2000/svg">

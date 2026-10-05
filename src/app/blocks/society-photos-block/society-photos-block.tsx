@@ -208,19 +208,10 @@ const animateLetters = (letters: Letter[], prevPositions: Map<string, Point>, el
 
         if (prev.x === cell.x && prev.y === cell.y) return;
 
-        const move = element.animate(
+        element.animate(
             [{ transform: toTranslate({ x: prev.x - cell.x, y: prev.y - cell.y }, span) }, { transform: toTranslate(zero, span) }],
             { duration: random(600, 1100), delay, easing: pick(EASINGS), fill: 'backwards' },
         );
-
-        // в движении буква видна целиком, в клетке срезана, как в макете
-        const timer = window.setTimeout(() => element.classList.add('moving'), delay);
-        const stop = () => {
-            window.clearTimeout(timer);
-            element.classList.remove('moving');
-        };
-        move.addEventListener('finish', stop);
-        move.addEventListener('cancel', stop);
     });
 };
 
