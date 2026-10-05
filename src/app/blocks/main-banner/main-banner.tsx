@@ -10,10 +10,10 @@ import "./main-banner.css";
 import { NBSP, PRELOADER_HIDE_EVENT } from "@/app/constants";
 
 // Первый экран закреплён через position: sticky (без JS-пина, который дёргается на iOS),
-// секция выше окна на HERO_SCROLL_SCREENS экранов. На HERO_SWITCH_AT этого пути
-// сцена сменяется целиком: тексты первого экрана уходят, видео зумится, появляется второй.
-// Без докрутки: прокрутка остаётся у пользователя, ничего не спорит с трекпадом.
-const HERO_SWITCH_AT = 0.4;
+// секция выше окна на 2,2 экрана. Смена сцены привязана к прокрутке: с первого движения
+// колеса тексты первого экрана уходят, видео приближается, проявляется второй экран.
+// scrub сглаживает рывки колеса и трекпада; доводки до точки нет, прокрутка у пользователя.
+const HERO_SCRUB_SMOOTHING = 0.6;
 
 export const MainBanner = () => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -55,61 +55,43 @@ export const MainBanner = () => {
     return () => window.removeEventListener(PRELOADER_HIDE_EVENT, reveal);
   }, []);
 
-  // Одна точка смены сцены вместо пяти отдельных триггеров
+  // Смена сцены по ходу прокрутки: на первых ~55% пути, дальше второй экран стоит
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
     const section = sectionRef.current;
     const videoWrapper = videoWrapperRef.current;
-    if (!section || !videoWrapper) return;
+    const text1 = mainBannerText1.current;
+    const text2 = mainBannerText2.current;
+    const text3 = mainBannerText3.current;
+    const text4 = mainBannerText4.current;
+    if (!section || !videoWrapper || !text1 || !text2 || !text3 || !text4) return;
 
-    const firstScene = [mainBannerText1.current, mainBannerText2.current].filter(Boolean) as HTMLElement[];
-    const secondScene = [mainBannerText3.current, mainBannerText4.current].filter(Boolean) as HTMLElement[];
-    let isSecond: boolean | null = null;
+    gsap.set([text1, text2], { opacity: 1, y: 0 });
+    gsap.set([text3, text4], { opacity: 0, y: 40 });
 
-    const showScene = (second: boolean, immediate: boolean) => {
-      if (second === isSecond) return;
-      isSecond = second;
-
-      const duration = immediate ? 0 : 0.5;
-      gsap.to(firstScene, {
-        opacity: second ? 0 : 1,
-        y: second ? -30 : 0,
-        duration,
-        ease: second ? "power3.in" : "power3.out",
-        overwrite: "auto",
-      });
-      gsap.to(secondScene, {
-        opacity: second ? 1 : 0,
-        y: second ? 0 : 30,
-        duration,
-        // второй экран появляется, когда первый почти ушёл
-        delay: second && !immediate ? 0.2 : 0,
-        stagger: second && !immediate ? 0.1 : 0,
-        ease: second ? "power3.out" : "power3.in",
-        overwrite: "auto",
-      });
-      gsap.to(videoWrapper, {
-        scale: second ? 1.5 : 1,
-        duration: immediate ? 0 : 0.8,
-        ease: "power2.out",
-        overwrite: "auto",
-      });
-    };
-
-    const trigger = ScrollTrigger.create({
-      trigger: section,
-      start: "top top",
-      end: "bottom bottom",
-      onUpdate: (self) => showScene(self.progress >= HERO_SWITCH_AT, false),
+    const timeline = gsap.timeline({
+      defaults: { ease: "none" },
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: HERO_SCRUB_SMOOTHING,
+      },
     });
 
-    // при перезагрузке посреди страницы сразу показываем нужную сцену, без анимации
-    showScene(trigger.progress >= HERO_SWITCH_AT, true);
+    timeline
+      .to(videoWrapper, { scale: 1.5, duration: 0.5, ease: "power1.inOut" }, 0)
+      .to(text1, { opacity: 0, y: -60, duration: 0.25 }, 0.02)
+      .to(text2, { opacity: 0, y: -40, duration: 0.22 }, 0)
+      .to(text3, { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }, 0.25)
+      .to(text4, { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }, 0.33)
+      // второй экран держится до конца закреплённого участка
+      .to({}, { duration: 0.45 });
 
     return () => {
-      trigger.kill();
-      gsap.killTweensOf([...firstScene, ...secondScene, videoWrapper]);
+      timeline.scrollTrigger?.kill();
+      timeline.kill();
     };
   }, []);
 
