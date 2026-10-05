@@ -10,11 +10,15 @@ import { NBSP, PRELOADER_HIDE_EVENT } from "@/app/constants";
 
 // Первый экран листается по шагам, как слайды: один свайп (жест колесом или трекпадом) —
 // ровно один шаг, сколько бы ни тянули. Шаги: заголовок, заголовок с подзаголовком,
-// второй заголовок (видео приближается), второй заголовок с подзаголовком. Пока шаги
+// второй заголовок, второй заголовок с подзаголовком. Ролик поделён на две части:
+// под первым заголовком крутится начало (крупные планы), второй заголовок начинается
+// с кадра, где буква U видна целиком, и дальше крутится конец ролика. Пока шаги
 // не пройдены, страница стоит наверху; после последнего шага следующий свайп прокручивает
 // страницу как обычно, а свайп вниз у самого верха возвращает шаги назад.
 const HERO_LAST_STEP = 3;
-const HERO_VIDEO_ZOOM = 1.5;
+// первая часть ролика — до этой секунды, вторая — с этой
+const HERO_PART1_END = 8.4;
+const HERO_PART2_START = 9;
 // жест закончился, если колесо молчит столько миллисекунд (инерция трекпада идёт дольше)
 const HERO_GESTURE_GAP_MS = 180;
 // и не раньше, чем доиграла смена шага
@@ -64,31 +68,30 @@ export const MainBanner = () => {
 
   // Шаги первого экрана по жестам
   useEffect(() => {
-    const videoWrapper = videoWrapperRef.current;
+    const video = videoRef.current;
     const text1 = mainBannerText1.current;
     const text2 = mainBannerText2.current;
     const text3 = mainBannerText3.current;
     const text4 = mainBannerText4.current;
-    if (!videoWrapper || !text1 || !text2 || !text3 || !text4) return;
+    if (!video || !text1 || !text2 || !text3 || !text4) return;
 
     const texts = [text1, text2, text3, text4];
     // какие тексты видны на каждом шаге
     const STEPS = [[text1], [text1, text2], [text3], [text3, text4]];
 
     let step = 0;
+    const secondPart = (s: number) => s >= 2;
     const showStep = (next: number) => {
       if (next === step) return;
+      const prev = step;
       const forward = next > step;
       const leaving = STEPS[step].filter((text) => !STEPS[next].includes(text));
       const entering = STEPS[next].filter((text) => !STEPS[step].includes(text));
       step = next;
 
-      gsap.to(videoWrapper, {
-        scale: next >= 2 ? HERO_VIDEO_ZOOM : 1,
-        duration: 0.9,
-        ease: "power2.inOut",
-        overwrite: "auto",
-      });
+      if (secondPart(next) !== secondPart(prev)) {
+        video.currentTime = secondPart(next) ? HERO_PART2_START : 0;
+      }
       if (leaving.length) {
         gsap.to(leaving, {
           opacity: 0,
@@ -119,8 +122,22 @@ export const MainBanner = () => {
     const startStep = window.scrollY > 0 ? HERO_LAST_STEP : 0;
     gsap.set(texts, { opacity: 0, y: 40 });
     gsap.set(STEPS[startStep], { opacity: 1, y: 0 });
-    gsap.set(videoWrapper, { scale: startStep >= 2 ? HERO_VIDEO_ZOOM : 1 });
     step = startStep;
+    if (secondPart(step)) video.currentTime = HERO_PART2_START;
+
+    // ролик крутится только в своей части: первая с начала до HERO_PART1_END,
+    // вторая с HERO_PART2_START до конца (loop у видео возвращает в 0 — переставляем)
+    let frame = 0;
+    const keepPart = () => {
+      const time = video.currentTime;
+      if (secondPart(step)) {
+        if (time < HERO_PART2_START - 0.05) video.currentTime = HERO_PART2_START;
+      } else if (time >= HERO_PART1_END) {
+        video.currentTime = 0;
+      }
+      frame = requestAnimationFrame(keepPart);
+    };
+    frame = requestAnimationFrame(keepPart);
 
     const atTop = () => window.scrollY <= 1;
     // жест забирает первый экран, если страница наверху и шаг в эту сторону ещё есть
@@ -194,7 +211,8 @@ export const MainBanner = () => {
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("scroll", onScroll);
-      gsap.killTweensOf([videoWrapper, ...texts]);
+      cancelAnimationFrame(frame);
+      gsap.killTweensOf(texts);
     };
   }, []);
 
