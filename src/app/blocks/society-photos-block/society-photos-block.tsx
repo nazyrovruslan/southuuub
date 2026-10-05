@@ -50,6 +50,7 @@ type Frame = {
 
 // Кадр 0 — короткий ролик из видео первого экрана, дальше 14 фотографий.
 // Положение и кадрирование подобраны под каждое фото, чтобы буквы не закрывали лица.
+// Соседние кадры не сочетают положения 2 и 3: между ними S сдвинулась бы на две клетки.
 const FRAMES: Frame[] = [
     { position: 0 },
     { position: 1, scale: 1.14, origin: '100% 50%' },
@@ -57,8 +58,8 @@ const FRAMES: Frame[] = [
     { position: 1 },
     { position: 3, scale: 1.2, origin: '100% 15%' },
     { position: 1 },
-    { position: 2, scale: 1.14, origin: '95% 15%' },
-    { position: 3, scale: 1.3, origin: '40% 100%' },
+    { position: 1, scale: 1.14, origin: '100% 0%' },
+    { position: 3, scale: 1.42, origin: '0% 100%' },
     { position: 3 },
     { position: 1, scale: 1.14, origin: '100% 35%' },
     { position: 2, scale: 1.14, origin: '0% 60%' },
@@ -86,8 +87,44 @@ const getPositions = (device: string) => {
 
 const letterKind = (cell: CellConfig) => cell.type === 'text' ? 'text' : cell.src ?? '';
 
-// Каждая буква переезжает из своей клетки в новую: одинаковые буквы сопоставляются
-// по ближайшему расстоянию, лишние плавно гаснут, недостающие проявляются на месте.
+const distance = (a: CellConfig, b: CellConfig) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+
+// Сопоставление одинаковых букв так, чтобы самый дальний сдвиг был минимальным
+// (для раскладок из cell-desktop он не больше одной клетки), а при равенстве — суммарный путь
+const matchCells = (olds: CellConfig[], news: CellConfig[]): [number, number][] => {
+    const swap = olds.length > news.length;
+    const short = swap ? news : olds;
+    const long = swap ? olds : news;
+    let best: [number, number][] = [];
+    let bestWorst = Infinity;
+    let bestTotal = Infinity;
+
+    const walk = (i: number, used: boolean[], pairs: [number, number][], worst: number, total: number) => {
+        if (worst > bestWorst || (worst === bestWorst && total >= bestTotal)) return;
+        if (i === short.length) {
+            best = [...pairs];
+            bestWorst = worst;
+            bestTotal = total;
+            return;
+        }
+        long.forEach((cell, j) => {
+            if (used[j]) return;
+            const d = distance(short[i], cell);
+            used[j] = true;
+            pairs.push(swap ? [j, i] : [i, j]);
+            walk(i + 1, used, pairs, Math.max(worst, d), total + d);
+            pairs.pop();
+            used[j] = false;
+        });
+    };
+
+    walk(0, long.map(() => false), [], 0, 0);
+    return best;
+};
+
+// Каждая буква сдвигается из своей клетки не дальше соседней. Лишние гаснут на месте,
+// недостающие проявляются. Текст не ездит: если его клетка сменилась, он гаснет
+// на старом месте и проявляется на новом.
 const placeLetters = (prev: Letter[], config: CellConfig[], nextId: () => string): Letter[] => {
     const pool = prev.filter(letter => !letter.leaving);
     const result: Letter[] = [];
@@ -96,18 +133,12 @@ const placeLetters = (prev: Letter[], config: CellConfig[], nextId: () => string
     kinds.forEach(kind => {
         const olds = pool.filter(l => letterKind(l.cell) === kind);
         const news = config.filter(cell => letterKind(cell) === kind);
-        const pairs: [number, number, number][] = [];
-
-        olds.forEach((old, i) => news.forEach((cell, j) => {
-            pairs.push([Math.hypot(old.cell.x - cell.x, old.cell.y - cell.y), i, j]);
-        }));
-        pairs.sort((a, b) => a[0] - b[0]);
-
         const usedOld = new Set<number>();
         const usedNew = new Set<number>();
 
-        pairs.forEach(([, i, j]) => {
-            if (usedOld.has(i) || usedNew.has(j)) return;
+        matchCells(olds.map(l => l.cell), news).forEach(([i, j]) => {
+            const d = distance(olds[i].cell, news[j]);
+            if (d > 1 || (kind === 'text' && d > 0)) return;
             usedOld.add(i);
             usedNew.add(j);
             result.push({ id: olds[i].id, cell: news[j] });
@@ -126,39 +157,26 @@ const placeLetters = (prev: Letter[], config: CellConfig[], nextId: () => string
 };
 
 type Point = { x: number; y: number };
-type Side = 'left' | 'right' | 'top' | 'bottom';
 
-const SIDES: Side[] = ['left', 'right', 'top', 'bottom'];
 const EASINGS = [
     'cubic-bezier(0.65, 0, 0.35, 1)',
     'cubic-bezier(0.22, 1, 0.36, 1)',
     'cubic-bezier(0.83, 0, 0.17, 1)',
     'cubic-bezier(0.34, 1.3, 0.64, 1)',
 ];
+// небольшой сдвиг при появлении и исчезновении: сбоку, сверху или снизу
+const NUDGES: Point[] = [{ x: -0.35, y: 0 }, { x: 0.35, y: 0 }, { x: 0, y: -0.35 }, { x: 0, y: 0.35 }];
 
 const random = (min: number, max: number) => min + Math.random() * (max - min);
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
 
-// Точка за краем блока со стороны side, в клетках относительно клетки (x, y)
-const offscreen = (side: Side, at: Point, cols: number, rows: number): Point => {
-    if (side === 'left') return { x: -1.3 - at.x, y: 0 };
-    if (side === 'right') return { x: cols + 0.3 - at.x, y: 0 };
-    if (side === 'top') return { x: 0, y: -1.3 - at.y };
-    return { x: 0, y: rows + 0.3 - at.y };
-};
-
 const toTranslate = ({ x, y }: Point, span: number) => `translate(${x * 100 / span}%, ${y * 100}%)`;
 
-// Смена кадра: буквы двигаются не строем. Часть переезжает в новую клетку со своей
-// задержкой, скоростью и характером движения, часть улетает за край блока и влетает
-// с другой стороны. Лишние улетают, новые влетают.
-const animateLetters = (
-    letters: Letter[],
-    prevPositions: Map<string, Point>,
-    elements: Map<string, HTMLDivElement>,
-    cols: number,
-    rows: number,
-) => {
+// Смена кадра: буквы двигаются не строем, у каждой своя задержка, скорость и характер
+// движения, но путь не дальше соседней клетки
+const animateLetters = (letters: Letter[], prevPositions: Map<string, Point>, elements: Map<string, HTMLDivElement>) => {
+    const zero = { x: 0, y: 0 };
+
     letters.forEach(letter => {
         const element = elements.get(letter.id);
         const prev = prevPositions.get(letter.id);
@@ -166,54 +184,31 @@ const animateLetters = (
         const span = cell.colSpan ?? 1;
         if (!element) return;
 
-        const delay = random(0, 0.35) * 1000;
+        const delay = random(0, 400);
 
         if (letter.leaving) {
             if (!prev) return;
-            const exit = offscreen(pick(SIDES), cell, cols, rows);
             element.animate(
-                [{ transform: toTranslate({ x: 0, y: 0 }, span) }, { transform: toTranslate(exit, span) }],
-                { duration: random(600, 900), delay, easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' },
+                [{ transform: toTranslate(zero, span), opacity: 1 }, { transform: toTranslate(pick(NUDGES), span), opacity: 0 }],
+                { duration: random(400, 600), delay: delay / 2, easing: 'ease-in', fill: 'forwards' },
             );
             return;
         }
 
         if (!prev) {
             if (!letter.isNew) return;
-            const entry = offscreen(pick(SIDES), cell, cols, rows);
             element.animate(
-                [{ transform: toTranslate(entry, span) }, { transform: toTranslate({ x: 0, y: 0 }, span) }],
-                { duration: random(700, 1000), delay: delay + 300, easing: pick(EASINGS), fill: 'backwards' },
+                [{ transform: toTranslate(pick(NUDGES), span), opacity: 0 }, { transform: toTranslate(zero, span), opacity: 1 }],
+                { duration: random(500, 800), delay: delay + 350, easing: pick(EASINGS), fill: 'backwards' },
             );
             return;
         }
 
         if (prev.x === cell.x && prev.y === cell.y) return;
 
-        const start = { x: prev.x - cell.x, y: prev.y - cell.y };
-
-        if (Math.random() < 0.4) {
-            // улетает за один край и влетает с другого
-            const outSide = pick(SIDES);
-            const inSide = pick(SIDES.filter(side => side !== outSide));
-            const exitFromPrev = offscreen(outSide, prev, cols, rows);
-            const exit = { x: start.x + exitFromPrev.x, y: start.y + exitFromPrev.y };
-            const entry = offscreen(inSide, cell, cols, rows);
-            element.animate(
-                [
-                    { transform: toTranslate(start, span), offset: 0, easing: 'cubic-bezier(0.55, 0, 1, 0.45)' },
-                    { transform: toTranslate(exit, span), offset: 0.45 },
-                    { transform: toTranslate(entry, span), offset: 0.45, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-                    { transform: toTranslate({ x: 0, y: 0 }, span), offset: 1 },
-                ],
-                { duration: random(1100, 1400), delay, fill: 'backwards' },
-            );
-            return;
-        }
-
         element.animate(
-            [{ transform: toTranslate(start, span) }, { transform: toTranslate({ x: 0, y: 0 }, span) }],
-            { duration: random(650, 1100), delay, easing: pick(EASINGS), fill: 'backwards' },
+            [{ transform: toTranslate({ x: prev.x - cell.x, y: prev.y - cell.y }, span) }, { transform: toTranslate(zero, span) }],
+            { duration: random(600, 1100), delay, easing: pick(EASINGS), fill: 'backwards' },
         );
     });
 };
@@ -373,14 +368,14 @@ export const SocietyPhotosBlock = () => {
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (!reduceMotion && positions.size > 0) {
-            animateLetters(letters, positions, letterElementsRef.current, cols, rows);
+            animateLetters(letters, positions, letterElementsRef.current);
         }
 
         positions.clear();
         letters.forEach(letter => {
             if (!letter.leaving) positions.set(letter.id, { x: letter.cell.x, y: letter.cell.y });
         });
-    }, [letters, cols, rows]);
+    }, [letters]);
 
     const renderGrid = useCallback(() => {
         const grid = [];

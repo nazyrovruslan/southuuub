@@ -84,7 +84,7 @@
 }
 
 /* Буквы лежат отдельным слоем поверх сетки. Внешний слой стоит в клетке,
-   внутренний ведёт букву из прежней клетки или из-за края блока (Web Animations в tsx). */
+   внутренний ведёт букву из прежней (соседней) клетки (Web Animations в tsx). */
 .society-letters {
     position: absolute;
     inset: 0;
@@ -102,13 +102,9 @@
     will-change: transform;
 }
 
-/* текст обрезается своей клеткой, как раньше; буквы не обрезаются */
+/* текст обрезается своей клеткой, как раньше */
 .society-letter[data-kind="text"] .society-letter-inner {
     overflow: hidden;
-}
-
-.society-letter .society-cell-img {
-    overflow: visible;
 }
 
 @media (prefers-reduced-motion: reduce) {
