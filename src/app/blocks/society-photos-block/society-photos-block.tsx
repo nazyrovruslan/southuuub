@@ -44,6 +44,8 @@ const ANIMATION_SEQUENCE = [1, 2, 1, 3, 1, 2, 1, 3, 1, 2, 3, 2, 1, 3];
 
 export const SocietyPhotosBlock = () => {
     const [imgNumber, setImgNumber] = useState(0);
+    // После первой смены фото буквы анимируются: старая уезжает из своей клетки, новая заезжает
+    const [hasChanged, setHasChanged] = useState(false);
     const [device, setDevice] = useState('desktop');
 
     useEffect(() => {
@@ -100,6 +102,7 @@ export const SocietyPhotosBlock = () => {
 
     useEffect(() => {
         const interval = setInterval(() => {
+            setHasChanged(true);
             setImgNumber((prev) => prev === 13 ? 0 : prev + 1)
         }, 2000);
 
@@ -124,16 +127,17 @@ export const SocietyPhotosBlock = () => {
         const rows = device === 'tablet' ? 6 : device === 'mobile' ? 9 : 5;
         const cols = device === 'tablet' ? 5 : device === 'mobile' ? 5 : 7;
         const grid = [];
+        const prevNumber = (imgNumber + ANIMATION_SEQUENCE.length - 1) % ANIMATION_SEQUENCE.length;
 
         // Создаем карту colSpan для текущей и следующей конфигурации
         const colSpanMap = new Map();
         
         if (device === 'mobile') {
             const currentConfig = MOBILE_CELL_POSITIONS[ANIMATION_SEQUENCE[imgNumber]];
-            const nextConfig = MOBILE_CELL_POSITIONS[ANIMATION_SEQUENCE[(imgNumber + 1) % ANIMATION_SEQUENCE.length]];
+            const prevConfig = hasChanged ? MOBILE_CELL_POSITIONS[ANIMATION_SEQUENCE[prevNumber]] : [];
             
             // Отмечаем ячейки с colSpan
-            [...(currentConfig || []), ...(nextConfig || [])].forEach(cell => {
+            [...(currentConfig || []), ...(prevConfig || [])].forEach(cell => {
                 if (cell.colSpan === 2) {
                     colSpanMap.set(`${cell.x}-${cell.y}`, cell.colSpan);
                     // Отмечаем, что ячейка справа должна быть скрыта
@@ -164,18 +168,17 @@ export const SocietyPhotosBlock = () => {
                 }
                 
                 const currentCell = getCellContent(x, y, imgNumber);
-                const nextCell = getCellContent(x, y, (imgNumber + 1) % ANIMATION_SEQUENCE.length);
+                const prevCell = hasChanged ? getCellContent(x, y, prevNumber) : undefined;
                 
                 // Для ячеек с colSpan убираем правую границу
                 const showBorderRight = x < cols - 1 && colSpanValue !== 2;
                 const showBorderBottom = y < rows - 1;
                 
-                const isActive = currentCell || nextCell;
-                
-                const shouldAnimate =
-                    (currentCell && !nextCell) ||
-                    (!currentCell && nextCell) ||
-                    (currentCell && nextCell && JSON.stringify(currentCell) !== JSON.stringify(nextCell))
+                // Буква меняется только внутри своей клетки: прежняя уезжает вниз за границу клетки,
+                // новая заезжает сверху. Клетка обрезает всё, что выходит за её контур.
+                const shouldAnimate = JSON.stringify(currentCell ?? null) !== JSON.stringify(prevCell ?? null);
+                const outgoingCell = shouldAnimate ? prevCell : undefined;
+                const isActive = currentCell || outgoingCell;
                 
                 row.push(
                     <div
@@ -184,7 +187,10 @@ export const SocietyPhotosBlock = () => {
                         style={{ flex: flexWeight }}
                     >
                         {isActive && (
-                            <div className={`cell-flip-container ${shouldAnimate ? 'animating' : ''}`}>
+                            <div
+                                key={shouldAnimate ? `animating-${imgNumber}` : 'static'}
+                                className={`cell-flip-container ${shouldAnimate ? 'animating' : ''}`}
+                            >
                                 {currentCell && (
                                     <div className="cell-content current">
                                         {currentCell.type === 'text' ? (
@@ -202,19 +208,19 @@ export const SocietyPhotosBlock = () => {
                                     </div>
                                 )}
 
-                                {nextCell && (
-                                    <div className="cell-content next">
-                                        {nextCell.type === 'text' ? (
+                                {outgoingCell && (
+                                    <div className="cell-content prev">
+                                        {outgoingCell.type === 'text' ? (
                                             <div className={`text-cell ${FONT_MONT_BOOK.className}`}>
-                                                {nextCell.text}
+                                                {outgoingCell.text}
                                             </div>
                                         ) : (
-                                            nextCell.src === 'WordS' && <IconS className='society-cell-img' /> ||
-                                            nextCell.src === 'WordO' && <IconO className='society-cell-img' /> ||
-                                            nextCell.src === 'WordU' && <IconU className='society-cell-img' /> ||
-                                            nextCell.src === 'WordT' && <IconT className='society-cell-img' /> ||
-                                            nextCell.src === 'WordH' && <IconH className='society-cell-img' /> ||
-                                            nextCell.src === 'WordB' && <IconB className='society-cell-img' />
+                                            outgoingCell.src === 'WordS' && <IconS className='society-cell-img' /> ||
+                                            outgoingCell.src === 'WordO' && <IconO className='society-cell-img' /> ||
+                                            outgoingCell.src === 'WordU' && <IconU className='society-cell-img' /> ||
+                                            outgoingCell.src === 'WordT' && <IconT className='society-cell-img' /> ||
+                                            outgoingCell.src === 'WordH' && <IconH className='society-cell-img' /> ||
+                                            outgoingCell.src === 'WordB' && <IconB className='society-cell-img' />
                                         )}
                                     </div>
                                 )}
@@ -242,7 +248,7 @@ export const SocietyPhotosBlock = () => {
         }
         
         return grid;
-    }, [getCellContent, imgNumber, device]);
+    }, [getCellContent, imgNumber, hasChanged, device]);
 
     useEffect(() => {
         const getDevice = () => {

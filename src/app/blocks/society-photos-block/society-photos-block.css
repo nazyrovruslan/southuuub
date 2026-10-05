@@ -107,9 +107,36 @@
     z-index: 2;
 }
 
-.cell-content.next {
-    transform: translateY(-100%);
+/* Смена фото: в каждой клетке прежняя буква уезжает вниз, новая заезжает сверху.
+   Клетка (overflow: hidden) обрезает букву по линиям сетки. */
+.cell-flip-container.animating .cell-content.current {
+    animation: society-cell-in 0.8s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.cell-flip-container.animating .cell-content.prev {
     z-index: 1;
+    animation: society-cell-out 0.8s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes society-cell-in {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes society-cell-out {
+    from { transform: translateY(0); }
+    to { transform: translateY(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cell-flip-container.animating .cell-content.current,
+    .cell-flip-container.animating .cell-content.prev {
+        animation: none;
+    }
+
+    .cell-flip-container.animating .cell-content.prev {
+        display: none;
+    }
 }
 
 .society-cell-img {
@@ -165,4 +192,15 @@
 /* Для первой ячейки текстовой группы */
 .society-grid-cell:has(+ .society-grid-cell .text-cell) .text-cell {
     border-right: none;
+}
+/* Десктоп: клетки сетки держат пропорции макета (206×180 при 1440×900), поэтому на
+   высоких экранах блок не растягивается выше, чем 900/1440 от ширины. */
+@media screen and (min-width: 1025px) {
+    .society-photos-block-wrapper {
+        height: min(100vh, 62.5vw);
+    }
+
+    .society-photos-block-img {
+        height: 100%;
+    }
 }
