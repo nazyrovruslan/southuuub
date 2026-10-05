@@ -29,7 +29,7 @@ function leave(){for(var i=0;i<tgt.length;i++)tgt[i]=1;run()}
 function bind(){var b=document.getElementById('block-with-u-animate');if(b&&b!==block){block=b;b.addEventListener('pointermove',move);b.addEventListener('pointerleave',leave)}}
 bind();new MutationObserver(bind).observe(document.documentElement,{childList:true,subtree:true});})();</script><style>#more-new .more-new-cell:not(.more-new-special-cell-wrapper) .more-new-svg-container{position:relative}
 @media (hover:hover) and (pointer:fine) and (min-width:1025px){#more-new .more-new-cell:not(.more-new-special-cell-wrapper) .more-new-svg-container::before{content:'';position:absolute;inset:calc(var(--wave-gap-y,0px)*-1) calc(var(--wave-gap-x,0px)*-1)}
-#more-new .more-new-svg-container>.more-new-svg-icon:first-child{transform:var(--wave,none)!important;transition:opacity .7s ease-in-out .25s!important}}</style><script>(function(){
+#more-new .more-new-svg-container>.more-new-svg-icon:first-child{transform:var(--wave,none)!important;transition:opacity .2s ease-out!important}}</style><script>(function(){
 /* волна из крестиков: отталкиваются от курсора и поворачиваются, быстро реагируют и медленно возвращаются */
 var R=1.1,SHIFT=14,TURN=.75,GROW=.22,FADE=.06,block,cells=[],cur=[],tgt=[],dir=[],raf=0;
 function ok(){return matchMedia('(min-width:1025px) and (hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches}
