@@ -91,6 +91,9 @@ const getFrameLayout = (device: string, frame: number): CellConfig[] => {
 const SWIPE_THRESHOLD_PX = 40;
 // минимальный отрезок пути пальца на один кадр при перемотке
 const SWIPE_MIN_STEP_PX = 24;
+// смена кадра во время перемотки и сколько ждать после последнего шага, чтобы вернуть обычную анимацию
+const SCRUB_MS = 160;
+const SCRUB_IDLE_MS = 300;
 
 const letterKind = (cell: CellConfig) => cell.type === 'text' ? 'text' : cell.src ?? '';
 
@@ -181,8 +184,9 @@ const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
 const toTranslate = ({ x, y }: Point, span: number) => `translate(${x * 100 / span}%, ${y * 100}%)`;
 
 // Смена кадра: буквы двигаются не строем, у каждой своя задержка, скорость и характер
-// движения, но путь не дальше соседней клетки
-const animateLetters = (letters: Letter[], prevPositions: Map<string, Point>, elements: Map<string, HTMLDivElement>) => {
+// движения, но путь не дальше соседней клетки. Во время перемотки пальцем кадры сменяются
+// быстро, поэтому движение короткое и без задержек, иначе буквы разных кадров наслаиваются.
+const animateLetters = (letters: Letter[], prevPositions: Map<string, Point>, elements: Map<string, HTMLDivElement>, fast: boolean) => {
     const zero = { x: 0, y: 0 };
 
     letters.forEach(letter => {
@@ -192,13 +196,15 @@ const animateLetters = (letters: Letter[], prevPositions: Map<string, Point>, el
         const span = cell.colSpan ?? 1;
         if (!element) return;
 
-        const delay = random(0, 400);
+        // предыдущая анимация буквы обрывается, новая начинается с её клетки
+        element.getAnimations().forEach(animation => animation.cancel());
+        const delay = fast ? 0 : random(0, 400);
 
         if (letter.leaving) {
             if (!prev) return;
             element.animate(
                 [{ transform: toTranslate(zero, span), opacity: 1 }, { transform: toTranslate(pick(NUDGES), span), opacity: 0 }],
-                { duration: random(400, 600), delay: delay / 2, easing: 'ease-in', fill: 'forwards' },
+                { duration: fast ? 1 : random(400, 600), delay: delay / 2, easing: 'ease-in', fill: 'forwards' },
             );
             return;
         }
@@ -207,7 +213,7 @@ const animateLetters = (letters: Letter[], prevPositions: Map<string, Point>, el
             if (!letter.isNew) return;
             element.animate(
                 [{ transform: toTranslate(pick(NUDGES), span), opacity: 0 }, { transform: toTranslate(zero, span), opacity: 1 }],
-                { duration: random(500, 800), delay: delay + 350, easing: pick(EASINGS), fill: 'backwards' },
+                { duration: fast ? SCRUB_MS : random(500, 800), delay: fast ? 0 : delay + 350, easing: fast ? 'ease-out' : pick(EASINGS), fill: 'backwards' },
             );
             return;
         }
@@ -216,7 +222,7 @@ const animateLetters = (letters: Letter[], prevPositions: Map<string, Point>, el
 
         element.animate(
             [{ transform: toTranslate({ x: prev.x - cell.x, y: prev.y - cell.y }, span) }, { transform: toTranslate(zero, span) }],
-            { duration: random(600, 1100), delay, easing: pick(EASINGS), fill: 'backwards' },
+            { duration: fast ? SCRUB_MS : random(600, 1100), delay, easing: fast ? 'ease-out' : pick(EASINGS), fill: 'backwards' },
         );
     });
 };
@@ -372,8 +378,21 @@ export const SocietyPhotosBlock = () => {
     // пальца, так что один жест через весь блок пролистывает все фото по очереди.
     const swipeRef = useRef<{ x: number; y: number; steps: number; horizontal: boolean | null } | null>(null);
 
+    // Пока идёт перемотка, кадры сменяются быстро (класс на блоке укорачивает и смену фото)
+    const [scrubbing, setScrubbing] = useState(false);
+    const scrubbingRef = useRef(false);
+    const scrubTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    useEffect(() => () => clearTimeout(scrubTimerRef.current), []);
+
     const stepFrames = (steps: number) => {
         if (steps === 0) return;
+        scrubbingRef.current = true;
+        setScrubbing(true);
+        clearTimeout(scrubTimerRef.current);
+        scrubTimerRef.current = setTimeout(() => {
+            scrubbingRef.current = false;
+            setScrubbing(false);
+        }, SCRUB_IDLE_MS);
         setFrame(prev => (((prev + steps) % FRAMES.length) + FRAMES.length) % FRAMES.length);
     };
 
@@ -435,7 +454,7 @@ export const SocietyPhotosBlock = () => {
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (!reduceMotion && positions.size > 0) {
-            animateLetters(letters, positions, letterElementsRef.current);
+            animateLetters(letters, positions, letterElementsRef.current, scrubbingRef.current);
         }
 
         positions.clear();
@@ -520,7 +539,7 @@ export const SocietyPhotosBlock = () => {
     }, []);
 
     return (
-        <div className='society-photos-block-wrapper' id='society-photos-block' ref={wrapperRef}>
+        <div className={`society-photos-block-wrapper ${scrubbing ? 'society-scrubbing' : ''}`} id='society-photos-block' ref={wrapperRef}>
             <div className='society-photos-block-img-wrapper'>
                 <video
                     ref={videoRef}

@@ -27,6 +27,11 @@
     transition: opacity 0.5s ease;
 }
 
+/* перемотка пальцем: фото сменяются почти сразу */
+.society-scrubbing .society-photos-block-img {
+    transition-duration: 0.15s;
+}
+
 .society-photos-block-img-visible {
     opacity: 1;
 }
