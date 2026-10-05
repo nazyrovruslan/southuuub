@@ -50,7 +50,8 @@ type Frame = {
 
 // Кадр 0 — короткий ролик из видео первого экрана, дальше 14 фотографий.
 // Положение и кадрирование подобраны под каждое фото, чтобы буквы не закрывали лица.
-// Соседние кадры не сочетают положения 2 и 3: между ними S сдвинулась бы на две клетки.
+// Соседние кадры не сочетают положения 2 и 3, а 3 не стоит рядом с роликом: иначе какая-то
+// буква сдвинулась бы больше чем на одну клетку.
 const FRAMES: Frame[] = [
     { position: 0 },
     { position: 1, scale: 1.14, origin: '100% 50%' },
@@ -66,7 +67,7 @@ const FRAMES: Frame[] = [
     { position: 1, scale: 1.2, origin: '100% 25%' },
     { position: 2, scale: 1.3, origin: '100% 15%' },
     { position: 1 },
-    { position: 3 },
+    { position: 1 },
 ];
 
 const PHOTOS = [
@@ -87,7 +88,8 @@ const getPositions = (device: string) => {
 
 const letterKind = (cell: CellConfig) => cell.type === 'text' ? 'text' : cell.src ?? '';
 
-const distance = (a: CellConfig, b: CellConfig) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+// Путь буквы в клетках по горизонтали плюс по вертикали: соседняя клетка — только сбоку, сверху или снизу
+const distance = (a: CellConfig, b: CellConfig) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
 // Сопоставление одинаковых букв так, чтобы самый дальний сдвиг был минимальным
 // (для раскладок из cell-desktop он не больше одной клетки), а при равенстве — суммарный путь
