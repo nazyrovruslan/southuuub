@@ -29,12 +29,25 @@ export const LazyVideo = ({ src, poster, id, className }: Props) => {
         video.preload = 'auto';
         video.load();
       }
-      if (!reduceMotion) video.play().catch(() => {});
+      if (!reduceMotion && video.paused) {
+        // Safari может отклонить play() до готовности данных: повторяем на canplay
+        video.play().catch(() => {
+          video.addEventListener('canplay', () => video.play().catch(() => {}), { once: true });
+        });
+      }
     };
+
+    // Запасной вариант: внутри закреплённого GSAP блока Safari не всегда
+    // сообщает о пересечении, поэтому проверяем положение и при прокрутке.
+    const onScroll = () => {
+      const rect = video.getBoundingClientRect();
+      if (rect.bottom > -300 && rect.top < window.innerHeight + 300) start();
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     if (!('IntersectionObserver' in window)) {
       start();
-      return;
+      return () => window.removeEventListener('scroll', onScroll);
     }
 
     const observer = new IntersectionObserver(
@@ -48,7 +61,10 @@ export const LazyVideo = ({ src, poster, id, className }: Props) => {
     );
 
     observer.observe(video);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   return (
