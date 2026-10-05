@@ -8,6 +8,7 @@ import { getOurProjectItems } from "./constants";
 import { FONT_MONT_BOOK } from "@/app/fonts";
 import { Button } from "antd";
 import { ImageWithFallback } from "@/app/components/image-with-fallback";
+import { LazyVideo } from "@/app/components/lazy-video";
 import { useGetLinkWithUtm } from "@/app/hooks/use-get-link-with-utm";
 
 export const OurProjectsScrollableBlock = () => {
@@ -335,22 +336,17 @@ export const OurProjectsScrollableBlock = () => {
                   alt={item.imageAlt}
                   width={isMobile ? 612 : 900}
                   height={isMobile ? 275 : 536}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className="our-projects-item-right-img"
                 />
               )}
               {item.videoSrc && (
-                <video
+                <LazyVideo
                   className="our-projects-item-right-img"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
+                  src={item.videoSrc}
+                  poster={item.videoSrc.replace(/\.mp4$/, "-poster.webp")}
                   id={item.videoId}
-                  disableRemotePlayback
-                >
-                  <source src={item.videoSrc} type="video/mp4" />
-                </video>
+                />
               )}
             </div>
           ))}

@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./wide-screen.css";
 import { ReactNode } from "react";
 import { YandexMetrika } from "./ya-metric";
 import { Metadata } from "next";

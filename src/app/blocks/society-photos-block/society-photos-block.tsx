@@ -262,20 +262,20 @@ export const SocietyPhotosBlock = () => {
     return (
         <div className='society-photos-block-wrapper' id='society-photos-block'>
             <div className='society-photos-block-img-wrapper'>
-                <Image src={SocietyPhoto1} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 0 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto2} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 1 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto3} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 2 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto4} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 3 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto5} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 4 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto6} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 5 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto7} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 6 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto8} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 7 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto9} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 8 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto10} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 9 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto11} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 10 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto12} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 11 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto13} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 12 ? 'visible' : 'hidden'}`} />
-                <Image src={SocietyPhoto14} priority alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 13 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto1} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 0 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto2} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 1 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto3} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 2 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto4} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 3 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto5} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 4 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto6} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 5 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto7} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 6 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto8} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 7 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto9} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 8 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto10} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 9 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto11} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 10 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto12} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 11 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto13} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 12 ? 'visible' : 'hidden'}`} />
+                <Image src={SocietyPhoto14} sizes='100vw' alt='' className={`society-photos-block-img society-photos-block-img-${imgNumber === 13 ? 'visible' : 'hidden'}`} />
             </div>
             
             <div className='society-photos-block-grid-wrapper'>

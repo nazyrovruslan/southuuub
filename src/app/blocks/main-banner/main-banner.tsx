@@ -5,6 +5,7 @@ import { MainBannerButton } from "./main-banner-button";
 import { useEffect, useRef, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 
 import "./main-banner.css";
 import { NBSP } from "@/app/constants";
@@ -281,7 +282,7 @@ export const MainBanner = () => {
   }, []);
 
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
     const section = sectionRef.current;
     const pin = pinRef.current;
@@ -355,9 +356,16 @@ export const MainBanner = () => {
             playsInline
             preload="auto"
             id="main-video-banner"
+            poster="/v2/southuuub-poster.webp"
             disableRemotePlayback
           >
-            <source src="./v2/southuuub.mp4" type="video/mp4" />
+            {/* Вертикальная версия для телефонов: 608×1080, ~2 МБ вместо 6 МБ */}
+            <source
+              src="/v2/southuuub-mobile.mp4"
+              type="video/mp4"
+              media="(max-width: 767px) and (orientation: portrait)"
+            />
+            <source src="/v2/southuuub.mp4" type="video/mp4" />
           </video>
         </div>
 

@@ -25,7 +25,7 @@ export const getOurProjectItems = (getLinkWIthUtm: (i: string | undefined) => st
         id: 'our-projects-south-hub',
         videoId: 'south-hub-video',
         title: 'South HUB Camp',
-        description: `10–14 июня 2026 года. Сочи ежегодный кэмп-конференция для C-level в${NBSP}ІТ`,
+        description: `10–14 июня 2026 года. Сочи ежегодный кэмп-конференция для C-level в${NBSP}IT`,
         linkColor: '#D5FF37',
         videoSrc: '/v2/SH25.mp4',
         imageAlt: 'South HUB Camp',

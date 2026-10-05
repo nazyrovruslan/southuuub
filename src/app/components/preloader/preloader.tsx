@@ -12,8 +12,11 @@ import { useVideoLoadingProgress } from '@/app/hooks/use-video-loading-process';
 
 const PRELOADER_IMAGES = [PreloaderImg1, PreloaderImg2, PreloaderImg3];
 const STEP_INTERVAL_MS = 500;
-const HIDE_ANIMATION_MS = 700;
+const HIDE_ANIMATION_MS = 400;
 const OVERFLOW_RESTORE_DELAY_MS = 500;
+// Прелоадер уходит не позже этого времени, даже если видео не загрузилось
+// (энергосбережение на iOS, экономия трафика, блокировщик, нет кодека).
+const MAX_WAIT_MS = 2500;
 
 export const Preloader = () => {
     const [isVisible, setVisible] = useState(true);
@@ -23,14 +26,20 @@ export const Preloader = () => {
 
     const overflowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const videoLoadingProgress1 = useVideoLoadingProgress('main-video-banner');
-    const videoLoadingProgress2 = useVideoLoadingProgress('south-hub-video');
-    const videoLoadingProgress3 = useVideoLoadingProgress('snow-base-video');
+    const [isTimedOut, setTimedOut] = useState(false);
 
-    const combinedProgress = Math.min(
-        Math.round((videoLoadingProgress1 * 0.25) + (videoLoadingProgress2 * 0.25) + (videoLoadingProgress3 * 0.25) + (pageLoadProgress * 0.25)),
+    // Ждём только видео первого экрана: остальные грузятся при прокрутке.
+    const heroVideoProgress = useVideoLoadingProgress('main-video-banner');
+
+    const combinedProgress = isTimedOut ? 100 : Math.min(
+        Math.round((heroVideoProgress * 0.5) + (pageLoadProgress * 0.5)),
         100
     );
+
+    useEffect(() => {
+        const timer = setTimeout(() => setTimedOut(true), MAX_WAIT_MS);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         if (document.readyState === 'complete') {

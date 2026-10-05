@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "gen:wide-css": "node scripts/gen-wide-screen-css.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

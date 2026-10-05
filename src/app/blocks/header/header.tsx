@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import { useEffect } from 'react';
 
 import Logo from '../../../../public/v2/header-logo-white.svg';
 import LogoBlack from '../../../../public/v2/footer/footer-logo-black.svg';
@@ -12,6 +13,17 @@ import { LK_LOGIN_LINK } from '@/app/constants';
 
 export const Header = () => {
     const getLinkWIthUtm = useGetLinkWithUtm();
+
+    // После начала прокрутки шапке нужна подложка, иначе на телефонах она лежит прямо на тексте.
+    useEffect(() => {
+        const header = document.getElementById('header');
+        if (!header) return;
+
+        const update = () => header.classList.toggle('header_scrolled', window.scrollY > 10);
+        update();
+        window.addEventListener('scroll', update, { passive: true });
+        return () => window.removeEventListener('scroll', update);
+    }, []);
 
     const handleScrollIntoView = () => {
         const element = document.getElementById('header');

@@ -35,7 +35,7 @@ export const useVideoLoadingProgress = (videoSelector: string) => {
         updateProgress();
       }
       
-      if (video.readyState === 4) {
+      if (video.readyState >= 3) {
         setLoadingProgress(100);
       }
     }
@@ -52,11 +52,16 @@ export const useVideoLoadingProgress = (videoSelector: string) => {
       subtree: true
     });
 
+    // Видео готово, как только может начать играть (canplay): полной буферизации не ждём.
+    // Ошибка загрузки тоже считается готовностью, чтобы прелоадер не зависал.
+    const setReady = () => setLoadingProgress(100);
+
     // Функция для прикрепления обработчиков событий
     const attachEvents = (video: HTMLVideoElement) => {
       video.addEventListener('progress', updateProgress);
       video.addEventListener('loadedmetadata', updateProgress);
-      video.addEventListener('canplaythrough', () => setLoadingProgress(100));
+      video.addEventListener('canplay', setReady);
+      video.addEventListener('error', setReady);
       video.addEventListener('loadeddata', updateProgress);
     };
 
@@ -71,7 +76,8 @@ export const useVideoLoadingProgress = (videoSelector: string) => {
       if (videoRef.current) {
         videoRef.current.removeEventListener('progress', updateProgress);
         videoRef.current.removeEventListener('loadedmetadata', updateProgress);
-        videoRef.current.removeEventListener('canplaythrough', () => setLoadingProgress(100));
+        videoRef.current.removeEventListener('canplay', setReady);
+        videoRef.current.removeEventListener('error', setReady);
         videoRef.current.removeEventListener('loadeddata', updateProgress);
       }
     };

@@ -156,7 +156,10 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    transition: height 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    /* анимируем transform, а не height: без пересчёта раскладки на каждом кадре */
+    height: 100%;
+    transform: scaleY(0);
+    transform-origin: bottom;
 }
 
 .animate-item-1 .community-in-numbers-infographic-item-fill {
@@ -177,37 +180,37 @@
 
 @keyframes smoothFillToTop {
     0% {
-        height: 0%;
+        transform: scaleY(0);
     }
     100% {
-        height: 100%;
+        transform: scaleY(1);
     }
 }
 
 @keyframes smoothFillTo25Percent {
     0% {
-        height: 0%;
+        transform: scaleY(0);
     }
     100% {
-        height: 75%;
+        transform: scaleY(0.75);
     }
 }
 
 @keyframes smoothFillTo50Percent {
     0% {
-        height: 0%;
+        transform: scaleY(0);
     }
     100% {
-        height: 50%;
+        transform: scaleY(0.5);
     }
 }
 
 @keyframes smoothFillTo5Percent {
     0% {
-        height: 0%;
+        transform: scaleY(0);
     }
     100% {
-        height: 5%;
+        transform: scaleY(0.05);
     }
 }
 

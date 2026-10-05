@@ -14,9 +14,20 @@ body {
   -webkit-overflow-scrolling: touch !important;
 }
 
+/* clip вместо hidden: обрезает так же, но не ломает position: sticky
+   и не превращает body в отдельный контейнер прокрутки */
 body,
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+/* Уменьшение движения по настройке системы */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
 
 body {
