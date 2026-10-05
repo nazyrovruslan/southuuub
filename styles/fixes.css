@@ -1,0 +1,69 @@
+/* Подключить после основных стилей или перенести правила в исходные файлы. */
+
+/* 1. «Мы в цифрах»: заливка столбцов анимируется через transform, а не height.
+      Высота задаётся один раз, анимация только масштабирует по вертикали. */
+.community-in-numbers-infographic-item-fill {
+  height: 100%;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: none;
+  will-change: transform;
+}
+.animate-item-1 .community-in-numbers-infographic-item-fill { animation: 3s cubic-bezier(.25,.46,.45,.94) forwards fillTo100; }
+.animate-item-2 .community-in-numbers-infographic-item-fill { animation: 3s cubic-bezier(.25,.46,.45,.94) forwards fillTo75; }
+.animate-item-3 .community-in-numbers-infographic-item-fill { animation: 3s cubic-bezier(.25,.46,.45,.94) forwards fillTo50; }
+.animate-item-4 .community-in-numbers-infographic-item-fill { animation: 3s cubic-bezier(.25,.46,.45,.94) forwards fillTo5; }
+@keyframes fillTo100 { to { transform: scaleY(1); } }
+@keyframes fillTo75  { to { transform: scaleY(.75); } }
+@keyframes fillTo50  { to { transform: scaleY(.5); } }
+@keyframes fillTo5   { to { transform: scaleY(.05); } }
+
+/* Подписи над столбцами: translateY вместо bottom.
+   cqh = процент высоты контейнера (Chrome 105+, Safari 16+, Firefox 110+).
+   Проверить на макете: родителю нужна заданная высота. */
+.community-in-numbers-infographic-item { container-type: size; }
+.community-in-numbers-infographic-item-content { bottom: 0; will-change: transform; }
+.animate-content-1 { animation: 3s cubic-bezier(.25,.46,.45,.94) forwards moveToTop; }
+.animate-content-2 { animation: 3s cubic-bezier(.25,.46,.45,.94) forwards moveTo75; }
+.animate-content-3 { animation: 3s cubic-bezier(.25,.46,.45,.94) forwards moveTo50; }
+.animate-content-4 { animation: 3s cubic-bezier(.25,.46,.45,.94) forwards moveTo5; }
+@keyframes moveToTop { to { transform: translateY(calc(-100cqh + 152px)); } }
+@keyframes moveTo75  { to { transform: translateY(calc(-75cqh + 172px)); } }
+@keyframes moveTo50  { to { transform: translateY(calc(-50cqh + 172px)); } }
+@keyframes moveTo5   { to { transform: translateY(-5cqh); } }
+
+/* 2. Кнопки и иконки: анимировать ширину дорого; если эффект нужен,
+      лучше clip-path или scaleX на псевдоэлементе. Минимальная зона нажатия 44px. */
+.base-button { min-height: 44px; }
+@media (hover: none) {
+  .header-burger { min-width: 44px; min-height: 44px; }
+  footer a, .footer a { display: inline-flex; align-items: center; min-height: 44px; }
+}
+
+/* 3. Шапка на телефонах не должна лежать на тексте.
+      Класс header--scrolled ставится скриптом (см. README) после 10px прокрутки. */
+@media (max-width: 1024px) {
+  .header { transition: background-color .3s, backdrop-filter .3s, opacity .3s, visibility .3s; }
+  .header.header--scrolled {
+    background-color: rgba(17, 17, 17, .72);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  /* на светлых секциях, где показывается чёрный логотип */
+  .header.header--scrolled.header--light { background-color: rgba(236, 236, 234, .8); }
+}
+
+/* 4. overflow:hidden на html/body ломает position:sticky и делает body контейнером прокрутки.
+      overflow-x: clip так же обрезает лишнее по горизонтали, но без этих побочных эффектов. */
+html, body { overflow-x: clip; }
+
+/* 5. Уменьшение движения: бегущие строки стоят, переходы мгновенные. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .infinity-banner-marquee { animation: none !important; transform: none !important; }
+}
