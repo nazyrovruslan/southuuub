@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import './block-with-u-animate.css';
 import { FONT_MONT_BOOK } from '@/app/fonts';
@@ -45,6 +45,14 @@ const getAllMobileCells = () => {
     return cells;
 };
 
+// Волна на десктопе: каждая буква увеличивается по расстоянию от неё до курсора,
+// поэтому вместе с наведённой растут соседи по бокам, сверху и снизу, а зона
+// наведения непрерывная — каждая буква «ловит» курсор до середины пути к соседней.
+const WAVE_MAX_SCALE = 2;       // наведённая буква: 20px -> 40px, как раньше
+const WAVE_RADIUS = 1.1;        // радиус влияния в шагах сетки по горизонтали
+const WAVE_GROW = 0.22;         // скорость увеличения за кадр (быстро)
+const WAVE_FADE = 0.06;         // скорость затухания за кадр (медленно)
+
 /**
  * TODO после выкатки
  * 1) Они должны при просто наведении увеличиваться медленно и медленно затухать
@@ -56,9 +64,9 @@ const getAllMobileCells = () => {
 
 export const BlockWithUAnimate = () => {
     const [device, setDevice] = useState<'desktop' | 'desktop_s' | 'tablet' | 'mobile'>('desktop');
-    const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
     const [animatedCell, setAnimatedCell] = useState<{ row: number; col: number } | null>(null);
     const [isAnimating, setIsAnimating] = useState(false);
+    const blockRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const header = document.querySelector('#header');
@@ -171,22 +179,67 @@ export const BlockWithUAnimate = () => {
         };
     }, [device]);
 
-    const isSpecialCell = (row: number, col: number): boolean => {
-        if (row === 0 && col === 0) return true;
+    useEffect(() => {
+        const block = blockRef.current;
+        if (!block || (device !== 'desktop' && device !== 'desktop_s')) return;
+        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-        switch(device) {
-            case 'desktop':
-                return row === 2 && col === 7;
-            case 'desktop_s':
-                return row === 2 && col === 5;
-            case 'tablet':
-                return row === 3 && col === 3;
-            case 'mobile':
-                return row === 3 && col === 1;
-            default:
-                return false;
-        }
-    };
+        const icons = Array.from(block.querySelectorAll<HTMLElement>('[data-wave-letter]'));
+        const current = icons.map(() => 1);
+        const target = icons.map(() => 1);
+        let frame = 0;
+
+        const tick = () => {
+            let moving = false;
+            icons.forEach((icon, i) => {
+                const diff = target[i] - current[i];
+                if (Math.abs(diff) < 0.002) {
+                    current[i] = target[i];
+                } else {
+                    current[i] += diff * (diff > 0 ? WAVE_GROW : WAVE_FADE);
+                    moving = true;
+                }
+                icon.style.transform = current[i] === 1 ? '' : `scale(${current[i].toFixed(3)})`;
+            });
+            frame = moving ? requestAnimationFrame(tick) : 0;
+        };
+        const run = () => {
+            if (!frame) frame = requestAnimationFrame(tick);
+        };
+
+        const onMove = (event: PointerEvent) => {
+            const rects = icons.map((icon) => icon.getBoundingClientRect());
+            // шаг сетки по горизонтали: расстояние между двумя соседними буквами одной строки
+            // (по центрам: масштаб меняет края прямоугольника, но не центр)
+            const centers = rects.map((r) => [r.left + r.width / 2, r.top + r.height / 2]);
+            let pitch = Infinity;
+            for (let i = 1; i < centers.length; i++) {
+                const dx = Math.abs(centers[i][0] - centers[i - 1][0]);
+                if (dx > 1 && Math.abs(centers[i][1] - centers[i - 1][1]) < 1) pitch = Math.min(pitch, dx);
+            }
+            const radius = (Number.isFinite(pitch) ? pitch : 150) * WAVE_RADIUS;
+
+            centers.forEach(([cx, cy], i) => {
+                const d = Math.hypot(event.clientX - cx, event.clientY - cy) / radius;
+                target[i] = 1 + (WAVE_MAX_SCALE - 1) * Math.exp(-d * d);
+            });
+            run();
+        };
+        const onLeave = () => {
+            target.fill(1);
+            run();
+        };
+
+        block.addEventListener('pointermove', onMove);
+        block.addEventListener('pointerleave', onLeave);
+        return () => {
+            block.removeEventListener('pointermove', onMove);
+            block.removeEventListener('pointerleave', onLeave);
+            cancelAnimationFrame(frame);
+            icons.forEach((icon) => { icon.style.transform = ''; });
+        };
+    }, [device]);
 
     const shouldScale = (row: number, col: number): boolean => {
         if (device === 'tablet' || device === 'mobile') {
@@ -199,22 +252,8 @@ export const BlockWithUAnimate = () => {
             return isCenter || isHorizontalNeighbor;
         }
 
-        if (!hoveredCell) return false;
-        
-        const { row: hoverRow, col: hoverCol } = hoveredCell;
-        
-        if (isSpecialCell(hoverRow, hoverCol)) {
-            return false;
-        }
-        
-        // Изменено: только соседи по горизонтали (та же строка, соседние колонки)
-        const isHorizontalNeighbor = row === hoverRow && Math.abs(col - hoverCol) === 1;
-        
-        if (isHorizontalNeighbor && isSpecialCell(row, col)) {
-            return false;
-        }
-        
-        return isHorizontalNeighbor;
+        // на десктопе размер задаёт волна (см. эффект выше)
+        return false;
     };
 
     const getScalePercent = (row: number, col: number): number => {
@@ -235,32 +274,7 @@ export const BlockWithUAnimate = () => {
             return 0;
         }
 
-        if (!hoveredCell) return 0;
-        
-        // Изменено: только горизонтальные соседи
-        const isHorizontalNeighbor = row === hoveredCell.row && Math.abs(col - hoveredCell.col) === 1;
-        
-        if (isHorizontalNeighbor) {
-            return 50;
-        }
-        
-        if (hoveredCell.row === row && hoveredCell.col === col) {
-            return 100;
-        }
-        
         return 0;
-    };
-
-    const isHovered = (row: number, col: number): boolean => {
-        if (device === 'tablet' || device === 'mobile') {
-            return false;
-        }
-        
-        if (!hoveredCell) {
-            return false;
-        }
-
-        return hoveredCell.row === row && hoveredCell.col === col;
     };
 
     const renderCellContent = (row: number, col: number) => {
@@ -290,7 +304,6 @@ export const BlockWithUAnimate = () => {
         }
 
         const scalePercent = getScalePercent(row, col);
-        const isCurrentlyHovered = isHovered(row, col);
         
         let svgWidth = 20;
         let svgHeight = 21;
@@ -301,9 +314,6 @@ export const BlockWithUAnimate = () => {
         } else if (scalePercent === 50) {
             svgWidth = 30;
             svgHeight = 31.5;
-        } else if (isCurrentlyHovered) {
-            svgWidth = 40;
-            svgHeight = 42;
         }
 
         const isVisibleB = () => {
@@ -322,7 +332,7 @@ export const BlockWithUAnimate = () => {
         }
 
         return (
-            <div className="block-with-u-animate-svg-container">
+            <div className="block-with-u-animate-svg-container" data-wave-letter>
                 {isVisibleB() ? (
                     <Image
                         src={B}
@@ -421,22 +431,8 @@ export const BlockWithUAnimate = () => {
         }
     };
 
-    const handleMouseEnter = (row: number, col: number, type: string) => {
-        if (device === 'desktop' || device === 'desktop_s') {
-            if (type === 'svg') {
-                setHoveredCell({ row, col });
-            }
-        }
-    };
-
-    const handleMouseLeave = () => {
-        if (device === 'desktop' || device === 'desktop_s') {
-            setHoveredCell(null);
-        }
-    };
-
     return (
-        <div className="block-with-u-animate" id='block-with-u-animate'>
+        <div className="block-with-u-animate" id='block-with-u-animate' ref={blockRef}>
             {rowGrid[device].map((row) => {
                 const rowCells = getRowCells(row);
                 
@@ -451,8 +447,6 @@ export const BlockWithUAnimate = () => {
                                 className={`block-with-u-animate-cell ${
                                     cell.type === 'special' ? 'special-cell-wrapper' : ''
                                 }`}
-                                onMouseEnter={() => handleMouseEnter(row, cell.col, cell.type)}
-                                onMouseLeave={handleMouseLeave}
                             >
                                 {renderCellContent(row, cell.col)}
                             </div>
