@@ -1,4 +1,4 @@
-// Генерирует src/app/wide-screen.css: пропорциональное масштабирование десктопной вёрстки
+// Генерирует app/assets/css/wide-screen.css: пропорциональное масштабирование десктопной вёрстки
 // на экранах шире 1920px. Размеры в px из CSS блоков переводятся в vw от базы 1920,
 // поэтому на 2560 и 3840 страница выглядит так же, как на 1920, только крупнее.
 // Правила внутри @media не трогаются (это мобильные и планшетные версии).
@@ -7,7 +7,9 @@ import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const BASE = 1920;
-const ROOT = 'src/app';
+const ROOT = 'app/assets/css';
+// базовые стили библиотек и шрифты не масштабируем
+const SKIP = new Set(['antd-lite.css', 'tailwind-base.css', 'fonts.css'].map((f) => join(ROOT, f)));
 const OUT = join(ROOT, 'wide-screen.css');
 const PROPS = new Set([
   'font-size', 'line-height', 'letter-spacing',
@@ -85,7 +87,7 @@ const files = [];
   for (const name of readdirSync(dir).sort()) {
     const p = join(dir, name);
     if (statSync(p).isDirectory()) walk(p);
-    else if (p.endsWith('.css') && p !== OUT) files.push(p);
+    else if (p.endsWith('.css') && p !== OUT && !SKIP.has(p)) files.push(p);
   }
 })(ROOT);
 

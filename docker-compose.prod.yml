@@ -4,7 +4,7 @@ services:
       context: .
       target: runner
 
-    container_name: nextjs_prod
+    container_name: nuxt_prod
 
     env_file:
       - .env.production
@@ -37,7 +37,6 @@ services:
     # tmpfs для временных файлов
     tmpfs:
       - /tmp:mode=1777
-      - /app/.next/cache:uid=1000,gid=1000,mode=1777
 
     # healthcheck
     healthcheck:

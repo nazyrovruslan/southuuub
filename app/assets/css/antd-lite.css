@@ -1,0 +1,80 @@
+/* Базовые стили antd 5, снятые со страницы Next-версии (Button, Drawer, Collapse).
+   Остальные правила из блоков переопределяют их как раньше. */
+.ant-btn{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';font-size:14px;box-sizing:border-box;}
+.ant-btn::before,.ant-btn::after{box-sizing:border-box;}
+.ant-btn [class^="ant-btn"],.ant-btn [class*=" ant-btn"]{box-sizing:border-box;}
+.ant-btn [class^="ant-btn"]::before,.ant-btn [class*=" ant-btn"]::before,.ant-btn [class^="ant-btn"]::after,.ant-btn [class*=" ant-btn"]::after{box-sizing:border-box;}
+.ant-btn{outline:none;position:relative;display:inline-flex;gap:8px;align-items:center;justify-content:center;font-weight:400;white-space:nowrap;text-align:center;background-image:none;background:transparent;border:1px solid transparent;cursor:pointer;transition:all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);user-select:none;touch-action:manipulation;color:rgba(0,0,0,0.88);}
+.ant-btn:disabled>*{pointer-events:none;}
+.ant-btn >a{color:currentColor;}
+.ant-btn:not(:disabled):focus-visible{outline:3px solid #91caff;outline-offset:1px;transition:outline-offset 0s,outline 0s;}
+.ant-btn{font-size:14px;height:32px;padding:0px 15px;border-radius:6px;}
+.ant-btn-color-default{color:rgba(0,0,0,0.88);box-shadow:0 2px 0 rgba(0,0,0,0.02);}
+.ant-btn-color-default.ant-btn-variant-solid{color:#fff;background:rgb(0,0,0);}
+.ant-btn-color-default.ant-btn-variant-solid:disabled,.ant-btn-color-default.ant-btn-variant-solid.ant-btn-disabled{cursor:not-allowed;border-color:#d9d9d9;color:rgba(0,0,0,0.25);background:rgba(0,0,0,0.04);box-shadow:none;}
+.ant-btn-color-default.ant-btn-variant-solid:not(:disabled):not(.ant-btn-disabled):hover{color:#fff;background:rgba(0,0,0,0.75);}
+.ant-btn-color-default.ant-btn-variant-solid:not(:disabled):not(.ant-btn-disabled):active{color:#fff;background:rgba(0,0,0,0.95);}
+.ant-btn-color-primary{color:#1677ff;box-shadow:0 2px 0 rgba(5,145,255,0.1);}
+.ant-btn-color-primary.ant-btn-variant-text{color:#1677ff;box-shadow:none;}
+.ant-btn-color-primary.ant-btn-variant-text:disabled,.ant-btn-color-primary.ant-btn-variant-text.ant-btn-disabled{cursor:not-allowed;color:rgba(0,0,0,0.25);}
+.ant-btn-color-primary.ant-btn-variant-text:not(:disabled):not(.ant-btn-disabled):hover{color:#4096ff;background:#e6f4ff;}
+.ant-btn-color-primary.ant-btn-variant-text:not(:disabled):not(.ant-btn-disabled):active{color:#0958d9;background:#91caff;}
+.ant-btn-variant-text{color:rgba(0,0,0,0.88);box-shadow:none;}
+.ant-btn-variant-text:disabled,.ant-btn-variant-text.ant-btn-disabled{cursor:not-allowed;color:rgba(0,0,0,0.25);}
+.ant-btn-variant-text:not(:disabled):not(.ant-btn-disabled):hover{color:rgba(0,0,0,0.88);background:rgba(0,0,0,0.04);}
+.ant-btn-variant-text:not(:disabled):not(.ant-btn-disabled):active{color:rgba(0,0,0,0.88);background:rgba(0,0,0,0.15);}
+.ant-btn-variant-solid{color:#fff;background:#1677ff;}
+.ant-btn-variant-solid:disabled,.ant-btn-variant-solid.ant-btn-disabled{cursor:not-allowed;border-color:#d9d9d9;color:rgba(0,0,0,0.25);background:rgba(0,0,0,0.04);box-shadow:none;}
+.ant-btn-variant-solid:not(:disabled):not(.ant-btn-disabled):hover{background:#4096ff;color:#fff;}
+.ant-btn-variant-solid:not(:disabled):not(.ant-btn-disabled):active{background:#0958d9;color:#fff;}
+.ant-drawer{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';font-size:14px;box-sizing:border-box;}
+.ant-drawer::before,.ant-drawer::after{box-sizing:border-box;}
+.ant-drawer [class^="ant-drawer"],.ant-drawer [class*=" ant-drawer"]{box-sizing:border-box;}
+.ant-drawer [class^="ant-drawer"]::before,.ant-drawer [class*=" ant-drawer"]::before,.ant-drawer [class^="ant-drawer"]::after,.ant-drawer [class*=" ant-drawer"]::after{box-sizing:border-box;}
+.ant-drawer{position:fixed;inset:0;z-index:1000;pointer-events:none;color:rgba(0,0,0,0.88);}
+.ant-drawer-pure{position:relative;background:#ffffff;display:flex;flex-direction:column;}
+.ant-drawer-pure.ant-drawer-right{box-shadow:-6px 0 16px 0 rgba(0, 0, 0, 0.08),-3px 0 6px -4px rgba(0, 0, 0, 0.12),-9px 0 28px 8px rgba(0, 0, 0, 0.05);}
+.ant-drawer-inline{position:absolute;}
+.ant-drawer .ant-drawer-mask{position:absolute;inset:0;z-index:1000;background:rgba(0,0,0,0.45);pointer-events:auto;}
+.ant-drawer .ant-drawer-content-wrapper{position:absolute;z-index:1000;max-width:100vw;transition:all 0.3s;}
+.ant-drawer .ant-drawer-content-wrapper-hidden{display:none;}
+.ant-drawer-right>.ant-drawer-content-wrapper{top:0;right:0;bottom:0;box-shadow:-6px 0 16px 0 rgba(0, 0, 0, 0.08),-3px 0 6px -4px rgba(0, 0, 0, 0.12),-9px 0 28px 8px rgba(0, 0, 0, 0.05);}
+.ant-drawer .ant-drawer-content{display:flex;flex-direction:column;width:100%;height:100%;overflow:auto;background:#ffffff;pointer-events:auto;}
+.ant-drawer .ant-drawer-header{display:flex;flex:0;align-items:center;padding:16px 24px;font-size:16px;line-height:1.5;border-bottom:1px solid rgba(5,5,5,0.06);}
+.ant-drawer .ant-drawer-header-title{display:flex;flex:1;align-items:center;min-width:0;min-height:0;}
+.ant-drawer .ant-drawer-close{display:inline-flex;width:24px;height:24px;border-radius:4px;justify-content:center;align-items:center;color:rgba(0,0,0,0.45);font-weight:600;font-size:16px;font-style:normal;line-height:1;text-align:center;text-transform:none;text-decoration:none;background:transparent;border:0;cursor:pointer;transition:all 0.2s;text-rendering:auto;}
+.ant-drawer .ant-drawer-close.ant-drawer-close-end{margin-inline-start:8px;}
+.ant-drawer .ant-drawer-close:not(.ant-drawer-close-end){margin-inline-end:8px;}
+.ant-drawer .ant-drawer-close:hover{color:rgba(0,0,0,0.88);background-color:rgba(0,0,0,0.06);text-decoration:none;}
+.ant-drawer .ant-drawer-close:active{background-color:rgba(0,0,0,0.15);}
+.ant-drawer .ant-drawer-close:focus-visible{outline:3px solid #91caff;outline-offset:1px;transition:outline-offset 0s,outline 0s;}
+.ant-drawer .ant-drawer-title{flex:1;margin:0;font-weight:600;font-size:16px;line-height:1.5;}
+.ant-drawer .ant-drawer-body{flex:1;min-width:0;min-height:0;padding:24px;overflow:auto;}
+.ant-drawer .ant-drawer-body .ant-drawer-body-skeleton{width:100%;height:100%;display:flex;justify-content:center;}
+.ant-collapse{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';font-size:14px;box-sizing:border-box;}
+.ant-collapse::before,.ant-collapse::after{box-sizing:border-box;}
+.ant-collapse [class^="ant-collapse"],.ant-collapse [class*=" ant-collapse"]{box-sizing:border-box;}
+.ant-collapse [class^="ant-collapse"]::before,.ant-collapse [class*=" ant-collapse"]::before,.ant-collapse [class^="ant-collapse"]::after,.ant-collapse [class*=" ant-collapse"]::after{box-sizing:border-box;}
+.ant-collapse{box-sizing:border-box;margin:0;padding:0;color:rgba(0,0,0,0.88);font-size:14px;line-height:1.5714285714285714;list-style:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';background-color:rgba(0,0,0,0.02);border:1px solid #d9d9d9;border-radius:8px;}
+.ant-collapse>.ant-collapse-item{border-bottom:1px solid #d9d9d9;}
+.ant-collapse>.ant-collapse-item:first-child,.ant-collapse>.ant-collapse-item:first-child>.ant-collapse-header{border-radius:8px 8px 0 0;}
+.ant-collapse>.ant-collapse-item:last-child,.ant-collapse>.ant-collapse-item:last-child>.ant-collapse-header{border-radius:0 0 8px 8px;}
+.ant-collapse>.ant-collapse-item >.ant-collapse-header{position:relative;display:flex;flex-wrap:nowrap;align-items:flex-start;padding:12px 16px;color:rgba(0,0,0,0.88);line-height:1.5714285714285714;cursor:pointer;transition:all 0.3s,visibility 0s;}
+.ant-collapse>.ant-collapse-item >.ant-collapse-header:focus-visible{outline:3px solid #91caff;outline-offset:1px;transition:outline-offset 0s,outline 0s;}
+.ant-collapse>.ant-collapse-item >.ant-collapse-header >.ant-collapse-header-text{flex:auto;}
+.ant-collapse>.ant-collapse-item >.ant-collapse-header .ant-collapse-expand-icon{height:22px;display:flex;align-items:center;padding-inline-end:12px;}
+.ant-collapse>.ant-collapse-item >.ant-collapse-header .ant-collapse-arrow{display:inline-flex;align-items:center;color:inherit;font-style:normal;line-height:0;text-align:center;text-transform:none;vertical-align:-0.125em;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-size:12px;transition:transform 0.3s;}
+.ant-collapse>.ant-collapse-item >.ant-collapse-header .ant-collapse-arrow >*{line-height:1;}
+.ant-collapse>.ant-collapse-item >.ant-collapse-header .ant-collapse-arrow svg{transition:transform 0.3s;}
+.ant-collapse>.ant-collapse-item >.ant-collapse-header .ant-collapse-header-text{margin-inline-end:auto;}
+.ant-collapse .ant-collapse-content{color:rgba(0,0,0,0.88);background-color:#ffffff;border-top:1px solid #d9d9d9;}
+.ant-collapse .ant-collapse-content>.ant-collapse-content-box{padding:16px 16px;}
+.ant-collapse .ant-collapse-content-hidden{display:none;}
+.ant-collapse .ant-collapse-item:last-child{border-bottom:0;}
+.ant-collapse .ant-collapse-item:last-child >.ant-collapse-content{border-radius:0 0 8px 8px;}
+.ant-collapse .ant-collapse-item-disabled>.ant-collapse-header,.ant-collapse .ant-collapse-item-disabled>.ant-collapse-header>.arrow{color:rgba(0,0,0,0.25);cursor:not-allowed;}
+.ant-collapse.ant-collapse-icon-position-end>.ant-collapse-item >.ant-collapse-header .ant-collapse-expand-icon{order:1;padding-inline-end:0;padding-inline-start:12px;}
+.ant-collapse-ghost{background-color:transparent;border:0;}
+.ant-collapse-ghost >.ant-collapse-item{border-bottom:0;}
+.ant-collapse-ghost >.ant-collapse-item >.ant-collapse-content{background-color:transparent;border:0;}
+.ant-collapse-ghost >.ant-collapse-item >.ant-collapse-content >.ant-collapse-content-box{padding-block:12px;}

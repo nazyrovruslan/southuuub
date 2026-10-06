@@ -5,7 +5,7 @@ services:
     build:
       context: .
       target: dev
-    container_name: nextjs_dev
+    container_name: nuxt_dev
     ports:
       - "3000:3000"
     volumes:

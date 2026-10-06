@@ -1,0 +1,17 @@
+/* Фирменные шрифты (WOFF2). Раньше подключались через next/font/local:
+   те же имена классов-заменителей и те же метрики запасного Arial, чтобы текст не прыгал при загрузке. */
+@font-face{font-family:FONT_MONT_BOOK;src:url('../fonts/Mont-Book.woff2') format("woff2");font-display:swap}
+@font-face{font-family:'FONT_MONT_BOOK Fallback';src:local(Arial);ascent-override:62.92%;descent-override:15.19%;line-gap-override:32.8%;size-adjust:115.23%}
+.font-mont-book{font-family:FONT_MONT_BOOK,'FONT_MONT_BOOK Fallback'}
+
+@font-face{font-family:FONT_MONT_BOOK_EXTRA_LIGHT;src:url('../fonts/Mont-ExtraLight.woff2') format("woff2");font-display:swap}
+@font-face{font-family:'FONT_MONT_BOOK_EXTRA_LIGHT Fallback';src:local(Arial);ascent-override:63.13%;descent-override:15.24%;line-gap-override:32.92%;size-adjust:114.84%}
+.font-mont-extra-light{font-family:FONT_MONT_BOOK_EXTRA_LIGHT,'FONT_MONT_BOOK_EXTRA_LIGHT Fallback'}
+
+@font-face{font-family:FONT_IBM_PLEX_SERIF_ITALIC;src:url('../fonts/IBMPlexSerif-Italic.woff2') format("woff2");font-display:swap}
+@font-face{font-family:'FONT_IBM_PLEX_SERIF_ITALIC Fallback';src:local(Arial);ascent-override:107.46%;descent-override:28.83%;line-gap-override:0.0%;size-adjust:95.38%}
+.font-ibm-serif-italic{font-family:FONT_IBM_PLEX_SERIF_ITALIC,'FONT_IBM_PLEX_SERIF_ITALIC Fallback'}
+
+@font-face{font-family:FONT_IBM_PLEX_SERIF_LIGHT;src:url('../fonts/IBMPlexSerif-Light.woff2') format("woff2");font-display:swap}
+@font-face{font-family:'FONT_IBM_PLEX_SERIF_LIGHT Fallback';src:local(Arial);ascent-override:98.55%;descent-override:26.44%;line-gap-override:0.0%;size-adjust:104.01%}
+.font-ibm-serif-light{font-family:FONT_IBM_PLEX_SERIF_LIGHT,'FONT_IBM_PLEX_SERIF_LIGHT Fallback'}
