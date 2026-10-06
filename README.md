@@ -16,7 +16,25 @@ cp .env.example .env.production   # необязательно: без файл�
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Сайт откроется на http://localhost:3000 (порт меняется в `docker-compose.prod.yml`, строка `"3000:3000"`).
+Сайт откроется на http://127.0.0.1:3333/vue/. Порт слушается только на localhost, наружу его отдаёт nginx на сервере:
+
+```nginx
+location /vue/ {
+    proxy_pass http://127.0.0.1:3333;   # без слэша в конце: путь /vue/ передаётся как есть
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+Порт и путь меняются в файле `.env` рядом с compose (путь вшивается в сборку, после смены нужен `up -d --build`):
+
+```bash
+HOST_PORT=3333
+BASE_URL=/vue/     # или / , если сайт открывается с корня домена
+```
+
+Контейнер называется `southhub_vue`, проект compose `southhub-vue`, поэтому он не мешает контейнеру Next-версии на том же сервере.
 
 Полезные команды:
 

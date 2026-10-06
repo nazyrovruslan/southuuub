@@ -32,6 +32,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Путь, по которому открывается сайт: / или, например, /vue/ (задаётся в docker-compose.prod.yml)
+ARG NUXT_APP_BASE_URL=/
+ENV NUXT_APP_BASE_URL=$NUXT_APP_BASE_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
