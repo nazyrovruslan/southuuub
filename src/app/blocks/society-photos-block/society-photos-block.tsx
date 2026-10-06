@@ -381,7 +381,7 @@ export const SocietyPhotosBlock = () => {
     // Пока идёт перемотка, кадры сменяются быстро (класс на блоке укорачивает и смену фото)
     const [scrubbing, setScrubbing] = useState(false);
     const scrubbingRef = useRef(false);
-    const scrubTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    const scrubTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     useEffect(() => () => clearTimeout(scrubTimerRef.current), []);
 
     const stepFrames = (steps: number) => {
