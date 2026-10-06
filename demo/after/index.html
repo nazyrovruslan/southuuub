@@ -44,11 +44,11 @@ function run(){if(!raf)raf=requestAnimationFrame(tick)}
 function move(e){if(!ok())return-1;if(sync())gaps();var c=cells.map(function(x){var r=x.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]});var p=c.length>1?Math.abs(c[1][0]-c[0][0])||150:150,rad=p*R,n=-1,nd=1/0,pi=pins(),src=pi.map(function(i){return{clientX:c[i][0],clientY:c[i][1]}});if(e)src.unshift(e);
 for(var i=0;i<c.length;i++){tgt[i]=0;for(var s=0;s<src.length;s++){var dx=c[i][0]-src[s].clientX,dy=c[i][1]-src[s].clientY,len=Math.hypot(dx,dy);if(e&&s===0&&len<nd){nd=len;n=i}var d=len/rad,k=Math.exp(-d*d);if(k<=tgt[i])continue;tgt[i]=k;if(len>.5)dir[i]={x:dx/len,y:dy/len,a:Math.atan2(dx,-dy)*180/Math.PI}}}if(n>=0)tgt[n]=0;pi.forEach(function(i){tgt[i]=0});run();return n}
 function leave(){move(null)}
-/* телефон: волна идёт за пальцем при касании и свайпе, крестик под пальцем становится иконкой; повторное касание открывает ссылку */
-var touched=-1,hold=0;
-function touch(e){var t=e.touches[0];if(!t)return;hold=1/0;var n=move(t);touched=n;var cl=cells[n];if(!cl||!window.__mnSetHover)return;var row=+cl.dataset.row,col=+cl.dataset.col,h=window.__mnHover;if(e.type==='touchstart')window.__mnTouchOpen=!!h&&h.row===row&&h.col===col||pinKeys.indexOf(key(cl))>=0;if(!h||h.row!==row||h.col!==col)window.__mnSetHover({row:row,col:col})}
-/* палец убрали: иконка открыта, соседние крестики остаются повёрнутыми вокруг неё */
-function touchEnd(){hold=Date.now()+800;var cl=cells[touched];if(!cl)return leave();var r=cl.getBoundingClientRect();move({clientX:r.left+r.width/2,clientY:r.top+r.height/2})}
+/* телефон: тап (не прокрутка) закрывает все иконки и возвращает крестики в исходное положение; тап по открытой иконке открывает её ссылку */
+var ts=null;
+function near(t){var n=-1,nd=1/0;cells.forEach(function(x,i){var r=x.getBoundingClientRect(),l=Math.hypot(r.left+r.width/2-t.clientX,r.top+r.height/2-t.clientY);if(l<nd){nd=l;n=i}});return n}
+function touch(e){var t=e.touches[0];if(!t)return;if(sync())gaps();ts={x:t.clientX,y:t.clientY,t:Date.now()};var cl=cells[near(t)];if(!cl)return;var row=+cl.dataset.row,col=+cl.dataset.col,h=window.__mnHover;window.__mnTouchOpen=!!h&&h.row===row&&h.col===col||pinKeys.indexOf(key(cl))>=0}
+function touchEnd(e){var t=e.changedTouches&&e.changedTouches[0],s=ts;ts=null;if(!t||!s||e.type==='touchcancel')return;if(Math.hypot(t.clientX-s.x,t.clientY-s.y)>=10||Date.now()-s.t>=600)return;sDone=1;pinKeys=[];paint();if(window.__mnSetHover)window.__mnSetHover(null);move(null)}
 function mouse(e){if(e.pointerType!=='touch'&&matchMedia('(hover:hover) and (pointer:fine)').matches)move(e)}
 /* телефон и планшет: на 30% прокрутки блока сразу открываются три разные иконки (телеграм, эфир, ютуб) в разных столбцах и остаются; один раз */
 var sDone=0;
