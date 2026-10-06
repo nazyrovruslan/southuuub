@@ -22,7 +22,7 @@ cp .env.example .env.production
 | Переменная | Зачем |
 |---|---|
 | `NEXT_PUBLIC_*_LINK`, `NEXT_PUBLIC_SOUTHHUB*`, `NEXT_PUBLIC_SNOWBASE`, `NEXT_PUBLIC_YOUTUBE_PLAYLIST` | ссылки в меню, кнопках и подвале |
-| `NEXT_PUBLIC_SHSITES_URL`, `NEXT_PUBLIC_SHSITES_API_KEY` | SEO-данные страницы из сервиса shsites; без них берутся заголовок и описание по умолчанию |
+| `NEXT_PUBLIC_SHSITES_URL`, `NEXT_PUBLIC_SHSITES_API_KEY` | SEO-данные страницы из сервиса shsites; без них (или с пустыми значениями) берутся заголовок и описание по умолчанию |
 | `NEXT_PUBLIC_ENABLE_METRIC` | любое непустое значение включает Яндекс.Метрику (раньше называлась `ENABLE_METRIC`) |
 | `PORT` | порт на хосте для Docker Compose, по умолчанию 3000 |
 

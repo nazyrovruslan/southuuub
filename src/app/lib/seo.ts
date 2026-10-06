@@ -2,6 +2,9 @@ import { cache } from 'react';
 import { SHSITES_API_KEY, SHSITES_URL } from '../constants';
 
 export const getSeoData = cache(async (slug?: string) => {
+    // сервис SEO не настроен: берём заголовок и описание по умолчанию, без запроса и ошибки в логе
+    if (!SHSITES_URL) return null;
+
     try {
         const endpoint = slug ? `${SHSITES_URL}/api/v1/seo/sh-main/${slug}` : `${SHSITES_URL}/api/v1/seo/sh-main/`;
         
