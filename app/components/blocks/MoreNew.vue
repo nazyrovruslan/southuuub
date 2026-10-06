@@ -29,11 +29,14 @@ const WAVE_TURN = 0.75;         // поворот: доля угла напра�
 const WAVE_GROW = 0.22;
 const WAVE_FADE = 0.06;
 
-// Телефон и планшет: при прокрутке крестики по одному превращаются в иконки,
-// в перемешанном, но всегда одинаковом порядке. Прогресс считается от момента, когда
-// верх блока на SCROLL_START высоты экрана, до момента, когда низ блока на SCROLL_END.
+// Телефон и планшет: когда прогресс блока доходит до SCROLL_SHOW_UNTIL, сразу
+// открываются три разные иконки (телеграм, эфир, ютуб) в разных столбцах и остаются.
+// Это происходит один раз, дальше прокрутка блок не трогает. Прогресс считается
+// от момента, когда верх блока на SCROLL_START высоты экрана, до момента, когда низ
+// блока на SCROLL_END.
 const SCROLL_START = 0.85;
 const SCROLL_END = 0.25;
+const SCROLL_SHOW_UNTIL = 0.3;
 
 const shuffledOrder = (length: number) => {
     const order = Array.from({ length }, (_, i) => i);
@@ -60,6 +63,10 @@ const desktopColumns = ref(DESKTOP_MIN_COLUMNS);
 const blockRef = ref<HTMLDivElement | null>(null);
 // касание открывает ссылку, только если иконка в этой клетке уже была показана
 let touchOpensLink: boolean | null = null;
+// иконки при прокрутке уже показаны: второй раз не повторяем
+let scrollShown = false;
+// три иконки, открытые при прокрутке на телефоне
+const pinnedCells = ref<{ row: number; col: number }[]>([]);
 
 const setHoveredCell = (row: number, col: number) => {
     const prev = hoveredCell.value;
@@ -194,36 +201,46 @@ const setupWave = () => {
         if (!frame) frame = requestAnimationFrame(tick);
     };
 
-    const wave = (point: { clientX: number; clientY: number }) => {
-        const centers = cells.map((cell) => {
-            const r = cell.getBoundingClientRect();
-            return [r.left + r.width / 2, r.top + r.height / 2] as const;
-        });
-        const pitch = centers.length > 1 ? Math.abs(centers[1]![0] - centers[0]![0]) || 150 : 150;
+    const centerOf = (index: number) => {
+        const r = cells[index]!.getBoundingClientRect();
+        return { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
+    };
+    // клетки с открытыми при прокрутке иконками: волна расходится и от них
+    let pinned: number[] = [];
+
+    const wave = (point: { clientX: number; clientY: number } | null) => {
+        const centers = cells.map((_, i) => centerOf(i));
+        const pitch = centers.length > 1 ? Math.abs(centers[1]!.clientX - centers[0]!.clientX) || 150 : 150;
         const radius = pitch * WAVE_RADIUS;
+        const sources = [...(point ? [point] : []), ...pinned.map((i) => centers[i]!)];
 
         let nearest = -1;
         let nearestDist = Infinity;
-        centers.forEach(([cx, cy], i) => {
-            const dx = cx - point.clientX;
-            const dy = cy - point.clientY;
-            const len = Math.hypot(dx, dy);
-            if (len < nearestDist) { nearestDist = len; nearest = i; }
-            const d = len / radius;
-            target[i] = Math.exp(-d * d);
-            if (len > 0.5) {
-                // угол направления от курсора: 0° — сверху, 90° — справа, ±180° — снизу
-                dir[i] = { x: dx / len, y: dy / len, angle: (Math.atan2(dx, -dy) * 180) / Math.PI };
-            }
+        target.fill(0);
+        centers.forEach((center, i) => {
+            sources.forEach((source, s) => {
+                const dx = center.clientX - source.clientX;
+                const dy = center.clientY - source.clientY;
+                const len = Math.hypot(dx, dy);
+                if (s === 0 && point && len < nearestDist) { nearestDist = len; nearest = i; }
+                const d = len / radius;
+                const k = Math.exp(-d * d);
+                if (k <= target[i]!) return;
+                target[i] = k;
+                if (len > 0.5) {
+                    // угол направления от курсора: 0° — сверху, 90° — справа, ±180° — снизу
+                    dir[i] = { x: dx / len, y: dy / len, angle: (Math.atan2(dx, -dy) * 180) / Math.PI };
+                }
+            });
         });
-        // крестик под курсором превращается в иконку, его не двигаем
+        // крестики, ставшие иконками, не двигаем
         if (nearest >= 0) target[nearest] = 0;
+        pinned.forEach((i) => { target[i] = 0; });
         run();
         return nearest;
     };
     const onLeave = () => {
-        target.fill(0);
-        run();
+        wave(null);
     };
 
     const onMove = (event: PointerEvent) => {
@@ -249,38 +266,57 @@ const setupWave = () => {
         touchedCell = nearest;
         const cell = cells[nearest];
         if (cell?.dataset.row && cell.dataset.col) {
-            const shown = hoveredCell.value;
-            touchOpensLink =
-                shown?.row === Number(cell.dataset.row) && shown.col === Number(cell.dataset.col);
+            const row = Number(cell.dataset.row);
+            const col = Number(cell.dataset.col);
+            const shown = [hoveredCell.value, ...pinnedCells.value];
+            touchOpensLink = shown.some((c) => c?.row === row && c.col === col);
         }
         showCell(nearest);
     };
 
-    const order = shuffledOrder(cells.length);
-    let scrollCell = -1;
+    // по одной клетке на каждую иконку: строки 0–1 телеграм, 2–4 эфир, 5–6 ютуб;
+    // клетки в разных строках и столбцах, выбор перемешан, но всегда одинаков
+    const pickPinned = () => {
+        const groups = [[0, 1], [2, 3, 4], [5, 6]];
+        const usedCols = new Set<string>();
+        const usedRows = new Set<string>();
+        const order = shuffledOrder(cells.length);
+        return groups.map((rows) => order.find((i) => {
+            const { row = '', col = '' } = cells[i]!.dataset;
+            if (!rows.includes(Number(row)) || usedCols.has(col)) return false;
+            // соседние строки двух иконок не ставим вплотную
+            if (usedRows.has(String(Number(row) - 1)) || usedRows.has(String(Number(row) + 1))) return false;
+            usedCols.add(col);
+            usedRows.add(row);
+            return true;
+        })).filter((i): i is number => i !== undefined);
+    };
+    const restorePinned = () => {
+        pinned = pinnedCells.value
+            .map(({ row, col }) => cells.findIndex((c) => c.dataset.row === String(row) && c.dataset.col === String(col)))
+            .filter((i) => i >= 0);
+        if (pinned.length) wave(null);
+    };
     const onScroll = () => {
+        if (scrollShown || !cells.length) return;
         const rect = block.getBoundingClientRect();
         const vh = window.innerHeight;
         const start = vh * SCROLL_START;
         const length = rect.height + start - vh * SCROLL_END;
         const progress = (start - rect.top) / length;
-        if (progress < 0 || progress >= 1 || !cells.length) return;
-        const next = order[Math.floor(progress * cells.length)]!;
-        if (next === scrollCell) return;
-        scrollCell = next;
-        touchedCell = next;
-        showCell(next);
-        const r = cells[next]!.getBoundingClientRect();
-        wave({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+        if (progress < SCROLL_SHOW_UNTIL) return;
+        scrollShown = true;
+        window.removeEventListener('scroll', onScroll);
+        pinned = pickPinned();
+        pinnedCells.value = pinned.map((i) => ({ row: Number(cells[i]!.dataset.row), col: Number(cells[i]!.dataset.col) }));
+        wave(null);
     };
 
     // палец убрали: иконка остаётся открытой, а соседние крестики так и стоят повёрнутыми
     // вокруг неё, как вокруг курсора на десктопе
     const onTouchEnd = () => {
-        const cell = cells[touchedCell];
-        if (!cell) return onLeave();
-        const r = cell.getBoundingClientRect();
-        wave({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+        if (!cells[touchedCell]) return onLeave();
+        wave(centerOf(touchedCell));
     };
 
     if (finePointer) {
@@ -289,6 +325,7 @@ const setupWave = () => {
     }
     block.addEventListener('touchstart', onTouch, { passive: true });
     if (!finePointer) {
+        restorePinned();
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
     }
@@ -326,10 +363,8 @@ onBeforeUnmount(() => {
     waveCleanup = undefined;
 });
 
-const isHovered = (row: number, col: number): boolean => {
-    if (!hoveredCell.value) return false;
-    return hoveredCell.value.row === row && hoveredCell.value.col === col;
-};
+const isHovered = (row: number, col: number): boolean =>
+    [hoveredCell.value, ...pinnedCells.value].some((cell) => cell?.row === row && cell.col === col);
 
 const isSpecialContent = (row: number, col: number) =>
     (device.value === 'mobile' && row === 3 && col === 0) ||
