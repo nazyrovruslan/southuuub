@@ -32,7 +32,7 @@ const getDesktopColumns = () => {
 
 // Волна, как в блоке с буквами U: крестики отталкиваются от курсора (на телефоне — от пальца)
 // и поворачиваются тем сильнее, чем ближе курсор. Быстро реагируют, медленно возвращаются.
-// Ближайший крестик превращается в иконку, на телефоне повторное касание открывает ссылку.
+// Ближайший крестик превращается в иконку. На телефоне тап закрывает все иконки.
 const WAVE_RADIUS = 1.1;        // радиус влияния в шагах сетки по горизонтали
 const WAVE_SHIFT = 14;          // максимальный сдвиг от курсора, px
 const WAVE_TURN = 0.75;         // поворот: доля угла направления от курсора
@@ -247,30 +247,31 @@ export const MoreNew = () => {
             wave(event);
         };
 
-        const showCell = (index: number) => {
-            const cell = cells[index];
-            if (!cell?.dataset.row || !cell.dataset.col) return;
-            const row = Number(cell.dataset.row);
-            const col = Number(cell.dataset.col);
-            setHoveredCell((prev) => (prev?.row === row && prev.col === col ? prev : { row, col }));
+        const nearestCell = (point: { clientX: number; clientY: number }) => {
+            let nearest = -1;
+            let nearestDist = Infinity;
+            cells.forEach((_, i) => {
+                const c = centerOf(i);
+                const len = Math.hypot(c.clientX - point.clientX, c.clientY - point.clientY);
+                if (len < nearestDist) { nearestDist = len; nearest = i; }
+            });
+            return nearest;
         };
 
-        // Телефон: касание открывает иконку под пальцем, волна расходится от неё.
-        // Пока страницу листают пальцем, иконки ведёт прокрутка (onScroll ниже).
-        let touchedCell = -1;
+        // Телефон: касание (тап, не прокрутка) закрывает все иконки и возвращает крестики
+        // в исходное положение. Тап по уже открытой иконке при этом открывает её ссылку.
+        let touchStart: { x: number; y: number; time: number } | null = null;
         const onTouch = (event: TouchEvent) => {
             const touch = event.touches[0];
             if (!touch) return;
-            const nearest = wave(touch);
-            touchedCell = nearest;
-            const cell = cells[nearest];
+            touchStart = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+            const cell = cells[nearestCell(touch)];
             if (cell?.dataset.row && cell.dataset.col) {
                 const row = Number(cell.dataset.row);
                 const col = Number(cell.dataset.col);
                 const shown = [hoveredCellRef.current, ...pinnedCellsRef.current];
                 touchOpensLinkRef.current = shown.some((c) => c?.row === row && c.col === col);
             }
-            showCell(nearest);
         };
 
         // по одной клетке на каждую иконку: строки 0–1 телеграм, 2–4 эфир, 5–6 ютуб;
@@ -312,11 +313,24 @@ export const MoreNew = () => {
             wave(null);
         };
 
-        // палец убрали: иконка остаётся открытой, а соседние крестики так и стоят повёрнутыми
-        // вокруг неё, как вокруг курсора на десктопе
-        const onTouchEnd = () => {
-            if (!cells[touchedCell]) return onLeave();
-            wave(centerOf(touchedCell));
+        const onTouchEnd = (event: TouchEvent) => {
+            const touch = event.changedTouches[0];
+            const start = touchStart;
+            touchStart = null;
+            if (!touch || !start) return;
+            const isTap = Math.hypot(touch.clientX - start.x, touch.clientY - start.y) < 10
+                && Date.now() - start.time < 600;
+            if (!isTap) return;
+            // после касания иконки по прокрутке больше не открываются
+            scrollShownRef.current = true;
+            window.removeEventListener('scroll', onScroll);
+            pinned = [];
+            setPinnedCells([]);
+            setHoveredCell(null);
+            wave(null);
+        };
+        const onTouchCancel = () => {
+            touchStart = null;
         };
 
         if (finePointer) {
@@ -330,7 +344,7 @@ export const MoreNew = () => {
             onScroll();
         }
         block.addEventListener('touchend', onTouchEnd);
-        block.addEventListener('touchcancel', onTouchEnd);
+        block.addEventListener('touchcancel', onTouchCancel);
         return () => {
             window.removeEventListener('resize', updateHitArea);
             block.removeEventListener('pointermove', onMove);
@@ -338,7 +352,7 @@ export const MoreNew = () => {
             block.removeEventListener('touchstart', onTouch);
             window.removeEventListener('scroll', onScroll);
             block.removeEventListener('touchend', onTouchEnd);
-            block.removeEventListener('touchcancel', onTouchEnd);
+            block.removeEventListener('touchcancel', onTouchCancel);
             cancelAnimationFrame(frame);
             crosses.forEach((cross) => { if (cross) cross.style.transform = ''; });
         };
