@@ -47,8 +47,8 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
-# next.config.ts нужен и при запуске: размеры картинок для широких экранов и заголовки кэша видео
-COPY --from=builder /app/next.config.ts ./next.config.ts
+# next.config.mjs нужен и при запуске: размеры картинок для широких экранов и заголовки кэша видео
+COPY --from=builder /app/next.config.mjs ./next.config.mjs
 
 RUN mkdir -p .next/cache && chown -R nextjs:nextjs .next/cache
 

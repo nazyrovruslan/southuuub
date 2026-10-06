@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
+// Конфиг на JS, а не на TS: next start в продакшен-образе загружает его без TypeScript
+// (next.config.ts требовал TypeScript при запуске, и контейнер падал).
 
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactCompiler: false,
   images: {
     // 2560 и 3840 — для широких мониторов, где вёрстка теперь масштабируется
