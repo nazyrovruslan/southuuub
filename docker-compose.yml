@@ -1,16 +1,20 @@
-version: "3.9"
-
+# Разработка: docker compose up --build
+# Сайт на http://localhost:3000, правки в app/ подхватываются на лету.
 services:
   web:
     build:
       context: .
       target: dev
-    container_name: nuxt_dev
+    container_name: southhub_dev
     ports:
       - "3000:3000"
+      # вебсокет горячей перезагрузки Vite
+      - "24678:24678"
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/.nuxt
     environment:
       - NODE_ENV=development
-    command: npm run dev
+      # в смонтированной папке события файлов не всегда доходят до контейнера
+      - CHOKIDAR_USEPOLLING=true

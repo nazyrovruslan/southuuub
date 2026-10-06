@@ -1,13 +1,16 @@
+# Прод: docker compose -f docker-compose.prod.yml up -d --build
 services:
   web:
     build:
       context: .
       target: runner
 
-    container_name: nuxt_prod
+    container_name: southhub_prod
 
+    # Необязательный файл: NUXT_PUBLIC_* из него переопределяют ссылки при запуске
     env_file:
-      - .env.production
+      - path: .env.production
+        required: false
 
     ports:
       - "3000:3000"
@@ -40,11 +43,11 @@ services:
 
     # healthcheck
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 20s
 
     logging:
       driver: "json-file"
