@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# southhub.ru
 
-## Getting Started
+Лендинг сообщества South HUB на Next.js 16 (React 18).
 
-First, run the development server:
+## Что нужно
+
+- Docker 24+ с Docker Compose v2.24+ (команда `docker compose`), или
+- Node.js 20.9+ и npm 10+ для запуска без Docker.
+
+## Переменные окружения
+
+Ссылки на сайте, SEO-сервис и Яндекс.Метрика задаются переменными окружения.
+Образец со всеми переменными и рабочими ссылками лежит в `.env.example`:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.production
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Переменные `NEXT_PUBLIC_*` вшиваются в сборку. После их изменения сайт нужно пересобрать
+(`--build` в командах ниже). Без `.env.production` сборка проходит, но ссылки на сайте будут пустыми.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Переменная | Зачем |
+|---|---|
+| `NEXT_PUBLIC_*_LINK`, `NEXT_PUBLIC_SOUTHHUB*`, `NEXT_PUBLIC_SNOWBASE`, `NEXT_PUBLIC_YOUTUBE_PLAYLIST` | ссылки в меню, кнопках и подвале |
+| `NEXT_PUBLIC_SHSITES_URL`, `NEXT_PUBLIC_SHSITES_API_KEY` | SEO-данные страницы из сервиса shsites; без них берутся заголовок и описание по умолчанию |
+| `NEXT_PUBLIC_ENABLE_METRIC` | любое непустое значение включает Яндекс.Метрику (раньше называлась `ENABLE_METRIC`) |
+| `PORT` | порт на хосте для Docker Compose, по умолчанию 3000 |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Продакшен в Docker
 
-## Learn More
+```bash
+cp .env.example .env.production   # один раз, затем поправить значения
+docker compose -f docker-compose.prod.yml up -d --build
+```
 
-To learn more about Next.js, take a look at the following resources:
+Сайт откроется на http://localhost:3000 (или на порту из `PORT`). Дальше на сервере
+ставится прокси (nginx и т. п.) на этот порт.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Полезные команды:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+docker compose -f docker-compose.prod.yml ps            # статус и healthcheck
+docker compose -f docker-compose.prod.yml logs -f web   # логи
+docker compose -f docker-compose.prod.yml down          # остановить
+```
 
-## Deploy on Vercel
+Обновление после `git pull`: та же команда `up -d --build`, контейнер пересоберётся и перезапустится.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Контейнер запускается без root, с корневой ФС только для чтения; писать можно только в `/tmp`
+и в кэш Next (`/app/.next/cache`, tmpfs). Лимиты: 700 МБ памяти, 1 CPU.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Разработка
+
+В Docker, с подхватом правок на лету:
+
+```bash
+docker compose up --build
+```
+
+Без Docker:
+
+```bash
+npm ci
+cp .env.example .env.development   # по желанию
+npm run dev
+```
+
+Сайт на http://localhost:3000.
+
+## Сборка без Docker
+
+```bash
+npm ci
+npm run build
+npm start
+```
+
+## Прочее
+
+- `npm run gen:wide-css` пересобирает `src/app/wide-screen.css` (масштабирование вёрстки на экранах шире 1920px)
+  из `scripts/gen-wide-screen-css.mjs`. Сам CSS-файл лежит в репозитории, запускать перед сборкой не нужно.
+- Видео первого экрана: `public/v2/southuuub-*-a.mp4` и `-b.mp4` (H.264, версии для телефона, 720p и 1080p).

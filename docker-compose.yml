@@ -1,16 +1,24 @@
-version: "3.9"
-
+# Режим разработки: docker compose up --build
+# Сайт на http://localhost:3000, правки в исходниках подхватываются на лету.
 services:
   web:
     build:
       context: .
       target: dev
-    container_name: nextjs_dev
+    container_name: southhub_dev
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
+    env_file:
+      - path: .env.development
+        required: false
+      - path: .env.production
+        required: false
     volumes:
       - .:/app
+      # node_modules и кэш сборки остаются внутри контейнера
       - /app/node_modules
+      - /app/.next
     environment:
       - NODE_ENV=development
-    command: npm run dev
+      # отслеживание изменений файлов через том на macOS и Windows
+      - WATCHPACK_POLLING=true

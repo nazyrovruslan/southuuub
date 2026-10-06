@@ -1,62 +1,59 @@
-# Stage 1: dependencies
-FROM node:20-alpine AS deps
+# Сборка и запуск сайта southhub.ru (Next.js).
+# Цели: dev — режим разработки (docker-compose.yml), runner — продакшен (docker-compose.prod.yml).
+
+FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY package*.json ./
 
-# Устанавливаем зависимости
+# Зависимости (кэшируются, пока не меняется package-lock.json)
+FROM base AS deps
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 
 
-# Stage 2: build
-FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-ENV NODE_ENV=production
-
+# Режим разработки: исходники монтируются томом, страница обновляется при правках
+FROM base AS dev
+ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+EXPOSE 3000
+CMD ["npx", "next", "dev", "--hostname", "0.0.0.0", "--port", "3000"]
 
-# production env
-COPY .env.production .env.production
 
-# Сборка Next.js
+# Продакшен-сборка. Переменные NEXT_PUBLIC_* вшиваются в сборку,
+# поэтому .env.production должен лежать в корне проекта до docker compose build.
+# Если файла нет, сборка всё равно пройдёт, но ссылки на сайте будут пустыми.
+FROM base AS builder
+ENV NODE_ENV=production
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 RUN npm run build
 
 
-# Stage 3: production runner
-FROM node:20-alpine AS runner
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
+# Продакшен-запуск: только нужные для работы файлы и зависимости без dev
+FROM base AS runner
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0 \
+    NODE_OPTIONS="--max-old-space-size=512"
 
-ENV NODE_ENV=production
-ENV PORT=3000
+# Фиксированный uid: с ним совпадает tmpfs для кэша в docker-compose.prod.yml
+RUN addgroup -S -g 1001 nextjs && adduser -S -u 1001 -G nextjs nextjs
 
-# Ограничение памяти Node.js
-ENV NODE_OPTIONS="--max-old-space-size=512"
-
-# Создаём non-root пользователя
-RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
-
-# Создаём cache директории заранее
-RUN mkdir -p /app/.next/cache && chown -R nextjs:nextjs /app
-
-# Копируем только production-артефакты
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/package.json ./package.json
-
-# Только production dependencies
-COPY --from=deps /app/package*.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-# Права
-RUN chown -R nextjs:nextjs /app
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+# next.config.ts нужен и при запуске: размеры картинок для широких экранов и заголовки кэша видео
+COPY --from=builder /app/next.config.ts ./next.config.ts
+
+RUN mkdir -p .next/cache && chown -R nextjs:nextjs .next/cache
 
 USER nextjs
-
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# next напрямую, без npm: npm пишет логи в домашнюю папку, а она в контейнере только для чтения
+CMD ["node_modules/.bin/next", "start"]

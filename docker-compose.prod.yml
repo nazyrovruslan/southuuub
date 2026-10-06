@@ -1,47 +1,41 @@
+# Продакшен: docker compose -f docker-compose.prod.yml up -d --build
+# Перед сборкой положите .env.production в корень проекта (образец: .env.example).
 services:
   web:
     build:
       context: .
       target: runner
-
-    container_name: nextjs_prod
+    image: southhub-web:latest
+    container_name: southhub_prod
 
     env_file:
-      - .env.production
+      - path: .env.production
+        required: false
 
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
 
-    restart: always
+    restart: unless-stopped
 
-    # Ограничение памяти контейнера
+    # Ограничения ресурсов
     mem_limit: 700m
-
-    # CPU limit (по желанию)
     cpus: "1.0"
 
-    # Без привилегий
+    # Безопасность: без привилегий и capabilities, корневая ФС только для чтения
     privileged: false
-
-    # Убираем Linux capabilities
     cap_drop:
       - ALL
-
-    # Запрещаем повышение привилегий
     security_opt:
       - no-new-privileges:true
-
-    # Root FS только для чтения
     read_only: true
 
-    # tmpfs для временных файлов
+    # Запись разрешена только во временные папки и кэш Next (картинки, страницы)
     tmpfs:
       - /tmp:mode=1777
-      - /app/.next/cache:uid=1000,gid=1000,mode=1777
+      - /app/.next/cache:uid=1001,gid=1001,mode=0755
 
-    # healthcheck
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3

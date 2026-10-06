@@ -15,7 +15,9 @@ export const SOUTHHUB_LINKEDIN = process.env.NEXT_PUBLIC_SOUTHHUB_LINKEDIN;
 export const SNOWBASE_LINK = process.env.NEXT_PUBLIC_SNOWBASE;
 export const SOUTHHUB_LINK = process.env.NEXT_PUBLIC_SOUTHHUB;
 export const YOUTUBE_PLAYLIST_LINK = process.env.NEXT_PUBLIC_YOUTUBE_PLAYLIST;
-export const ENABLE_METRIC = process.env.ENABLE_METRIC;
+// NEXT_PUBLIC_, чтобы значение попало и в браузер: счётчик ставится на клиенте.
+// Со старым ENABLE_METRIC сервер рисовал счётчик, а браузер нет, и React ругался на разметку.
+export const ENABLE_METRIC = process.env.NEXT_PUBLIC_ENABLE_METRIC;
 
 export const SHSITES_URL = process.env.NEXT_PUBLIC_SHSITES_URL;
 export const SHSITES_API_KEY = process.env.NEXT_PUBLIC_SHSITES_API_KEY;
