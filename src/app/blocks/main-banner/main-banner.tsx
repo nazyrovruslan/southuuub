@@ -150,11 +150,20 @@ export const MainBanner = () => {
     let gestureTaken = false;
     let lockedUntil = 0;
     let lastWheel = 0;
+    // самый слабый толчок с прошлого шага: инерция трекпада только затухает,
+    // а новый свайп поверх неё снова разгоняет события
+    let trough = Infinity;
     const onWheel = (event: WheelEvent) => {
-      if (Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
+      const strength = Math.abs(event.deltaY);
+      if (strength < Math.abs(event.deltaX)) return;
       const now = performance.now();
-      const newGesture = now - lastWheel > HERO_GESTURE_GAP_MS && now > lockedUntil;
+      const unlocked = now > lockedUntil;
+      // Трекпад на Mac может слать события без пауз (инерция, свайп за свайпом),
+      // поэтому новый жест — это и пауза, и заметный рост силы после блокировки
+      const newGesture =
+        unlocked && (now - lastWheel > HERO_GESTURE_GAP_MS || strength >= trough * 2 + 8);
       lastWheel = now;
+      trough = Math.min(trough, strength);
       const direction = Math.sign(event.deltaY);
 
       if (newGesture) {
@@ -162,7 +171,11 @@ export const MainBanner = () => {
         if (gestureTaken) {
           showStep(step + direction);
           lockedUntil = now + HERO_STEP_LOCK_MS;
+          trough = strength;
         }
+      } else if (unlocked && gestureTaken && !takes(direction)) {
+        // шагать дальше некуда: отпускаем страницу, даже если инерция ещё идёт
+        gestureTaken = false;
       }
       if (gestureTaken && atTop()) event.preventDefault();
     };
