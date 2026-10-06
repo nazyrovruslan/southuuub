@@ -39,11 +39,15 @@ const WAVE_TURN = 0.75;         // поворот: доля угла напра�
 const WAVE_GROW = 0.22;
 const WAVE_FADE = 0.06;
 
-// Телефон и планшет: при прокрутке крестики по одному превращаются в иконки,
-// в перемешанном, но всегда одинаковом порядке. Прогресс считается от момента, когда
-// верх блока на SCROLL_START высоты экрана, до момента, когда низ блока на SCROLL_END.
+// Телефон и планшет: при прокрутке крестики по одному превращаются в иконки
+// (по одной клетке на строку, в перемешанном, но всегда одинаковом порядке).
+// Это происходит один раз: пока прогресс блока не дошёл до SCROLL_SHOW_UNTIL, дальше
+// последняя иконка остаётся, и прокрутка блок больше не трогает. Прогресс считается
+// от момента, когда верх блока на SCROLL_START высоты экрана, до момента, когда низ
+// блока на SCROLL_END.
 const SCROLL_START = 0.85;
 const SCROLL_END = 0.25;
+const SCROLL_SHOW_UNTIL = 0.3;
 
 const shuffledOrder = (length: number) => {
     const order = Array.from({ length }, (_, i) => i);
@@ -65,6 +69,8 @@ export const MoreNew = () => {
     hoveredCellRef.current = hoveredCell;
     // касание открывает ссылку, только если иконка в этой клетке уже была показана
     const touchOpensLinkRef = useRef<boolean | null>(null);
+    // иконки при прокрутке уже показаны: второй раз не повторяем
+    const scrollShownRef = useRef(false);
 
     const getLinkWIthUtm = useGetLinkWithUtm();
 
@@ -253,16 +259,28 @@ export const MoreNew = () => {
             showCell(nearest);
         };
 
-        const order = shuffledOrder(cells.length);
+        const rowsSeen = new Set<string>();
+        const sequence = shuffledOrder(cells.length).filter((i) => {
+            const row = cells[i].dataset.row ?? '';
+            if (rowsSeen.has(row)) return false;
+            rowsSeen.add(row);
+            return true;
+        });
         let scrollCell = -1;
         const onScroll = () => {
+            if (scrollShownRef.current || !sequence.length) return;
             const rect = block.getBoundingClientRect();
             const vh = window.innerHeight;
             const start = vh * SCROLL_START;
             const length = rect.height + start - vh * SCROLL_END;
             const progress = (start - rect.top) / length;
-            if (progress < 0 || progress >= 1 || !cells.length) return;
-            const next = order[Math.floor(progress * cells.length)];
+            if (progress < 0) return;
+            const step = Math.floor((progress / SCROLL_SHOW_UNTIL) * sequence.length);
+            if (step >= sequence.length) {
+                scrollShownRef.current = true;
+                window.removeEventListener('scroll', onScroll);
+            }
+            const next = sequence[Math.min(step, sequence.length - 1)];
             if (next === scrollCell) return;
             scrollCell = next;
             touchedCell = next;
