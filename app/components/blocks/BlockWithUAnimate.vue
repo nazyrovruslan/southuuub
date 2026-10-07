@@ -170,12 +170,15 @@ const setupWave = () => {
         // шаг сетки по горизонтали: расстояние между двумя соседними буквами одной строки
         // (по центрам: масштаб меняет края прямоугольника, но не центр)
         const centers = rects.map((r) => [r.left + r.width / 2, r.top + r.height / 2] as const);
-        let pitch = Infinity;
+        // берём медиану: верхний ряд с логотипом плотнее остальных и не должен уменьшать волну
+        const steps: number[] = [];
         for (let i = 1; i < centers.length; i++) {
             const dx = Math.abs(centers[i]![0] - centers[i - 1]![0]);
-            if (dx > 1 && Math.abs(centers[i]![1] - centers[i - 1]![1]) < 1) pitch = Math.min(pitch, dx);
+            if (dx > 1 && Math.abs(centers[i]![1] - centers[i - 1]![1]) < 1) steps.push(dx);
         }
-        const radius = (Number.isFinite(pitch) ? pitch : 150) * WAVE_RADIUS;
+        steps.sort((a, b) => a - b);
+        const pitch = steps.length ? steps[Math.floor(steps.length / 2)]! : 150;
+        const radius = pitch * WAVE_RADIUS;
 
         centers.forEach(([cx, cy], i) => {
             const d = Math.hypot(point.clientX - cx, point.clientY - cy) / radius;
@@ -284,10 +287,12 @@ const getRowCells = (row: number) => {
     }
 
     if (device.value === 'mobile') {
+        // Телефон: верхний ряд плотнее остальных, как на десктопе: за логотипом SOUTHU
+        // столько же букв, сколько столбцов в сетке, они равномерно занимают остаток строки
         if (row === 0) {
             return [
                 { type: 'special', col: 0, span: 2 },
-                ...Array.from({ length: cols - 2 }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 })),
+                ...Array.from({ length: cols }, (_, i) => ({ type: 'svg', col: i + 2, span: 1 })),
             ];
         } else if (row === 3) {
             return [

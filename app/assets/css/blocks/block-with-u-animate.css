@@ -259,3 +259,34 @@
         justify-content: flex-start;
     }
 }
+
+/* Телефон: верхний ряд плотнее остальных. Логотип SOUTHU слева, за ним шесть букв
+   равномерно до правого края. */
+@media screen and (max-width: 767px) {
+    #block-with-u-animate .block-with-u-animate-row-0 {
+        position: relative;
+        justify-content: space-between;
+        gap: 0;
+        /* 110px логотип + промежуток как между буквами; справа 8px, чтобы последняя
+           буква стояла по центру последнего столбца сетки (ячейка 34px вместо 50px) */
+        padding-left: 126px;
+        padding-right: 8px;
+    }
+
+    #block-with-u-animate .block-with-u-animate-row-0 > .block-with-u-animate-cell:not(.special-cell-wrapper) {
+        width: 34px;
+    }
+
+    #block-with-u-animate .block-with-u-animate-row-0 > .special-cell-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 110px;
+        height: 100%;
+        justify-content: flex-start;
+    }
+
+    #block-with-u-animate .block-with-u-animate-row-0 .block-with-u-animate-svg-container {
+        width: 100%;
+    }
+}
