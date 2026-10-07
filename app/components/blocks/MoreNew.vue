@@ -22,7 +22,7 @@ const getDesktopColumns = () => {
 
 // Волна, как в блоке с буквами U: крестики отталкиваются от курсора (на телефоне — от пальца)
 // и поворачиваются тем сильнее, чем ближе курсор. Быстро реагируют, медленно возвращаются.
-// Ближайший крестик превращается в иконку. На телефоне то же самое, но только по тапу.
+// Ближайший крестик превращается в иконку. На телефоне то же за пальцем, после закрытия трёх иконок.
 const WAVE_RADIUS = 1.1;        // радиус влияния в шагах сетки по горизонтали
 const WAVE_SHIFT = 14;          // максимальный сдвиг от курсора, px
 const WAVE_TURN = 0.75;         // поворот: доля угла направления от курсора
@@ -65,6 +65,8 @@ const blockRef = ref<HTMLDivElement | null>(null);
 let touchOpensLink: boolean | null = null;
 // иконки при прокрутке уже показаны: второй раз не повторяем
 let scrollShown = false;
+// три иконки закрыты тапом: дальше крестики на телефоне следуют за пальцем
+let touchLive = false;
 // три иконки, открытые при прокрутке на телефоне
 const pinnedCells = ref<{ row: number; col: number }[]>([]);
 
@@ -252,11 +254,21 @@ const setupWave = () => {
         return nearest;
     };
 
-    // Телефон: прокрутка пальцем крестики не трогает, всё происходит только по тапу.
-    // Первый тап закрывает три иконки, открытые при прокрутке; дальше тап работает как
-    // курсор на десктопе: крестик под пальцем становится иконкой, соседние расходятся.
+    // Телефон: пока открыты три иконки с прокрутки, касания и свайпы крестики не трогают.
+    // Тап закрывает эти иконки, и дальше палец работает как курсор на десктопе: крестик
+    // под пальцем становится иконкой, соседние расходятся, при свайпе волна идёт за пальцем.
     // Тап по уже открытой иконке открывает её ссылку.
     let touchStart: { x: number; y: number; time: number } | null = null;
+    let touchedCell = -1;
+    const follow = (point: { clientX: number; clientY: number }) => {
+        touchedCell = wave(point);
+        const cell = cells[touchedCell];
+        if (!cell?.dataset.row || !cell.dataset.col) return;
+        const row = Number(cell.dataset.row);
+        const col = Number(cell.dataset.col);
+        const prev = hoveredCell.value;
+        if (prev?.row !== row || prev.col !== col) hoveredCell.value = { row, col };
+    };
     const onTouch = (event: TouchEvent) => {
         const touch = event.touches[0];
         if (!touch) return;
@@ -268,6 +280,11 @@ const setupWave = () => {
             const shown = [hoveredCell.value, ...pinnedCells.value];
             touchOpensLink = shown.some((c) => c?.row === row && c.col === col);
         }
+        if (touchLive) follow(touch);
+    };
+    const onTouchMove = (event: TouchEvent) => {
+        const touch = event.touches[0];
+        if (touch && touchLive) follow(touch);
     };
 
     // по одной клетке на каждую иконку: строки 0–1 телеграм, 2–4 эфир, 5–6 ютуб;
@@ -313,27 +330,23 @@ const setupWave = () => {
         const start = touchStart;
         touchStart = null;
         if (!touch || !start) return;
-        const isTap = Math.hypot(touch.clientX - start.x, touch.clientY - start.y) < 10
-            && Date.now() - start.time < 600;
-        if (!isTap) return;
-        if (pinned.length) {
-            pinned = [];
-            pinnedCells.value = [];
-            hoveredCell.value = null;
-            wave(null);
+        if (touchLive) {
+            // палец убрали: иконка остаётся открытой, соседние крестики стоят вокруг неё
+            if (cells[touchedCell]) wave(centerOf(touchedCell));
             return;
         }
-        const nearest = wave(touch);
-        const cell = cells[nearest];
-        if (cell?.dataset.row && cell.dataset.col) {
-            const row = Number(cell.dataset.row);
-            const col = Number(cell.dataset.col);
-            const prev = hoveredCell.value;
-            if (prev?.row !== row || prev.col !== col) hoveredCell.value = { row, col };
-        }
+        const isTap = Math.hypot(touch.clientX - start.x, touch.clientY - start.y) < 10
+            && Date.now() - start.time < 600;
+        if (!isTap || !pinned.length) return;
+        touchLive = true;
+        pinned = [];
+        pinnedCells.value = [];
+        hoveredCell.value = null;
+        wave(null);
     };
     const onTouchCancel = () => {
         touchStart = null;
+        if (touchLive && cells[touchedCell]) wave(centerOf(touchedCell));
     };
 
     if (finePointer) {
@@ -341,6 +354,7 @@ const setupWave = () => {
         block.addEventListener('pointerleave', onLeave);
     }
     block.addEventListener('touchstart', onTouch, { passive: true });
+    block.addEventListener('touchmove', onTouchMove, { passive: true });
     if (!finePointer) {
         restorePinned();
         window.addEventListener('scroll', onScroll, { passive: true });
@@ -353,6 +367,7 @@ const setupWave = () => {
         block.removeEventListener('pointermove', onMove);
         block.removeEventListener('pointerleave', onLeave);
         block.removeEventListener('touchstart', onTouch);
+        block.removeEventListener('touchmove', onTouchMove);
         window.removeEventListener('scroll', onScroll);
         block.removeEventListener('touchend', onTouchEnd);
         block.removeEventListener('touchcancel', onTouchCancel);
