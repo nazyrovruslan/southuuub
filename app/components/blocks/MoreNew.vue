@@ -22,7 +22,7 @@ const getDesktopColumns = () => {
 
 // Волна, как в блоке с буквами U: крестики отталкиваются от курсора (на телефоне — от пальца)
 // и поворачиваются тем сильнее, чем ближе курсор. Быстро реагируют, медленно возвращаются.
-// Ближайший крестик превращается в иконку. На телефоне тап закрывает все иконки.
+// Ближайший крестик превращается в иконку. На телефоне то же самое, но только по тапу.
 const WAVE_RADIUS = 1.1;        // радиус влияния в шагах сетки по горизонтали
 const WAVE_SHIFT = 14;          // максимальный сдвиг от курсора, px
 const WAVE_TURN = 0.75;         // поворот: доля угла направления от курсора
@@ -199,14 +199,14 @@ const setupWave = () => {
         const r = cells[index]!.getBoundingClientRect();
         return { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
     };
-    // клетки с открытыми при прокрутке иконками: волна расходится и от них
+    // клетки с открытыми при прокрутке иконками; соседние крестики вокруг них не двигаются
     let pinned: number[] = [];
 
     const wave = (point: { clientX: number; clientY: number } | null) => {
         const centers = cells.map((_, i) => centerOf(i));
         const pitch = centers.length > 1 ? Math.abs(centers[1]!.clientX - centers[0]!.clientX) || 150 : 150;
         const radius = pitch * WAVE_RADIUS;
-        const sources = [...(point ? [point] : []), ...pinned.map((i) => centers[i]!)];
+        const sources = point ? [point] : [];
 
         let nearest = -1;
         let nearestDist = Infinity;
@@ -229,7 +229,6 @@ const setupWave = () => {
         });
         // крестики, ставшие иконками, не двигаем
         if (nearest >= 0) target[nearest] = 0;
-        pinned.forEach((i) => { target[i] = 0; });
         run();
         return nearest;
     };
@@ -253,8 +252,10 @@ const setupWave = () => {
         return nearest;
     };
 
-    // Телефон: касание (тап, не прокрутка) закрывает все иконки и возвращает крестики
-    // в исходное положение. Тап по уже открытой иконке при этом открывает её ссылку.
+    // Телефон: прокрутка пальцем крестики не трогает, всё происходит только по тапу.
+    // Первый тап закрывает три иконки, открытые при прокрутке; дальше тап работает как
+    // курсор на десктопе: крестик под пальцем становится иконкой, соседние расходятся.
+    // Тап по уже открытой иконке открывает её ссылку.
     let touchStart: { x: number; y: number; time: number } | null = null;
     const onTouch = (event: TouchEvent) => {
         const touch = event.touches[0];
@@ -290,7 +291,6 @@ const setupWave = () => {
         pinned = pinnedCells.value
             .map(({ row, col }) => cells.findIndex((c) => c.dataset.row === String(row) && c.dataset.col === String(col)))
             .filter((i) => i >= 0);
-        if (pinned.length) wave(null);
     };
     const onScroll = () => {
         if (scrollShown || !cells.length) return;
@@ -304,6 +304,7 @@ const setupWave = () => {
         window.removeEventListener('scroll', onScroll);
         pinned = pickPinned();
         pinnedCells.value = pinned.map((i) => ({ row: Number(cells[i]!.dataset.row), col: Number(cells[i]!.dataset.col) }));
+        hoveredCell.value = null;
         wave(null);
     };
 
@@ -315,13 +316,21 @@ const setupWave = () => {
         const isTap = Math.hypot(touch.clientX - start.x, touch.clientY - start.y) < 10
             && Date.now() - start.time < 600;
         if (!isTap) return;
-        // после касания иконки по прокрутке больше не открываются
-        scrollShown = true;
-        window.removeEventListener('scroll', onScroll);
-        pinned = [];
-        pinnedCells.value = [];
-        hoveredCell.value = null;
-        wave(null);
+        if (pinned.length) {
+            pinned = [];
+            pinnedCells.value = [];
+            hoveredCell.value = null;
+            wave(null);
+            return;
+        }
+        const nearest = wave(touch);
+        const cell = cells[nearest];
+        if (cell?.dataset.row && cell.dataset.col) {
+            const row = Number(cell.dataset.row);
+            const col = Number(cell.dataset.col);
+            const prev = hoveredCell.value;
+            if (prev?.row !== row || prev.col !== col) hoveredCell.value = { row, col };
+        }
     };
     const onTouchCancel = () => {
         touchStart = null;
