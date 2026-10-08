@@ -10,6 +10,11 @@ useHead({
     })),
 });
 
+// Сайт из одной страницы: любой другой адрес отдаёт 404, а не копию главной
+if (useRoute().path !== '/') {
+    throw createError({ statusCode: 404, statusMessage: 'Page Not Found' });
+}
+
 await useSeoData();
 
 const isOpenCookieModal = ref(false);
