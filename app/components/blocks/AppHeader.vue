@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const pub = usePublicPath();
-const getLinkWithUtm = useLinkWithUtm();
 const lkLink = useLkProfileLink();
 
 // Сколько пикселей прокрутки нужно в одну сторону, чтобы шапка вернулась или снова спряталась
@@ -62,7 +61,7 @@ const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
             </div>
 
             <div class="header-items">
-                <HeaderItem id="btn_lending_header_item_southub" title="south hub camp" :link="getLinkWithUtm('https://southhub.ru/southub/')" />
+                <HeaderItem id="btn_lending_header_item_southub" title="snow base" link="https://southhub.ru/snowbase/?utm_source=southhub.ru&utm_medium=head" />
                 <HeaderItem id="btn_lending_header_item_our_project" title="где встречаемся" into-scroll="our-projects-block" />
                 <HeaderItem id="btn_lending_header_item_login" title="войти" :link="lkLink('head')" />
             </div>

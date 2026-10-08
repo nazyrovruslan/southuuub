@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const getLinkWithUtm = useLinkWithUtm();
 const lkLink = useLkProfileLink();
 
 const isActive = ref(false);
@@ -26,7 +25,7 @@ useLockScroll(isActive);
 
         <div>
             <div @click="isActive = false">
-                <HeaderItem id="btn_lending_header_item_southub" title="south hub camp" :link="getLinkWithUtm('https://southhub.ru/southub/')" />
+                <HeaderItem id="btn_lending_header_item_southub" title="snow base" link="https://southhub.ru/snowbase/?utm_source=southhub.ru&utm_medium=head" />
             </div>
             <div @click="isActive = false">
                 <HeaderItem id="btn_lending_header_item_our_project" title="где встречаемся" into-scroll="our-projects-block" />
