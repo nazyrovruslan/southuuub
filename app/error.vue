@@ -61,7 +61,7 @@ useHead({
     font-size: clamp(120px, 22vw, 320px);
     line-height: 0.9;
     letter-spacing: -0.04em;
-    color: #D5FF37;
+    color: #fff;
 }
 
 .error-page-title {
