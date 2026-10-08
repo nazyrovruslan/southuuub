@@ -1,5 +1,6 @@
 # Прод: docker compose -f docker-compose.prod.yml up -d --build
-# Сайт слушает 127.0.0.1:3333 и работает по пути /vue/ (nginx: location /vue/ { proxy_pass http://127.0.0.1:3333; }).
+# Сайт слушает 127.0.0.1:3333 и работает из корня домена (nginx: location / { proxy_pass http://127.0.0.1:3333; }).
+# Чтобы открыть его по подпути, задайте BASE_URL=/vue/ в .env рядом с этим файлом.
 # Свои значения: HOST_PORT и BASE_URL в файле .env рядом с этим файлом.
 # Имя проекта и контейнера отдельные, чтобы не пересекаться с контейнером Next-версии на том же сервере.
 name: southhub-vue
@@ -11,7 +12,7 @@ services:
       target: runner
       args:
         # путь сайта вшивается в сборку: все ссылки на /_nuxt/, картинки и видео начинаются с него
-        NUXT_APP_BASE_URL: ${BASE_URL:-/vue/}
+        NUXT_APP_BASE_URL: ${BASE_URL:-/}
 
     container_name: southhub_vue
 
@@ -52,7 +53,7 @@ services:
 
     # healthcheck
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000${BASE_URL:-/vue/}"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000${BASE_URL:-/}"]
       interval: 30s
       timeout: 10s
       retries: 3

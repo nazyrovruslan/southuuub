@@ -16,11 +16,11 @@ cp .env.example .env.production   # необязательно: без файл�
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Сайт откроется на http://127.0.0.1:3333/vue/. Порт слушается только на localhost, наружу его отдаёт nginx на сервере:
+Сайт откроется на http://127.0.0.1:3333/. Порт слушается только на localhost, наружу его отдаёт nginx на сервере:
 
 ```nginx
-location /vue/ {
-    proxy_pass http://127.0.0.1:3333;   # без слэша в конце: путь /vue/ передаётся как есть
+location / {
+    proxy_pass http://127.0.0.1:3333;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
@@ -31,7 +31,7 @@ location /vue/ {
 
 ```bash
 HOST_PORT=3333
-BASE_URL=/vue/     # или / , если сайт открывается с корня домена
+BASE_URL=/         # или /vue/, если сайт открывается по подпути (тогда и в nginx location /vue/)
 ```
 
 Контейнер называется `southhub_vue`, проект compose `southhub-vue`, поэтому он не мешает контейнеру Next-версии на том же сервере.
