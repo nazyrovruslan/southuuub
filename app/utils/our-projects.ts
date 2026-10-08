@@ -45,7 +45,7 @@ export const getOurProjectItems = (
         videoSrc: pub('/v2/SH25.mp4'),
         imageAlt: 'South HUB Camp',
         buttonTitle: 'Участвовать',
-        onClick: () => window.open(getLinkWIthUtm(links.southhubLink), '_blank'),
+        onClick: () => openExternal(getLinkWIthUtm(links.southhubLink)),
     },
     {
         id: 'our-projects-snow-base',
@@ -56,7 +56,7 @@ export const getOurProjectItems = (
         videoSrc: pub('/v2/SB25.mp4'),
         imageAlt: 'SnowBase camp',
         buttonTitle: 'Участвовать',
-        onClick: () => window.open(getLinkWIthUtm(links.snowbaseLink), '_blank'),
+        onClick: () => openExternal(getLinkWIthUtm(links.snowbaseLink)),
     },
     {
         id: 'our-projects-club-meet',
@@ -67,7 +67,7 @@ export const getOurProjectItems = (
         altSrc: ClubMeet,
         imageAlt: 'club meet',
         buttonTitle: 'Участвовать',
-        onClick: () => window.open(getLinkWIthUtm(links.lkSouthhubLink), '_blank'),
+        onClick: () => openExternal(getLinkWIthUtm(links.lkSouthhubLink)),
     },
     {
         id: 'our-projects-youtube-chanell',
@@ -78,7 +78,7 @@ export const getOurProjectItems = (
         altSrc: YoutubeChanell,
         imageAlt: 'youtube chanell',
         buttonTitle: 'СМОТРЕТЬ',
-        onClick: () => window.open(getLinkWIthUtm(links.southhubYoutube), '_blank'),
+        onClick: () => openExternal(getLinkWIthUtm(links.southhubYoutube)),
     },
     {
         id: 'our-projects-telegramm-chanell',
@@ -89,7 +89,7 @@ export const getOurProjectItems = (
         altSrc: TelegramChanell,
         imageAlt: 'telegramm chanell',
         buttonTitle: 'Подписаться',
-        onClick: () => window.open(getLinkWIthUtm(links.telegramChanellLink), '_blank'),
+        onClick: () => openExternal(getLinkWIthUtm(links.telegramChanellLink)),
     },
     {
         id: 'our-projects-online-broadcast',
@@ -100,7 +100,7 @@ export const getOurProjectItems = (
         altSrc: OnlineBroadcast,
         imageAlt: 'online broadcast',
         buttonTitle: 'смотреть',
-        onClick: () => window.open(getLinkWIthUtm(links.youtubePlaylistLink), '_blank'),
+        onClick: () => openExternal(getLinkWIthUtm(links.youtubePlaylistLink)),
     },
     ];
 };

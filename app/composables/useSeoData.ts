@@ -50,7 +50,8 @@ export const useSeoData = () => {
         ];
         if (!schemas.length) return {};
         return {
-            script: [{ id: 'structured-data', type: 'application/ld+json', innerHTML: JSON.stringify(schemas) }],
+            // < экранируем: строка из shsites с </script> иначе закрыла бы тег и выполнилась как HTML
+            script: [{ id: 'structured-data', type: 'application/ld+json', innerHTML: JSON.stringify(schemas).replace(/</g, '\\u003c') }],
         };
     });
     return request;

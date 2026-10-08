@@ -7,6 +7,8 @@ export const getSeoData = async (slug?: string) => {
         const endpoint = slug ? `${shsitesUrl}/api/v1/seo/sh-main/${slug}` : `${shsitesUrl}/api/v1/seo/sh-main/`;
 
         const response = await fetch(endpoint, {
+            // если shsites не отвечает, страница не должна ждать вместе с ним
+            signal: AbortSignal.timeout(5000),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',

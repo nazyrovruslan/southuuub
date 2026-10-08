@@ -19,7 +19,7 @@ const handleScrollIntoView = () => {
     }
 
     if (props.link) {
-        window.open(props.link, '_blank');
+        openExternal(props.link);
     }
 };
 </script>

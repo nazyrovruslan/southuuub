@@ -3,7 +3,7 @@ const pub = usePublicPath();
 const getLinkWithUtm = useLinkWithUtm();
 const { telegramContactUsLink } = useRuntimeConfig().public;
 
-const handleClick = () => window.open(getLinkWithUtm(telegramContactUsLink), '_blank');
+const handleClick = () => openExternal(getLinkWithUtm(telegramContactUsLink));
 
 const text = 'made by median.agency\nКоманда, которая мечтает. думает. делает.';
 </script>

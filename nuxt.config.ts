@@ -79,6 +79,15 @@ export default defineNuxtConfig({
 
   nitro: {
     routeRules: {
+      // базовые заголовки безопасности; HSTS ставится на nginx вместе с HTTPS
+      '/**': {
+        headers: {
+          'X-Content-Type-Options': 'nosniff',
+          'X-Frame-Options': 'SAMEORIGIN',
+          'Referrer-Policy': 'strict-origin-when-cross-origin',
+          'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+        },
+      },
       '/v2/**': {
         headers: {
           'Accept-Ranges': 'bytes',

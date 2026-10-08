@@ -3,7 +3,7 @@ const getLinkWIthUtm = useLinkWithUtm();
 const { lkRegisterLink } = useRuntimeConfig().public;
 
 // RegestryMemeberForm из оригинала не перенесён: его open никогда не становился true (мёртвый код)
-const handleClick = () => window.open(getLinkWIthUtm(lkRegisterLink), '_blank');
+const handleClick = () => openExternal(getLinkWIthUtm(lkRegisterLink));
 </script>
 
 <template>

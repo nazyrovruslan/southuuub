@@ -408,13 +408,13 @@ const linkTo = (row: number) => {
     if (opensLink === false) return;
 
     if ([0, 1].includes(row)) {
-        return window.open(getLinkWIthUtm(TELEGRAM_CHANELL_LINK), '_blank');
+        return openExternal(getLinkWIthUtm(TELEGRAM_CHANELL_LINK));
     }
     if ([2, 3, 4].includes(row)) {
-        return window.open(getLinkWIthUtm(YOUTUBE_PLAYLIST_LINK), '_blank');
+        return openExternal(getLinkWIthUtm(YOUTUBE_PLAYLIST_LINK));
     }
     if ([5, 6].includes(row)) {
-        return window.open(getLinkWIthUtm(SOUTHHUB_YOUTUBE), '_blank');
+        return openExternal(getLinkWIthUtm(SOUTHHUB_YOUTUBE));
     }
 };
 

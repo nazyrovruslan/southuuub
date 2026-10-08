@@ -2,7 +2,7 @@
 const getLinkWithUtm = useLinkWithUtm();
 const { lkRegisterLink } = useRuntimeConfig().public;
 
-const handleClick = () => window.open(getLinkWithUtm(lkRegisterLink), '_blank');
+const handleClick = () => openExternal(getLinkWithUtm(lkRegisterLink));
 
 const title = 'стать частью\nсообщества';
 const description = `мы заботливо формируем наше\nсообщество, чтобы вы в${NBSP}нём чувствовали\nсебя комфортно и${NBSP}усиливали друг друга. поэтому очень внимательно относимся\nк модерации каждой заявки.`;

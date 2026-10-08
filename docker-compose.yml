@@ -7,9 +7,10 @@ services:
       target: dev
     container_name: southhub_dev
     ports:
-      - "3000:3000"
+      # только localhost: dev-сервер не предназначен для доступа извне
+      - "127.0.0.1:3000:3000"
       # вебсокет горячей перезагрузки Vite
-      - "24678:24678"
+      - "127.0.0.1:24678:24678"
     volumes:
       - .:/app
       - /app/node_modules
