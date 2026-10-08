@@ -1,8 +1,7 @@
 <script setup lang="ts">
-const getLinkWithUtm = useLinkWithUtm();
-const { lkRegisterLink } = useRuntimeConfig().public;
+const lkLink = useLkProfileLink();
 
-const handleClick = () => openExternal(getLinkWithUtm(lkRegisterLink));
+const handleClick = () => openExternal(lkLink('community'));
 
 const title = 'стать частью\nсообщества';
 const description = `мы заботливо формируем наше\nсообщество, чтобы вы в${NBSP}нём чувствовали\nсебя комфортно и${NBSP}усиливали друг друга. поэтому очень внимательно относимся\nк модерации каждой заявки.`;

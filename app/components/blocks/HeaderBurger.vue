@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const getLinkWithUtm = useLinkWithUtm();
-const { lkLoginLink } = useRuntimeConfig().public;
+const lkLink = useLkProfileLink();
 
 const isActive = ref(false);
 useLockScroll(isActive);
@@ -32,7 +32,7 @@ useLockScroll(isActive);
                 <HeaderItem id="btn_lending_header_item_our_project" title="где встречаемся" into-scroll="our-projects-block" />
             </div>
             <div @click="isActive = false">
-                <HeaderItem id="btn_lending_header_item_login" title="войти" :link="getLinkWithUtm(lkLoginLink)" />
+                <HeaderItem id="btn_lending_header_item_login" title="войти" :link="lkLink('head')" />
             </div>
         </div>
     </AntDrawer>

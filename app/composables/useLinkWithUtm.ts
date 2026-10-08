@@ -1,3 +1,5 @@
+import { withQuery } from 'ufo';
+
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as const;
 
 // UTM-метки из адреса страницы. Заполняются после гидратации (plugins/utm.client.ts),
@@ -13,7 +15,8 @@ export const useLinkWithUtm = () => {
             return '';
         }
 
-        if (!url.includes('southhub.ru')) {
+        // Ссылки со своими метками (кнопки в кабинет) оставляем как есть
+        if (!url.includes('southhub.ru') || url.includes('utm_source=')) {
             return url;
         }
 
@@ -28,6 +31,12 @@ export const useLinkWithUtm = () => {
 
         return `${url}${separator}${validUtmParams.join('&')}`;
     };
+};
+
+// Ссылка в личный кабинет с меткой места на странице: head, hero, community
+export const useLkProfileLink = () => {
+    const { lkProfileLink } = useRuntimeConfig().public;
+    return (medium: string) => withQuery(lkProfileLink, { utm_source: 'southhub.ru', utm_medium: medium });
 };
 
 export const readUtmParams = (search: string) => {

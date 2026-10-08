@@ -59,6 +59,7 @@ export default defineNuxtConfig({
       siteDescription: description,
       lkRegisterLink: env('LK_REGISTER_LINK', 'https://lk.southhub.ru/accounts/register/'),
       lkLoginLink: env('LK_LOGIN_LINK', 'https://lk.southhub.ru/accounts/login/'),
+      lkProfileLink: env('LK_PROFILE_LINK', 'https://lk.southhub.ru/profile/my/'),
       telegramChanellLink: env('TELEGRAM_CHANELL_LINK', 'https://t.me/+A-vMV8yq_6M3ZjFi'),
       telegramContactUsLink: env('TELEGRAM_CONTACT_US_LINK', 'https://t.me/+F8Vk0GiQ_Mk1MDgy'),
       medianLink: env('MEDIAN_LINK'),

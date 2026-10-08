@@ -1,9 +1,8 @@
 <script setup lang="ts">
-const getLinkWIthUtm = useLinkWithUtm();
-const { lkRegisterLink } = useRuntimeConfig().public;
+const lkLink = useLkProfileLink();
 
 // RegestryMemeberForm из оригинала не перенесён: его open никогда не становился true (мёртвый код)
-const handleClick = () => openExternal(getLinkWIthUtm(lkRegisterLink));
+const handleClick = () => openExternal(lkLink('hero'));
 </script>
 
 <template>
