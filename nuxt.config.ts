@@ -46,7 +46,6 @@ export default defineNuxtConfig({
         { property: 'og:title', content: 'В сообществе C-level в IT South HUB рождаются партнёрства, дружба и смыслы, которых не найти онлайн.' },
         { property: 'og:description', content: description },
         { property: 'og:site_name', content: 'Southuuub' },
-        { property: 'og:image', content: '/site.png' },
       ],
       link: [{ rel: 'icon', href: 'favicon.ico' }],
     },

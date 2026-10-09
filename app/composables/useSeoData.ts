@@ -2,12 +2,22 @@
 // Мета-теги и Schema.org JSON-LD из shsites (как generateMetadata в Next-версии).
 // При ошибке или в статической сборке без shsites остаются значения из nuxt.config.
 // Возвращает промис загрузки: useHead регистрируется до await, пока доступен контекст Nuxt.
+const parseSchema = (value: unknown) => {
+    if (!value) return null;
+    if (typeof value !== 'string') return value;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return null;
+    }
+};
+
 export const useSeoData = () => {
     const request = useAsyncData<any>('seo', () => $fetch('/api/seo').then((res) => res ?? {}).catch(() => ({})));
     const { data } = request;
 
-    const page = computed(() => data.value?.page);
-    const site = computed(() => data.value?.site);
+    const page = computed(() => data.value?.page ?? DEFAULT_SEO.page);
+    const site = computed(() => data.value?.site ?? DEFAULT_SEO.site);
 
     useHead(() => {
         const p = page.value;
@@ -44,10 +54,11 @@ export const useSeoData = () => {
     });
 
     useHead(() => {
-        const schemas = [
-            ...(page.value?.schema_json_ld ? [page.value.schema_json_ld] : []),
-            ...(site.value?.schema_json_ld || []),
-        ];
+        // shsites отдаёт разметку строкой JSON: разбираем, иначе в странице окажутся строки, а не объекты
+        const schemas = [page.value?.schema_json_ld, site.value?.schema_json_ld]
+            .flat()
+            .map(parseSchema)
+            .filter(Boolean);
         if (!schemas.length) return {};
         return {
             // < экранируем: строка из shsites с </script> иначе закрыла бы тег и выполнилась как HTML

@@ -1,4 +1,5 @@
-// Яндекс.Метрика (раньше react-yandex-metrika). Включается переменной ENABLE_METRIC.
+// Яндекс.Метрика (раньше react-yandex-metrika). Счётчик и настройки как в shsites.
+// Работает на southhub.ru сама, на других адресах (демо, localhost) только с ENABLE_METRIC.
 const YM_COUNTER_ID = 89187152;
 
 type Ym = ((...args: unknown[]) => void) & { a?: unknown[][]; l?: number };
@@ -10,7 +11,8 @@ declare global {
 }
 
 export default defineNuxtPlugin(() => {
-    if (!useRuntimeConfig().public.enableMetric) return;
+    const isProdHost = /(^|\.)southhub\.ru$/.test(window.location.hostname);
+    if (!isProdHost && !useRuntimeConfig().public.enableMetric) return;
 
     const ym: Ym = window.ym ?? function (...args: unknown[]) {
         (ym.a = ym.a || []).push(args);

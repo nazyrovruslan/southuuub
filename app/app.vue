@@ -17,6 +17,16 @@ if (useRoute().path !== '/') {
 
 await useSeoData();
 
+// Пиксель Метрики для браузеров без JS, только на боевом домене
+if (/(^|\.)southhub\.ru$/.test(useRequestURL().hostname)) {
+    useHead({
+        noscript: [{
+            tagPosition: 'bodyOpen',
+            innerHTML: '<div><img src="https://mc.yandex.ru/watch/89187152" style="position:absolute; left:-9999px;" alt="" /></div>',
+        }],
+    });
+}
+
 const isOpenCookieModal = ref(false);
 
 onMounted(() => {

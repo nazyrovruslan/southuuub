@@ -80,7 +80,7 @@ NUXT_APP_BASE_URL=/southuuub/nuxt/ npm run generate
 Все необязательные: без них подставляются ссылки прода. Пример со всеми именами — `.env.example`.
 
 - **При сборке** читаются `NEXT_PUBLIC_*` (те же имена, что у Next-версии, так что старый `.env.production` подходит как есть),
-  `ENABLE_METRIC` (любое непустое значение включает Яндекс.Метрику) и `NEXT_PUBLIC_SHSITES_URL` / `NEXT_PUBLIC_SHSITES_API_KEY` (SEO).
+  `ENABLE_METRIC` (Яндекс.Метрика 89187152 на southhub.ru включена всегда, переменная нужна только чтобы включить её на другом адресе) и `NEXT_PUBLIC_SHSITES_URL` / `NEXT_PUBLIC_SHSITES_API_KEY` (SEO).
   В Docker их берёт из `.env.production` шаг сборки, поэтому после правки файла нужен `up -d --build`.
 - **При запуске** любую ссылку можно переопределить без пересборки переменной `NUXT_PUBLIC_<ИМЯ>`, например
   `NUXT_PUBLIC_LK_LOGIN_LINK`, `NUXT_PUBLIC_TELEGRAM_CHANELL_LINK`, `NUXT_PUBLIC_ENABLE_METRIC`. Их можно дописать в тот же `.env.production`:

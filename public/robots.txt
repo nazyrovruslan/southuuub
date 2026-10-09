@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: */cms/
+Sitemap: https://southhub.ru/sitemap.xml
