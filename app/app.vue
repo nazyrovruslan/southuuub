@@ -17,9 +17,11 @@ if (useRoute().path !== '/') {
 
 await useSeoData();
 
-// Пиксель Метрики для браузеров без JS, только на боевом домене
+// Трекер посещений Median и пиксель Метрики для браузеров без JS, только на боевом домене,
+// чтобы демо и localhost не попадали в статистику
 if (/(^|\.)southhub\.ru$/.test(useRequestURL().hostname)) {
     useHead({
+        script: [{ src: 'https://api.southub.online/t/southhub.js', async: true, 'data-ym': '89187152' }],
         noscript: [{
             tagPosition: 'bodyOpen',
             innerHTML: '<div><img src="https://mc.yandex.ru/watch/89187152" style="position:absolute; left:-9999px;" alt="" /></div>',
