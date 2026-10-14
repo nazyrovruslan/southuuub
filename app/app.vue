@@ -17,11 +17,15 @@ if (useRoute().path !== '/') {
 
 await useSeoData();
 
-// Трекер посещений Median и пиксель Метрики для браузеров без JS, только на боевом домене,
+// Трекер посещений Median, Google Analytics и пиксель Метрики для браузеров без JS, только на боевом домене,
 // чтобы демо и localhost не попадали в статистику
 if (/(^|\.)southhub\.ru$/.test(useRequestURL().hostname)) {
     useHead({
-        script: [{ src: 'https://api.southub.online/t/southhub.js', async: true, 'data-ym': '89187152' }],
+        script: [
+            { src: 'https://api.southub.online/t/southhub.js', async: true, 'data-ym': '89187152' },
+            { src: 'https://www.googletagmanager.com/gtag/js?id=G-BSKQBD4P1Z', async: true },
+            { innerHTML: "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-BSKQBD4P1Z');" },
+        ],
         noscript: [{
             tagPosition: 'bodyOpen',
             innerHTML: '<div><img src="https://mc.yandex.ru/watch/89187152" style="position:absolute; left:-9999px;" alt="" /></div>',
