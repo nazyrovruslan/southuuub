@@ -19,6 +19,7 @@ const VIDEO_MOBILE = 'video/hero-mobile.mp4';
 const SCRUB_EASE = 0.12;   // насколько быстро кадр догоняет прокрутку
 const FREEZE_AT = 7.6;     // золотой кадр, на котором видео останавливается, когда фон уходит с экрана
 const STALL_MS = 1200;     // столько ждём окончания перемотки, потом перезагружаем видео
+const WORD_STAGGER = 0.12; // с, задержка между словами заголовка при загрузке
 const REVEAL_END = 0.85;   // к этой доле прокрутки проявляется последний элемент
 
 const menuOpen = ref(false);
@@ -87,10 +88,14 @@ const setupScrub = () => {
         return distance > 0 ? Math.min(1, Math.max(0, passed / distance)) : 0;
     };
 
-    // проявленное остаётся на месте и при обратной прокрутке
+    // проявленное остаётся на месте и при обратной прокрутке. Первый шаг — весь заголовок —
+    // проявляется сразу при загрузке, слово за словом; остальные элементы по прокрутке
     const reveal = (p: number) => {
         steps.forEach((els, i) => {
-            if (p >= (i / steps.length) * REVEAL_END) els.forEach((el) => el.classList.add('is-in'));
+            if (p >= (i / steps.length) * REVEAL_END) els.forEach((el, j) => {
+                el.style.transitionDelay = `${j * WORD_STAGGER}s`;
+                el.classList.add('is-in');
+            });
         });
     };
 
@@ -227,28 +232,28 @@ onBeforeUnmount(() => {
             <h1 class="title">
                 <span class="title__line title__line--1"><span class="w" data-reveal="1">South</span> <span class="w" data-reveal="1">HUB</span></span>
                 <span class="title__line title__line--2">
-                    <span class="title__desk"><span class="w" data-reveal="3">Кэмп</span> <span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
-                    <span class="title__mob"><span class="w" data-reveal="3">Кэмп</span></span>
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--desk" data-reveal="9">Купить билет</a>
+                    <span class="title__desk"><span class="w" data-reveal="1">Кэмп</span> <span class="w" data-reveal="1">для</span> <span class="w" data-reveal="1">C-level</span></span>
+                    <span class="title__mob"><span class="w" data-reveal="1">Кэмп</span></span>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--desk" data-reveal="3">Купить билет</a>
                 </span>
-                <span class="title__line title__line--mob"><span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
-                <span class="title__line title__line--3"><span class="w" data-reveal="6">в</span> <span class="w" data-reveal="7">технологиях</span></span>
+                <span class="title__line title__line--mob"><span class="w" data-reveal="1">для</span> <span class="w" data-reveal="1">C-level</span></span>
+                <span class="title__line title__line--3"><span class="w" data-reveal="1">в</span> <span class="w" data-reveal="1">технологиях</span></span>
             </h1>
 
-            <button type="button" class="hero__lead" :data-open="aboutOpen || undefined" aria-haspopup="dialog" data-reveal="8" @click="aboutOpen = true">
+            <button type="button" class="hero__lead" :data-open="aboutOpen || undefined" aria-haspopup="dialog" data-reveal="2" @click="aboutOpen = true">
                 <span class="hero__lead-text">От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.</span>
                 <span class="hero__lead-badge"><img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="" class="hero__lead-arrow"></span>
             </button>
 
             <div class="hero__bottom">
-                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob" data-reveal="9">Купить билет</a>
+                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob" data-reveal="3">Купить билет</a>
 
-                <a :href="calendarLink" target="_blank" rel="noopener" class="chip chip--link" aria-label="Добавить South HUB 2027 в Google Календарь" data-reveal="10">
+                <a :href="calendarLink" target="_blank" rel="noopener" class="chip chip--link" aria-label="Добавить South HUB 2027 в Google Календарь" data-reveal="4">
                     <img :src="asset('icons/date.svg')" width="20" height="17" alt="" class="chip__icon">
                     <time datetime="2027-06-09">09–13 июня, 2027</time>
                 </a>
 
-                <button type="button" class="card" aria-haspopup="dialog" data-reveal="11" @click="reelOpen = true">
+                <button type="button" class="card" aria-haspopup="dialog" data-reveal="5" @click="reelOpen = true">
                     <span class="card__thumb">
                         <video
                             :src="asset('video/recap-2026-preview.mp4')"
