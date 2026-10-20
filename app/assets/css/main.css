@@ -10,7 +10,9 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
+html { -webkit-text-size-adjust: 100%; }
+
+main { overflow-x: clip; }
 
 body {
     margin: 0;

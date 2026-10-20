@@ -2,11 +2,79 @@
 const links = useRuntimeConfig().public;
 const asset = useAsset();
 
-// Видео героя из макета пока не выгружено: показываем кадр из него.
-// Когда появится файл, положить его в public/video/hero.mp4 и указать путь здесь.
-const HERO_VIDEO = '';
+// Фоновое видео не играет само, а прокручивается вместе со страницей: пока первый экран
+// закреплён (ещё один экран прокрутки), видео проходит от первого кадра до последнего.
+// На вертикальных экранах берётся отдельная вертикальная нарезка.
+const VIDEO_DESKTOP = 'video/hero.mp4';
+const VIDEO_MOBILE = 'video/hero-mobile.mp4';
+const SCRUB_EASE = 0.12;   // насколько быстро кадр догоняет прокрутку
 
 const menuOpen = ref(false);
+const aboutOpen = ref(false);
+const videoReady = ref(false);
+const scrollRef = ref<HTMLElement | null>(null);
+const heroRef = ref<HTMLElement | null>(null);
+const videoRef = ref<HTMLVideoElement | null>(null);
+let stopScrub: (() => void) | undefined;
+
+const setupScrub = () => {
+    const wrap = scrollRef.value;
+    const hero = heroRef.value;
+    const video = videoRef.value;
+    if (!wrap || !hero || !video) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const portrait = window.matchMedia('(orientation: portrait)').matches;
+    video.src = asset(portrait ? VIDEO_MOBILE : VIDEO_DESKTOP);
+    video.load();
+
+    let target = 0;
+    let shown = 0;
+    let frame = 0;
+
+    const layout = () => {
+        // закреплённый экран выше окна прижимается так, чтобы был виден его низ
+        hero.style.setProperty('--hero-top', `${Math.min(0, window.innerHeight - hero.offsetHeight)}px`);
+    };
+
+    const progress = () => {
+        const distance = wrap.offsetHeight - hero.offsetHeight;
+        const passed = -wrap.getBoundingClientRect().top;
+        return distance > 0 ? Math.min(1, Math.max(0, passed / distance)) : 0;
+    };
+
+    const tick = () => {
+        frame = 0;
+        if (!video.duration) return;
+        shown += (target - shown) * SCRUB_EASE;
+        if (Math.abs(target - shown) < 0.002) shown = target;
+        const time = shown * (video.duration - 0.05);
+        if (Math.abs(video.currentTime - time) > 1 / 60 && !video.seeking) video.currentTime = time;
+        if (shown !== target || video.seeking) frame = requestAnimationFrame(tick);
+    };
+
+    const onScroll = () => {
+        target = progress();
+        if (!frame) frame = requestAnimationFrame(tick);
+    };
+
+    const onReady = () => {
+        videoReady.value = true;
+        // iOS Safari отдаёт кадры при перемотке только после первого play()
+        video.play().then(() => video.pause()).catch(() => {}).finally(onScroll);
+    };
+
+    video.addEventListener('loadeddata', onReady, { once: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', layout);
+    layout();
+
+    stopScrub = () => {
+        cancelAnimationFrame(frame);
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('resize', layout);
+    };
+};
 
 const toggleMenu = (open: boolean) => {
     menuOpen.value = open;
@@ -17,26 +85,27 @@ const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && menuOpen.value) toggleMenu(false);
 };
 
-onMounted(() => window.addEventListener('keydown', onKey));
+onMounted(() => {
+    window.addEventListener('keydown', onKey);
+    setupScrub();
+});
 onBeforeUnmount(() => {
+    stopScrub?.();
     window.removeEventListener('keydown', onKey);
     document.documentElement.style.overflow = '';
 });
 </script>
 
 <template>
-    <section class="hero">
+    <div ref="scrollRef" class="hero-scroll">
+    <section ref="heroRef" class="hero">
         <div class="hero__bg" aria-hidden="true">
-            <video
-                v-if="HERO_VIDEO"
-                :src="asset(HERO_VIDEO)"
-                :poster="asset('img/hero.jpg')"
-                autoplay muted loop playsinline
-            />
-            <picture v-else>
+            <picture>
+                <source media="(orientation: portrait)" :srcset="asset('img/hero-mobile.webp')" type="image/webp">
                 <source :srcset="asset('img/hero.webp')" type="image/webp">
                 <img :src="asset('img/hero.jpg')" alt="" fetchpriority="high">
             </picture>
+            <video ref="videoRef" :class="{ 'is-ready': videoReady }" muted playsinline preload="auto" disablepictureinpicture />
         </div>
 
         <header class="nav">
@@ -77,8 +146,10 @@ onBeforeUnmount(() => {
                 <span class="title__line title__line--3">в технологиях</span>
             </h1>
 
-            <p class="hero__slogan">Масштаб идей,<br>людей и тёплых связей</p>
-            <p class="hero__lead">От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.</p>
+            <button type="button" :class="['hero__lead', { 'is-open': aboutOpen }]" aria-haspopup="dialog" @click="aboutOpen = true">
+                От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.
+                <img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="" class="hero__lead-arrow">
+            </button>
 
             <div class="hero__bottom">
                 <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn hero__cta hero__cta--mob">Купить билет</a>
@@ -135,12 +206,21 @@ onBeforeUnmount(() => {
                 </div>
             </div>
         </Transition>
+
+        <AboutPopup v-model:open="aboutOpen" />
     </section>
+    </div>
 </template>
 
 <style scoped>
+/* лишний экран прокрутки, за который проигрывается видео */
+/* запас прокрутки, пока герой закреплён и видео проматывается; именно блок, а не padding: sticky не заходит в padding родителя */
+.hero-scroll { position: relative; }
+.hero-scroll::after { content: ""; display: block; height: 100svh; }
+
 .hero {
-    position: relative;
+    position: sticky;
+    top: var(--hero-top, 0px);
     min-height: max(100svh, calc(var(--u) * 996));
     color: var(--white);
     overflow: hidden;
@@ -154,6 +234,15 @@ onBeforeUnmount(() => {
     height: 100%;
 }
 .hero__bg img, .hero__bg video { object-fit: cover; object-position: 50% 60%; }
+.hero__bg video { opacity: 0; transition: opacity .4s ease; }
+.hero__bg video.is-ready { opacity: 1; }
+/* затемнение под текстом: у нового видео яркое небо */
+.hero__bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .25) 0%, rgba(0, 0, 0, .05) 40%, rgba(0, 0, 0, .3) 100%);
+}
 
 /* ---------- шапка ---------- */
 .nav {
@@ -221,15 +310,33 @@ onBeforeUnmount(() => {
 }
 .hero__cta--mob { display: none; }
 
-.hero__slogan {
+.hero__lead {
     position: absolute;
     left: calc(var(--u) * 1280);
     top: calc(var(--u) * 323);
-    font-size: max(14px, calc(var(--u) * 20));
+    width: calc(var(--u) * 600);
+    font-size: max(16px, calc(var(--u) * 20));
     line-height: 1.25;
-    text-transform: uppercase;
 }
-.hero__lead { display: none; }
+.hero__lead { text-align: left; cursor: pointer; }
+/* стрелка в конце текста открывает попап: на десктопе «подпрыгивает» по наведению,
+   на телефоне поворачивается, пока попап открыт */
+.hero__lead-arrow {
+    display: inline-block;
+    width: .8em;
+    height: .8em;
+    margin-left: .35em;
+    vertical-align: baseline;
+    transition: transform .35s ease;
+}
+@media (hover: hover) {
+    .hero__lead:hover .hero__lead-arrow { animation: lead-arrow 1s ease-in-out infinite; }
+}
+.hero__lead.is-open .hero__lead-arrow { transform: rotate(90deg); }
+@keyframes lead-arrow {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(4px, -4px); }
+}
 
 .hero__bottom {
     position: absolute;
@@ -381,15 +488,15 @@ onBeforeUnmount(() => {
     .title__line--3 { text-align: right; }
     .hero__cta--desk { display: none; }
 
-    .hero__slogan { display: none; }
     .hero__lead {
-        display: block;
         position: relative;
         z-index: 1;
+        left: auto;
+        top: auto;
+        width: auto;
         margin-top: 40px;
         max-width: 520px;
         font-size: 16px;
-        line-height: 1.25;
     }
 
     .hero__bottom {
@@ -430,6 +537,7 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .hero-scroll::after { display: none; }
     .hero__bg video { display: none; }
 }
 </style>
