@@ -14,6 +14,7 @@ const REVEAL_END = 0.85;   // к этой доле прокрутки прояв
 
 const menuOpen = ref(false);
 const aboutOpen = ref(false);
+const reelOpen = ref(false);
 const videoReady = ref(false);
 const scrollRef = ref<HTMLElement | null>(null);
 const heroRef = ref<HTMLElement | null>(null);
@@ -153,7 +154,7 @@ onBeforeUnmount(() => {
                     <a :href="links.askLink" target="_blank" rel="noopener" class="link-arrow">Задать вопрос</a>
                 </nav>
                 <div class="nav__actions">
-                    <a :href="links.loginLink" target="_blank" rel="noopener" class="btn nav__login">
+                    <a :href="links.loginLink" target="_blank" rel="noopener" class="btn btn--solid nav__login">
                         <img :src="asset('icons/login.svg')" width="17" height="21" alt="" class="nav__login-icon">
                         Войти
                     </a>
@@ -193,9 +194,19 @@ onBeforeUnmount(() => {
                     <time datetime="2027-06-09">09–13 июня, 2027</time>
                 </p>
 
-                <a :href="links.recap2026Link" target="_blank" rel="noopener" class="card" data-reveal="11">
+                <button type="button" class="card" aria-haspopup="dialog" data-reveal="11" @click="reelOpen = true">
                     <span class="card__thumb">
-                        <img :src="asset('img/showreel-2026.webp')" alt="" loading="lazy" width="160" height="160">
+                        <video
+                            :src="asset('video/recap-2026-preview.mp4')"
+                            :poster="asset('img/recap-2026.webp')"
+                            muted
+                            loop
+                            autoplay
+                            playsinline
+                            preload="metadata"
+                            disablepictureinpicture
+                            aria-hidden="true"
+                        />
                         <span class="card__play">
                             <img :src="asset('icons/play.svg')" width="30" height="30" alt="">
                         </span>
@@ -204,7 +215,7 @@ onBeforeUnmount(() => {
                         <span class="card__title">Как прошёл<br class="card__br"> South HUB'2026</span>
                         <img :src="asset('icons/arrow.svg')" width="11" height="11" alt="" class="card__arrow">
                     </span>
-                </a>
+                </button>
             </div>
         </div>
 
@@ -229,7 +240,7 @@ onBeforeUnmount(() => {
                 <div class="menu__bottom">
                     <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid menu__cta">Купить билет</a>
                     <div class="menu__row">
-                        <a :href="links.loginLink" target="_blank" rel="noopener" class="btn btn--outline nav__login">
+                        <a :href="links.loginLink" target="_blank" rel="noopener" class="btn btn--solid btn--outline nav__login">
                             <img :src="asset('icons/login.svg')" width="17" height="21" alt="" class="nav__login-icon">
                             Войти
                         </a>
@@ -242,6 +253,7 @@ onBeforeUnmount(() => {
         </Transition>
 
         <AboutPopup v-model:open="aboutOpen" />
+        <VideoPopup v-model:open="reelOpen" />
     </section>
     </div>
 </template>
@@ -326,8 +338,10 @@ onBeforeUnmount(() => {
 }
 .nav__links { display: flex; gap: calc(var(--u) * 40); font-size: 14px; line-height: 1; white-space: nowrap; }
 .nav__actions { display: flex; gap: 20px; }
-.nav__login { padding: 0 30px; }
-.nav__login-icon { width: 16px; height: 20px; filter: invert(1); }
+.nav__login { padding: 0 20px 0 15px; }
+.nav__login-icon { width: 16px; height: 20px; }
+.btn--outline .nav__login-icon { filter: invert(1); }
+@media (hover: hover) { .btn--solid:not(.btn--outline):hover .nav__login-icon { filter: invert(1); } .btn--outline:hover .nav__login-icon { filter: none; } }
 .tg-box { display: block; width: 50px; height: 50px; transition: opacity .2s ease, transform .25s ease; }
 .tg-box img { width: 50px; height: 50px; }
 @media (hover: hover) { .tg-box:hover { transform: scale(1.06); } }
@@ -419,6 +433,8 @@ onBeforeUnmount(() => {
 .chip__icon { width: 19px; height: 16px; }
 
 .card {
+    text-align: left;
+    color: inherit;
     position: absolute;
     left: 0;
     right: 0;
@@ -444,7 +460,7 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
 }
-.card__thumb > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+.card__thumb > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
 .card__play {
     position: relative;
     width: 30px;
@@ -468,7 +484,7 @@ onBeforeUnmount(() => {
 .card__arrow { width: 10px; height: 10px; transition: transform .25s ease; }
 @media (hover: hover) { .card:hover .card__title { opacity: .6; } }
 @media (hover: hover) { .card:hover .card__arrow { transform: translate(2px, -2px); } }
-@media (hover: hover) { .card:hover .card__thumb > img { transform: scale(1.05); } }
+@media (hover: hover) { .card:hover .card__thumb > video { transform: scale(1.05); } }
 .card:active .card__title, .card:active .card__play { opacity: .3; }
 
 /* ---------- меню (только мобильная версия) ---------- */

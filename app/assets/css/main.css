@@ -123,6 +123,10 @@ img { display: block; }
     100% { transform: translateX(320%) skewX(-20deg); }
 }
 
+/* «Войти» в меню телефона: та же кнопка из макета, но прозрачная с белой обводкой */
+.btn--outline { background: transparent; color: var(--white); }
+@media (hover: hover) { .btn--outline:hover { background: var(--white); color: var(--black); } }
+
 /* Текстовая ссылка: при наведении появляется стрелка, как в состояниях макета */
 .link-arrow {
     display: inline-flex;

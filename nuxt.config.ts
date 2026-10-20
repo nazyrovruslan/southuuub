@@ -31,7 +31,6 @@ export default defineNuxtConfig({
       askLink: 'https://t.me/southhub_com',
       snowbaseLink: 'https://southhub.ru/snowbase/',
       telegramInviteLink: 'https://t.me/+Up2b6jqa30xhYzMy?utm_source=SB&utm_medium=landing&utm_campaign=invite',
-      recap2026Link: 'https://www.youtube.com/@sthhb',
       telegramChannelLink: 'https://t.me/+A-vMV8yq_6M3ZjFi',
       contactUsLink: 'https://t.me/+F8Vk0GiQ_Mk1MDgy',
       youtubeLink: 'https://www.youtube.com/@sthhb',
