@@ -59,7 +59,7 @@ img { display: block; }
 }
 .bracket::before { left: 0; border-right: 0; border-radius: 10px 0 0 10px; }
 .bracket::after { right: 0; border-left: 0; border-radius: 0 10px 10px 0; }
-.bracket:hover::before, .bracket:hover::after { width: 14px; }
+@media (hover: hover) { .bracket:hover::before, .bracket:hover::after { width: 14px; } }
 .bracket:active { opacity: .5; }
 
 /* Кнопка с заливкой: «Купить билет», «Войти» */
@@ -79,10 +79,10 @@ img { display: block; }
     white-space: nowrap;
     transition: background-color .2s ease, color .2s ease, opacity .2s ease;
 }
-.btn:hover { background: transparent; color: var(--white); }
+@media (hover: hover) { .btn:hover { background: transparent; color: var(--white); } }
 .btn:active { opacity: .5; }
 .btn--outline { background: transparent; color: var(--white); }
-.btn--outline:hover { background: var(--white); color: var(--black); }
+@media (hover: hover) { .btn--outline:hover { background: var(--white); color: var(--black); } }
 
 /* Текстовая ссылка: при наведении появляется стрелка, как в состояниях макета */
 .link-arrow {
@@ -99,5 +99,5 @@ img { display: block; }
     transform: translate(-4px, 4px);
     transition: opacity .2s ease, transform .2s ease;
 }
-.link-arrow:hover::after { opacity: 1; transform: none; }
+@media (hover: hover) { .link-arrow:hover::after { opacity: 1; transform: none; } }
 .link-arrow:active { opacity: .5; }

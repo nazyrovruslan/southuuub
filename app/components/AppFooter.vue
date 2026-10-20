@@ -61,7 +61,7 @@ const asset = useAsset();
 }
 
 .fade { transition: opacity .2s ease; }
-.fade:hover { opacity: .5; }
+@media (hover: hover) { .fade:hover { opacity: .5; } }
 .fade:active { opacity: .25; }
 
 .median {
@@ -102,9 +102,9 @@ const asset = useAsset();
 .bottom__social a { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; }
 
 .u-link { transition: opacity .2s ease; }
-.u-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) { .u-link:hover { text-decoration: underline; text-underline-offset: 3px; } }
 .legal-link { text-decoration: underline; text-underline-offset: 2px; transition: opacity .2s ease; }
-.legal-link:hover { opacity: .5; }
+@media (hover: hover) { .legal-link:hover { opacity: .5; } }
 
 @media (max-width: 1279px) and (min-width: 1024px) {
     .bottom { grid-template-columns: 1fr 1fr 1.4fr auto; gap: 24px; }

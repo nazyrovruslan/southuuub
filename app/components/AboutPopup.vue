@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
     justify-content: center;
     transition: opacity .2s ease, transform .25s ease;
 }
-.about__close:hover { transform: rotate(90deg); }
+@media (hover: hover) { .about__close:hover { transform: rotate(90deg); } }
 .about__close:active { opacity: .5; }
 
 .about__title {

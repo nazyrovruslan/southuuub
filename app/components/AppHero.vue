@@ -270,11 +270,12 @@ onBeforeUnmount(() => {
 .nav__actions { display: flex; gap: 20px; }
 .nav__login { padding: 0 20px 0 15px; }
 .nav__login-icon { width: 16px; height: 20px; }
-.btn:hover .nav__login-icon, .btn--outline .nav__login-icon { filter: invert(1); }
-.btn--outline:hover .nav__login-icon { filter: none; }
+.btn--outline .nav__login-icon { filter: invert(1); }
+@media (hover: hover) { .btn:hover .nav__login-icon { filter: invert(1); } }
+@media (hover: hover) { .btn--outline:hover .nav__login-icon { filter: none; } }
 .tg-box { display: block; width: 50px; height: 50px; transition: opacity .2s ease, transform .25s ease; }
 .tg-box img { width: 50px; height: 50px; }
-.tg-box:hover { transform: scale(1.06); }
+@media (hover: hover) { .tg-box:hover { transform: scale(1.06); } }
 .tg-box:active { opacity: .5; }
 .nav__burger { display: none; }
 
@@ -410,9 +411,9 @@ onBeforeUnmount(() => {
 .card__title { font-size: max(16px, calc(var(--u) * 20)); line-height: 1.25; transition: opacity .2s ease; }
 .card__br { display: none; }
 .card__arrow { width: 10px; height: 10px; transition: transform .25s ease; }
-.card:hover .card__title { opacity: .6; }
-.card:hover .card__arrow { transform: translate(2px, -2px); }
-.card:hover .card__thumb > img { transform: scale(1.05); }
+@media (hover: hover) { .card:hover .card__title { opacity: .6; } }
+@media (hover: hover) { .card:hover .card__arrow { transform: translate(2px, -2px); } }
+@media (hover: hover) { .card:hover .card__thumb > img { transform: scale(1.05); } }
 .card:active .card__title, .card:active .card__play { opacity: .3; }
 
 /* ---------- меню (только мобильная версия) ---------- */
