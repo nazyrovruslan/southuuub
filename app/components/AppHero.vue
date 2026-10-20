@@ -164,7 +164,6 @@ onBeforeUnmount(() => {
 
             <div class="nav__right">
                 <nav class="nav__links">
-                    <a :href="links.snowbaseLink" target="_blank" rel="noopener" class="link-arrow">Snow BASE'2027</a>
                     <a :href="links.askLink" target="_blank" rel="noopener" class="link-arrow">Задать вопрос</a>
                 </nav>
                 <div class="nav__actions">
@@ -195,7 +194,7 @@ onBeforeUnmount(() => {
                 <span class="title__line title__line--3"><span class="w" data-reveal="6">в</span> <span class="w" data-reveal="7">технологиях</span></span>
             </h1>
 
-            <button type="button" :class="['hero__lead', { 'is-open': aboutOpen }]" aria-haspopup="dialog" data-reveal="8" @click="aboutOpen = true">
+            <button type="button" class="hero__lead" :data-open="aboutOpen || undefined" aria-haspopup="dialog" data-reveal="8" @click="aboutOpen = true">
                 От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.
                 <img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="" class="hero__lead-arrow">
             </button>
@@ -242,10 +241,6 @@ onBeforeUnmount(() => {
                     </button>
                 </div>
                 <nav class="menu__links">
-                    <a :href="links.snowbaseLink" target="_blank" rel="noopener">
-                        Snow BASE'2027
-                        <img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="">
-                    </a>
                     <a :href="links.askLink" target="_blank" rel="noopener">
                         Задать вопрос
                         <img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="">
@@ -416,7 +411,7 @@ onBeforeUnmount(() => {
 @media (hover: hover) {
     .hero__lead:hover .hero__lead-arrow { animation: lead-arrow 1s ease-in-out infinite; }
 }
-.hero__lead.is-open .hero__lead-arrow { transform: rotate(90deg); }
+.hero__lead[data-open] .hero__lead-arrow { transform: rotate(90deg); }
 @keyframes lead-arrow {
     0%, 100% { transform: translate(0, 0); }
     50% { transform: translate(4px, -4px); }
