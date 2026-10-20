@@ -2,14 +2,15 @@
 const links = useRuntimeConfig().public;
 const asset = useAsset();
 
-// Фоновое видео не играет само, а прокручивается вместе со страницей: фон закреплён,
-// первый экран уезжает поверх него, и видео доходит до золотого кадра горы.
-// Под текстом о кэмпе этот кадр стоит стоп-кадром.
+// Первый экран закреплён на время «сборки»: при прокрутке по очереди проявляются слова
+// заголовка, подводка, кнопка и карточка с видео, а фоновое видео проматывается
+// до золотого кадра горы. Потом экран уезжает обычной прокруткой.
 // На вертикальных экранах берётся отдельная вертикальная нарезка.
 const VIDEO_DESKTOP = 'video/hero.mp4';
 const VIDEO_MOBILE = 'video/hero-mobile.mp4';
-const SCRUB_EASE = 0.12;
-const FREEZE_AT = 7.2;     // секунда видео, на которой оно останавливается под текстом   // насколько быстро кадр догоняет прокрутку
+const SCRUB_EASE = 0.12;   // насколько быстро кадр догоняет прокрутку
+const FREEZE_AT = 7.2;     // секунда видео, на которой заканчивается сборка экрана
+const REVEAL_END = 0.85;   // к этой доле прокрутки проявляется последний элемент
 
 const menuOpen = ref(false);
 const aboutOpen = ref(false);
@@ -25,7 +26,10 @@ const setupScrub = () => {
     const hero = heroRef.value;
     const video = videoRef.value;
     if (!wrap || !hero || !video) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        hero.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-in'));
+        return;
+    }
 
     const portrait = window.matchMedia('(orientation: portrait)').matches;
     video.src = asset(portrait ? VIDEO_MOBILE : VIDEO_DESKTOP);
@@ -35,11 +39,37 @@ const setupScrub = () => {
     let shown = 0;
     let frame = 0;
 
-    // доля первого экрана, которая уже уехала вверх
+    // элементы экрана по шагам; у заголовка в мобильной и десктопной вёрстке разные span,
+    // поэтому берутся только видимые
+    let steps: HTMLElement[][] = [];
+    let lastWidth = 0;
+    const layout = () => {
+        // ширина та же — значит Safari просто спрятал панели, ничего не пересчитываем
+        if (window.innerWidth === lastWidth) return;
+        lastWidth = window.innerWidth;
+        // экран выше окна закрепляется так, чтобы был виден его низ
+        hero.style.setProperty('--hero-top', `${Math.min(0, window.innerHeight - hero.offsetHeight)}px`);
+        const byStep = new Map<number, HTMLElement[]>();
+        hero.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
+            if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') return;
+            const n = Number(el.dataset.reveal);
+            byStep.set(n, [...(byStep.get(n) ?? []), el]);
+        });
+        steps = [...byStep.keys()].sort((a, b) => a - b).map((n) => byStep.get(n)!);
+    };
+
+    // доля «сборки»: сколько прокручено из запаса под закреплённым экраном
     const progress = () => {
-        const distance = hero.offsetHeight;
+        const distance = wrap.offsetHeight - hero.offsetHeight;
         const passed = -wrap.getBoundingClientRect().top;
         return distance > 0 ? Math.min(1, Math.max(0, passed / distance)) : 0;
+    };
+
+    const reveal = (p: number) => {
+        steps.forEach((els, i) => {
+            const shown = p >= (i / steps.length) * REVEAL_END;
+            els.forEach((el) => el.classList.toggle('is-in', shown));
+        });
     };
 
     const tick = () => {
@@ -47,15 +77,17 @@ const setupScrub = () => {
         if (!video.duration) return;
         shown += (target - shown) * SCRUB_EASE;
         if (Math.abs(target - shown) < 0.002) shown = target;
-        const time = shown * Math.min(FREEZE_AT, video.duration - 0.05);
+        const time = Math.min(1, shown / REVEAL_END) * Math.min(FREEZE_AT, video.duration - 0.05);
         if (Math.abs(video.currentTime - time) > 1 / 60 && !video.seeking) video.currentTime = time;
         if (shown !== target || video.seeking) frame = requestAnimationFrame(tick);
     };
 
     const onScroll = () => {
         target = progress();
+        reveal(target);
         if (!frame) frame = requestAnimationFrame(tick);
     };
+    const onResize = () => { layout(); onScroll(); };
 
     const onReady = () => {
         videoReady.value = true;
@@ -65,18 +97,15 @@ const setupScrub = () => {
 
     video.addEventListener('loadeddata', onReady, { once: true });
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    layout();
+    onScroll();
 
     stopScrub = () => {
         cancelAnimationFrame(frame);
         window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('resize', onResize);
     };
-};
-
-// подводка в первом экране ведёт к полному тексту под ним; стрелка поворачивается вниз
-const toAbout = () => {
-    aboutOpen.value = true;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    document.getElementById('about')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
 };
 
 const toggleMenu = (open: boolean) => {
@@ -141,30 +170,30 @@ onBeforeUnmount(() => {
 
         <div class="stage">
             <h1 class="title">
-                <span class="title__line title__line--1">South HUB</span>
+                <span class="title__line title__line--1"><span class="w" data-reveal="1">South</span> <span class="w" data-reveal="2">HUB</span></span>
                 <span class="title__line title__line--2">
-                    <span class="title__desk">Кэмп для C-level</span>
-                    <span class="title__mob">Кэмп</span>
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--desk">Купить билет</a>
+                    <span class="title__desk"><span class="w" data-reveal="3">Кэмп</span> <span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
+                    <span class="title__mob"><span class="w" data-reveal="3">Кэмп</span></span>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--desk" data-reveal="9">Купить билет</a>
                 </span>
-                <span class="title__line title__line--mob">для C-level</span>
-                <span class="title__line title__line--3">в технологиях</span>
+                <span class="title__line title__line--mob"><span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
+                <span class="title__line title__line--3"><span class="w" data-reveal="6">в</span> <span class="w" data-reveal="7">технологиях</span></span>
             </h1>
 
-            <a href="#about" :class="['hero__lead', { 'is-open': aboutOpen }]" @click.prevent="toAbout">
+            <button type="button" :class="['hero__lead', { 'is-open': aboutOpen }]" aria-haspopup="dialog" data-reveal="8" @click="aboutOpen = true">
                 От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.
                 <img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="" class="hero__lead-arrow">
-            </a>
+            </button>
 
             <div class="hero__bottom">
-                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob">Купить билет</a>
+                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob" data-reveal="9">Купить билет</a>
 
-                <p class="chip">
+                <p class="chip" data-reveal="10">
                     <img :src="asset('icons/date.svg')" width="20" height="17" alt="" class="chip__icon">
                     <time datetime="2027-06-09">09–13 июня, 2027</time>
                 </p>
 
-                <a :href="links.recap2026Link" target="_blank" rel="noopener" class="card">
+                <a :href="links.recap2026Link" target="_blank" rel="noopener" class="card" data-reveal="11">
                     <span class="card__thumb">
                         <img :src="asset('img/showreel-2026.webp')" alt="" loading="lazy" width="160" height="160">
                         <span class="card__play">
@@ -212,8 +241,8 @@ onBeforeUnmount(() => {
             </div>
         </Transition>
 
+        <AboutPopup v-model:open="aboutOpen" />
     </section>
-    <AboutStory />
     </div>
 </template>
 
@@ -221,17 +250,29 @@ onBeforeUnmount(() => {
 /* лишний экран прокрутки, за который проигрывается видео */
 /* запас прокрутки, пока герой закреплён и видео проматывается; именно блок, а не padding: sticky не заходит в padding родителя */
 .hero-scroll { position: relative; background: #6d7f97; }
+/* запас прокрутки, пока экран закреплён и собирается; блок, а не padding: sticky не заходит в padding */
+.hero-scroll::after { content: ""; display: block; height: 160svh; }
+
+/* медленное проявление элементов первого экрана; класс .is-in ставит скрипт по прокрутке */
+[data-reveal] {
+    opacity: 0;
+    filter: blur(10px);
+    translate: 0 40px;
+    transition: opacity 1.4s ease, filter 1.4s ease, translate 1.6s cubic-bezier(.16, .8, .24, 1);
+}
+.w[data-reveal] { display: inline-block; translate: 0 .35em; }
+[data-reveal].is-in { opacity: 1; filter: none; translate: none; }
 
 .hero {
-    position: relative;
+    position: sticky;
+    top: var(--hero-top, 0px);
     min-height: max(100svh, calc(var(--u) * 996));
     color: var(--white);
     z-index: 1;
     overflow: hidden;
 }
 
-/* фон закреплён на всю высоту .hero-scroll: первый экран и текст о кэмпе уезжают обычной
-   прокруткой, а видео стоит на месте и проматывается. Дорожка нужна, чтобы фон не вылезал за низ блока */
+/* фон закреплён на всю высоту .hero-scroll, видео стоит на месте и проматывается. Дорожка нужна, чтобы фон не вылезал за низ блока */
 .hero__track { position: absolute; inset: 0; }
 .hero__bg {
     position: sticky;
@@ -329,8 +370,8 @@ onBeforeUnmount(() => {
     line-height: 1.25;
 }
 .hero__lead { display: block; text-align: left; cursor: pointer; }
-/* стрелка в конце текста ведёт к полному тексту ниже: на десктопе «подпрыгивает» по наведению,
-   после нажатия поворачивается вниз */
+/* стрелка в конце текста открывает попап: на десктопе «подпрыгивает» по наведению,
+   на телефоне поворачивается, пока попап открыт */
 .hero__lead-arrow {
     display: inline-block;
     width: .8em;
@@ -547,6 +588,8 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .hero-scroll::after { display: none; }
+    [data-reveal] { opacity: 1; filter: none; translate: none; transition: none; }
     .hero__bg video { display: none; }
 }
 </style>
