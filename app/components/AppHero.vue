@@ -272,11 +272,16 @@ onBeforeUnmount(() => {
     overflow: hidden;
 }
 
-/* фон закреплён на всю высоту .hero-scroll, видео стоит на месте и проматывается. Дорожка нужна, чтобы фон не вылезал за низ блока */
-.hero__track { position: absolute; inset: 0; }
+/* фон закреплён на всю высоту .hero-scroll, видео стоит на месте и проматывается. */
+.hero__track { position: absolute; inset: 0; clip-path: inset(0); }
+/* fixed, а не sticky: в iOS Safari sticky-фон дёргается при инерционной прокрутке и когда
+   прячутся панели; fixed-слой рисуется отдельно и стоит на месте. За пределы блока
+   его не пускает clip-path у дорожки */
 .hero__bg {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    width: 100%;
     height: 100lvh;
     overflow: hidden;
 }
