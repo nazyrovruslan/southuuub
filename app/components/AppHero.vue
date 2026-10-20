@@ -14,14 +14,16 @@ const aboutOpen = ref(false);
 const videoReady = ref(false);
 const scrollRef = ref<HTMLElement | null>(null);
 const heroRef = ref<HTMLElement | null>(null);
+const bgRef = ref<HTMLElement | null>(null);
 const videoRef = ref<HTMLVideoElement | null>(null);
 let stopScrub: (() => void) | undefined;
 
 const setupScrub = () => {
     const wrap = scrollRef.value;
     const hero = heroRef.value;
+    const bg = bgRef.value;
     const video = videoRef.value;
-    if (!wrap || !hero || !video) return;
+    if (!wrap || !hero || !bg || !video) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const portrait = window.matchMedia('(orientation: portrait)').matches;
@@ -38,7 +40,8 @@ const setupScrub = () => {
     };
 
     const progress = () => {
-        const distance = wrap.offsetHeight - hero.offsetHeight;
+        // фон высотой 100lvh не меняется, когда Safari прячет панели, поэтому меряем по нему
+        const distance = wrap.offsetHeight - bg.offsetHeight;
         const passed = -wrap.getBoundingClientRect().top;
         return distance > 0 ? Math.min(1, Math.max(0, passed / distance)) : 0;
     };
@@ -98,8 +101,8 @@ onBeforeUnmount(() => {
 
 <template>
     <div ref="scrollRef" class="hero-scroll">
-    <section ref="heroRef" class="hero">
-        <div class="hero__bg" aria-hidden="true">
+    <div class="hero__track">
+        <div ref="bgRef" class="hero__bg" aria-hidden="true">
             <picture>
                 <source media="(orientation: portrait)" :srcset="asset('img/hero-mobile.webp')" type="image/webp">
                 <source :srcset="asset('img/hero.webp')" type="image/webp">
@@ -107,6 +110,8 @@ onBeforeUnmount(() => {
             </picture>
             <video ref="videoRef" :class="{ 'is-ready': videoReady }" muted playsinline preload="auto" disablepictureinpicture />
         </div>
+    </div>
+    <section ref="heroRef" class="hero">
 
         <header class="nav">
             <a :href="links.siteLink" class="nav__logo" aria-label="South HUB">
@@ -215,7 +220,7 @@ onBeforeUnmount(() => {
 <style scoped>
 /* лишний экран прокрутки, за который проигрывается видео */
 /* запас прокрутки, пока герой закреплён и видео проматывается; именно блок, а не padding: sticky не заходит в padding родителя */
-.hero-scroll { position: relative; }
+.hero-scroll { position: relative; background: #6d7f97; }
 .hero-scroll::after { content: ""; display: block; height: 100svh; }
 
 .hero {
@@ -223,11 +228,20 @@ onBeforeUnmount(() => {
     top: var(--hero-top, 0px);
     min-height: max(100svh, calc(var(--u) * 996));
     color: var(--white);
+    z-index: 1;
     overflow: hidden;
-    background: #6d7f97;
 }
 
-.hero__bg, .hero__bg picture, .hero__bg img, .hero__bg video {
+/* фон закреплён на всю высоту .hero-scroll: на телефоне текст уезжает обычной прокруткой,
+   а видео стоит на месте и проматывается. Дорожка нужна, чтобы фон не вылезал за низ блока */
+.hero__track { position: absolute; inset: 0; }
+.hero__bg {
+    position: sticky;
+    top: 0;
+    height: 100lvh;
+    overflow: hidden;
+}
+.hero__bg picture, .hero__bg img, .hero__bg video {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -268,11 +282,8 @@ onBeforeUnmount(() => {
 }
 .nav__links { display: flex; gap: calc(var(--u) * 40); font-size: 14px; line-height: 1; white-space: nowrap; }
 .nav__actions { display: flex; gap: 20px; }
-.nav__login { padding: 0 20px 0 15px; }
-.nav__login-icon { width: 16px; height: 20px; }
-.btn--outline .nav__login-icon { filter: invert(1); }
-@media (hover: hover) { .btn:hover .nav__login-icon { filter: invert(1); } }
-@media (hover: hover) { .btn--outline:hover .nav__login-icon { filter: none; } }
+.nav__login { padding: 0 30px; }
+.nav__login-icon { width: 16px; height: 20px; filter: invert(1); }
 .tg-box { display: block; width: 50px; height: 50px; transition: opacity .2s ease, transform .25s ease; }
 .tg-box img { width: 50px; height: 50px; }
 @media (hover: hover) { .tg-box:hover { transform: scale(1.06); } }
@@ -306,7 +317,7 @@ onBeforeUnmount(() => {
     top: calc(100% + var(--u) * 42);
     width: max(240px, calc(var(--u) * 338));
     font-size: 16px;
-    text-transform: none;
+    text-transform: lowercase;
     letter-spacing: 0;
 }
 .hero__cta--mob { display: none; }
@@ -452,7 +463,10 @@ onBeforeUnmount(() => {
 
 /* ---------- мобильная и планшетная версия ---------- */
 @media (max-width: 1279px) {
+    /* на телефоне и планшете экран не закрепляется: текст прокручивается, а видео идёт за фоном */
     .hero {
+        position: relative;
+        top: auto;
         min-height: 100svh;
         display: flex;
         flex-direction: column;
