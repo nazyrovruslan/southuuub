@@ -9,7 +9,7 @@ const asset = useAsset();
 const VIDEO_DESKTOP = 'video/hero.mp4';
 const VIDEO_MOBILE = 'video/hero-mobile.mp4';
 const SCRUB_EASE = 0.12;   // насколько быстро кадр догоняет прокрутку
-const FREEZE_AT = 7.2;     // секунда видео, на которой заканчивается сборка экрана
+const FREEZE_AT = 7.6;     // золотой кадр, на котором видео останавливается, когда фон уходит с экрана
 const REVEAL_END = 0.85;   // к этой доле прокрутки проявляется последний элемент
 
 const menuOpen = ref(false);
@@ -90,14 +90,18 @@ const setupScrub = () => {
         if (!video.duration) return;
         shown += (target - shown) * SCRUB_EASE;
         if (Math.abs(target - shown) < 0.002) shown = target;
-        const time = Math.min(1, shown / REVEAL_END) * Math.min(FREEZE_AT, video.duration - 0.05);
+        const time = shown * Math.min(FREEZE_AT, video.duration - 0.05);
         if (Math.abs(video.currentTime - time) > 1 / 60 && !video.seeking) video.currentTime = time;
         if (shown !== target || video.seeking) frame = requestAnimationFrame(tick);
     };
 
+    // видео идёт до тех пор, пока фон не ушёл с экрана целиком, и останавливается на золотом кадре
+    const videoProgress = () => Math.min(1, Math.max(0, -wrap.getBoundingClientRect().top / wrap.offsetHeight));
+
     const onScroll = () => {
-        target = progress();
-        reveal(target);
+        const p = progress();
+        reveal(p);
+        target = videoProgress();
         if (!frame) frame = requestAnimationFrame(tick);
     };
     const onResize = () => { layout(); onScroll(); };
@@ -195,8 +199,8 @@ onBeforeUnmount(() => {
             </h1>
 
             <button type="button" class="hero__lead" :data-open="aboutOpen || undefined" aria-haspopup="dialog" data-reveal="8" @click="aboutOpen = true">
-                От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.
-                <img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="" class="hero__lead-arrow">
+                <span class="hero__lead-text">От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.</span>
+                <span class="hero__lead-badge"><img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="" class="hero__lead-arrow"></span>
             </button>
 
             <div class="hero__bottom">
@@ -392,29 +396,65 @@ onBeforeUnmount(() => {
 .hero__lead {
     position: absolute;
     left: calc(var(--u) * 1280);
-    top: calc(var(--u) * 323);
+    top: calc(var(--u) * 283);
     width: calc(var(--u) * 600);
     font-size: max(16px, calc(var(--u) * 20));
     line-height: 1.25;
 }
-.hero__lead { display: block; text-align: left; cursor: pointer; }
-/* стрелка в конце текста открывает попап: на десктопе «подпрыгивает» по наведению,
-   на телефоне поворачивается, пока попап открыт */
+/* подводка — стеклянная плашка с круглой кнопкой-стрелкой, которая «дышит» и зовёт открыть попап */
+.hero__lead {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 16px 16px 20px;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 15px;
+    background: rgba(0, 0, 0, .2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+.hero__lead.is-in { transition: opacity 1.4s ease, filter 1.4s ease, translate 1.6s cubic-bezier(.16, .8, .24, 1), background-color .3s ease, border-color .3s ease; }
+.hero__lead-text { flex: 1; }
+.hero__lead-badge {
+    position: relative;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--white);
+    transition: transform .35s ease;
+}
+.hero__lead-badge::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--white);
+    animation: lead-ring 2.4s ease-out infinite;
+    pointer-events: none;
+}
 .hero__lead-arrow {
-    display: inline-block;
-    width: .8em;
-    height: .8em;
-    margin-left: .35em;
-    vertical-align: baseline;
+    width: 18px;
+    height: 18px;
+    filter: invert(1);
     transition: transform .35s ease;
 }
 @media (hover: hover) {
-    .hero__lead:hover .hero__lead-arrow { animation: lead-arrow 1s ease-in-out infinite; }
+    .hero__lead:hover { background-color: rgba(0, 0, 0, .35); border-color: rgba(255, 255, 255, .35); }
+    .hero__lead:hover .hero__lead-badge { transform: scale(1.08); }
+    .hero__lead:hover .hero__lead-arrow { transform: translate(2px, -2px); }
 }
+.hero__lead:active .hero__lead-badge { transform: scale(.92); }
 .hero__lead[data-open] .hero__lead-arrow { transform: rotate(90deg); }
-@keyframes lead-arrow {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(4px, -4px); }
+@keyframes lead-ring {
+    0% { transform: scale(1); opacity: .8; }
+    70%, 100% { transform: scale(1.6); opacity: 0; }
 }
 
 .hero__bottom {
@@ -580,7 +620,10 @@ onBeforeUnmount(() => {
         margin-top: min(40px, 3svh);
         max-width: 520px;
         font-size: 16px;
+        gap: 14px;
+        padding: 12px 12px 12px 16px;
     }
+    .hero__lead-badge { width: 40px; height: 40px; }
 
     .hero__bottom {
         position: static;
@@ -622,6 +665,7 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
     .hero-scroll::after { display: none; }
     [data-reveal] { opacity: 1; filter: none; translate: none; transition: none; }
+    .hero__lead-badge::before { animation: none; }
     .hero__bg video { display: none; }
 }
 </style>
