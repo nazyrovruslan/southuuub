@@ -77,7 +77,7 @@ const asset = useAsset();
     gap: calc(var(--u) * 54);
     flex: none;
 }
-.median__contact { flex: none; width: 135px; font-size: 16px; }
+.median__contact { flex: none; --btn-w: 191px; }
 .median__text { font-size: max(20px, calc(var(--u) * 25)); line-height: 1.28; white-space: nowrap; }
 
 .footer__line {
