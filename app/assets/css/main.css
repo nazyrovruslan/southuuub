@@ -86,6 +86,43 @@ img { display: block; }
 @keyframes bracket-left { 50% { transform: none; } }
 @keyframes bracket-right { 50% { transform: none; } }
 
+/* «Купить билет» — белая кнопка из макета. Скобок у неё нет; на телефоне по ней
+   время от времени пробегает блик, а при нажатии она немного вдавливается */
+.btn--solid {
+    overflow: hidden;
+    padding: 0 30px;
+    border: 1px solid var(--white);
+    border-radius: 15px;
+    background: var(--white);
+    color: var(--black);
+    text-transform: none;
+    text-shadow: none;
+    transition: background-color .2s ease, color .2s ease, opacity .2s ease, transform .15s ease;
+}
+.btn--solid::after { display: none; }
+.btn--solid::before {
+    top: 0; bottom: 0; left: 0;
+    width: 40%;
+    border: 0;
+    border-radius: 0;
+    -webkit-mask: none;
+    mask: none;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .9), transparent);
+    transform: translateX(-120%) skewX(-20deg);
+    opacity: 0;
+}
+@media (hover: hover) { .btn--solid:hover { background: transparent; color: var(--white); } }
+.btn--solid:active { opacity: 1; transform: scale(.97); }
+
+@media (hover: none) and (prefers-reduced-motion: no-preference) {
+    .btn--solid::before { opacity: 1; background: linear-gradient(100deg, transparent, rgba(0, 0, 0, .08), transparent); animation: btn-shine 3.2s ease-in-out infinite; }
+    .btn--solid:active::before { animation: none; transform: translateX(-120%) skewX(-20deg); }
+}
+@keyframes btn-shine {
+    0%, 55% { transform: translateX(-120%) skewX(-20deg); }
+    100% { transform: translateX(320%) skewX(-20deg); }
+}
+
 /* Текстовая ссылка: при наведении появляется стрелка, как в состояниях макета */
 .link-arrow {
     display: inline-flex;

@@ -2,12 +2,14 @@
 const links = useRuntimeConfig().public;
 const asset = useAsset();
 
-// Фоновое видео не играет само, а прокручивается вместе со страницей: пока первый экран
-// закреплён (ещё один экран прокрутки), видео проходит от первого кадра до последнего.
+// Фоновое видео не играет само, а прокручивается вместе со страницей: фон закреплён,
+// первый экран уезжает поверх него, и видео доходит до золотого кадра горы.
+// Под текстом о кэмпе этот кадр стоит стоп-кадром.
 // На вертикальных экранах берётся отдельная вертикальная нарезка.
 const VIDEO_DESKTOP = 'video/hero.mp4';
 const VIDEO_MOBILE = 'video/hero-mobile.mp4';
-const SCRUB_EASE = 0.12;   // насколько быстро кадр догоняет прокрутку
+const SCRUB_EASE = 0.12;
+const FREEZE_AT = 7.2;     // секунда видео, на которой оно останавливается под текстом   // насколько быстро кадр догоняет прокрутку
 
 const menuOpen = ref(false);
 const aboutOpen = ref(false);
@@ -21,9 +23,8 @@ let stopScrub: (() => void) | undefined;
 const setupScrub = () => {
     const wrap = scrollRef.value;
     const hero = heroRef.value;
-    const bg = bgRef.value;
     const video = videoRef.value;
-    if (!wrap || !hero || !bg || !video) return;
+    if (!wrap || !hero || !video) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const portrait = window.matchMedia('(orientation: portrait)').matches;
@@ -34,14 +35,9 @@ const setupScrub = () => {
     let shown = 0;
     let frame = 0;
 
-    const layout = () => {
-        // закреплённый экран выше окна прижимается так, чтобы был виден его низ
-        hero.style.setProperty('--hero-top', `${Math.min(0, window.innerHeight - hero.offsetHeight)}px`);
-    };
-
+    // доля первого экрана, которая уже уехала вверх
     const progress = () => {
-        // фон высотой 100lvh не меняется, когда Safari прячет панели, поэтому меряем по нему
-        const distance = wrap.offsetHeight - bg.offsetHeight;
+        const distance = hero.offsetHeight;
         const passed = -wrap.getBoundingClientRect().top;
         return distance > 0 ? Math.min(1, Math.max(0, passed / distance)) : 0;
     };
@@ -51,7 +47,7 @@ const setupScrub = () => {
         if (!video.duration) return;
         shown += (target - shown) * SCRUB_EASE;
         if (Math.abs(target - shown) < 0.002) shown = target;
-        const time = shown * (video.duration - 0.05);
+        const time = shown * Math.min(FREEZE_AT, video.duration - 0.05);
         if (Math.abs(video.currentTime - time) > 1 / 60 && !video.seeking) video.currentTime = time;
         if (shown !== target || video.seeking) frame = requestAnimationFrame(tick);
     };
@@ -69,14 +65,18 @@ const setupScrub = () => {
 
     video.addEventListener('loadeddata', onReady, { once: true });
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', layout);
-    layout();
 
     stopScrub = () => {
         cancelAnimationFrame(frame);
         window.removeEventListener('scroll', onScroll);
-        window.removeEventListener('resize', layout);
     };
+};
+
+// подводка в первом экране ведёт к полному тексту под ним; стрелка поворачивается вниз
+const toAbout = () => {
+    aboutOpen.value = true;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById('about')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
 };
 
 const toggleMenu = (open: boolean) => {
@@ -102,7 +102,7 @@ onBeforeUnmount(() => {
 <template>
     <div ref="scrollRef" class="hero-scroll">
     <div class="hero__track">
-        <div ref="bgRef" class="hero__bg" aria-hidden="true">
+        <div class="hero__bg" aria-hidden="true">
             <picture>
                 <source media="(orientation: portrait)" :srcset="asset('img/hero-mobile.webp')" type="image/webp">
                 <source :srcset="asset('img/hero.webp')" type="image/webp">
@@ -145,19 +145,19 @@ onBeforeUnmount(() => {
                 <span class="title__line title__line--2">
                     <span class="title__desk">Кэмп для C-level</span>
                     <span class="title__mob">Кэмп</span>
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn hero__cta hero__cta--desk">Купить билет</a>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--desk">Купить билет</a>
                 </span>
                 <span class="title__line title__line--mob">для C-level</span>
                 <span class="title__line title__line--3">в технологиях</span>
             </h1>
 
-            <button type="button" :class="['hero__lead', { 'is-open': aboutOpen }]" aria-haspopup="dialog" @click="aboutOpen = true">
+            <a href="#about" :class="['hero__lead', { 'is-open': aboutOpen }]" @click.prevent="toAbout">
                 От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.
                 <img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="" class="hero__lead-arrow">
-            </button>
+            </a>
 
             <div class="hero__bottom">
-                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn hero__cta hero__cta--mob">Купить билет</a>
+                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob">Купить билет</a>
 
                 <p class="chip">
                     <img :src="asset('icons/date.svg')" width="20" height="17" alt="" class="chip__icon">
@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
                     </a>
                 </nav>
                 <div class="menu__bottom">
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn menu__cta">Купить билет</a>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid menu__cta">Купить билет</a>
                     <div class="menu__row">
                         <a :href="links.loginLink" target="_blank" rel="noopener" class="btn btn--outline nav__login">
                             <img :src="asset('icons/login.svg')" width="17" height="21" alt="" class="nav__login-icon">
@@ -212,8 +212,8 @@ onBeforeUnmount(() => {
             </div>
         </Transition>
 
-        <AboutPopup v-model:open="aboutOpen" />
     </section>
+    <AboutStory />
     </div>
 </template>
 
@@ -221,19 +221,17 @@ onBeforeUnmount(() => {
 /* лишний экран прокрутки, за который проигрывается видео */
 /* запас прокрутки, пока герой закреплён и видео проматывается; именно блок, а не padding: sticky не заходит в padding родителя */
 .hero-scroll { position: relative; background: #6d7f97; }
-.hero-scroll::after { content: ""; display: block; height: 100svh; }
 
 .hero {
-    position: sticky;
-    top: var(--hero-top, 0px);
+    position: relative;
     min-height: max(100svh, calc(var(--u) * 996));
     color: var(--white);
     z-index: 1;
     overflow: hidden;
 }
 
-/* фон закреплён на всю высоту .hero-scroll: на телефоне текст уезжает обычной прокруткой,
-   а видео стоит на месте и проматывается. Дорожка нужна, чтобы фон не вылезал за низ блока */
+/* фон закреплён на всю высоту .hero-scroll: первый экран и текст о кэмпе уезжают обычной
+   прокруткой, а видео стоит на месте и проматывается. Дорожка нужна, чтобы фон не вылезал за низ блока */
 .hero__track { position: absolute; inset: 0; }
 .hero__bg {
     position: sticky;
@@ -317,7 +315,7 @@ onBeforeUnmount(() => {
     top: calc(100% + var(--u) * 42);
     width: max(240px, calc(var(--u) * 338));
     font-size: 16px;
-    text-transform: lowercase;
+    text-transform: none;
     letter-spacing: 0;
 }
 .hero__cta--mob { display: none; }
@@ -330,9 +328,9 @@ onBeforeUnmount(() => {
     font-size: max(16px, calc(var(--u) * 20));
     line-height: 1.25;
 }
-.hero__lead { text-align: left; cursor: pointer; }
-/* стрелка в конце текста открывает попап: на десктопе «подпрыгивает» по наведению,
-   на телефоне поворачивается, пока попап открыт */
+.hero__lead { display: block; text-align: left; cursor: pointer; }
+/* стрелка в конце текста ведёт к полному тексту ниже: на десктопе «подпрыгивает» по наведению,
+   после нажатия поворачивается вниз */
 .hero__lead-arrow {
     display: inline-block;
     width: .8em;
@@ -463,10 +461,7 @@ onBeforeUnmount(() => {
 
 /* ---------- мобильная и планшетная версия ---------- */
 @media (max-width: 1279px) {
-    /* на телефоне и планшете экран не закрепляется: текст прокручивается, а видео идёт за фоном */
     .hero {
-        position: relative;
-        top: auto;
         min-height: 100svh;
         display: flex;
         flex-direction: column;
@@ -552,7 +547,6 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero-scroll::after { display: none; }
     .hero__bg video { display: none; }
 }
 </style>
