@@ -32,8 +32,9 @@ onBeforeUnmount(() => {
         <Transition name="about">
             <div v-if="open" ref="dialogRef" class="about" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="about-title" @click.self="close">
                 <article class="about__panel">
-                    <button type="button" class="about__close" aria-label="Закрыть" @click="close">
-                        <img :src="asset('icons/close.svg')" width="18" height="18" alt="">
+                    <button type="button" class="corners about__close" aria-label="Закрыть" @click="close">
+                        <i /><i /><i /><i />
+                        <img :src="asset('icons/close-thin.svg')" width="14" height="14" alt="">
                     </button>
 
                     <h2 id="about-title" class="about__title">South HUB Camp 2027<span>Coworking</span></h2>
@@ -96,10 +97,8 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity .2s ease, transform .25s ease;
+    transition: opacity .2s ease;
 }
-@media (hover: hover) { .about__close:hover { transform: rotate(90deg); } }
-.about__close:active { opacity: .5; }
 
 .about__title {
     padding-right: 40px;

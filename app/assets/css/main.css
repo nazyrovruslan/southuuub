@@ -37,6 +37,19 @@ img { display: block; }
     clip: rect(0 0 0 0); white-space: nowrap;
 }
 
+/* «Уголки» вокруг кнопки Telegram и крестиков попапов, как на демо Snow BASE 2027:
+   плечи 15px со скруглением 10px, при наведении уголки плавно смыкаются в сплошную рамку */
+.corners { position: relative; display: inline-flex; align-items: center; justify-content: center; color: inherit; }
+.corners > i { position: absolute; width: 15px; height: 15px; border: 0 solid currentColor; transition: width .35s ease, height .35s ease; pointer-events: none; }
+.corners > i:nth-child(1) { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; border-top-left-radius: 10px; }
+.corners > i:nth-child(2) { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; border-top-right-radius: 10px; }
+.corners > i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; border-bottom-left-radius: 10px; }
+.corners > i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; border-bottom-right-radius: 10px; }
+@media (hover: hover) { .corners:hover > i { width: 50%; height: 50%; } }
+.corners:focus-visible > i { width: 50%; height: 50%; }
+.corners:focus-visible { outline: none; }
+.corners:active { opacity: .5; }
+
 /* Кнопки как на главном сайте southhub.ru: строчный текст Mont 16px (14px на планшете и телефоне)
    между двумя угловыми скобками, без фона, высота 28px, ширина 235px. При наведении скобки за 0.5s
    расходятся на 25px, как там кнопка расширяется с 235 до 260px. Здесь расходятся сами скобки,
