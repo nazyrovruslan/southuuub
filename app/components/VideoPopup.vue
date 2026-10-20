@@ -4,7 +4,7 @@ const open = defineModel<boolean>('open', { default: false });
 
 const asset = useAsset();
 const videoRef = ref<HTMLVideoElement | null>(null);
-const closeRef = ref<HTMLButtonElement | null>(null);
+const dialogRef = ref<HTMLElement | null>(null);
 
 const close = () => { open.value = false; };
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
@@ -14,7 +14,8 @@ watch(open, async (value) => {
     if (value) {
         window.addEventListener('keydown', onKey);
         await nextTick();
-        closeRef.value?.focus();
+        // фокус на сам диалог, а не на крестик: иначе Safari рисует вокруг крестика синюю рамку
+        dialogRef.value?.focus({ preventScroll: true });
         videoRef.value?.play().catch(() => {});
     } else {
         window.removeEventListener('keydown', onKey);
@@ -30,8 +31,8 @@ onBeforeUnmount(() => {
 <template>
     <Teleport to="body">
         <Transition name="reel">
-            <div v-if="open" class="reel" role="dialog" aria-modal="true" aria-label="Как прошёл South HUB'2026" @click.self="close">
-                <button ref="closeRef" type="button" class="reel__close" aria-label="Закрыть" @click="close">
+            <div v-if="open" ref="dialogRef" class="reel" tabindex="-1" role="dialog" aria-modal="true" aria-label="Как прошёл South HUB'2026" @click.self="close">
+                <button type="button" class="reel__close" aria-label="Закрыть" @click="close">
                     <img :src="asset('icons/close.svg')" width="18" height="18" alt="">
                 </button>
                 <video
@@ -49,6 +50,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.reel:focus { outline: none; }
 .reel {
     position: fixed;
     inset: 0;

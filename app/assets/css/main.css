@@ -144,3 +144,7 @@ img { display: block; }
 }
 @media (hover: hover) { .link-arrow:hover::after { opacity: 1; transform: none; } }
 .link-arrow:active { opacity: .5; }
+
+/* рамку фокуса показываем только при навигации с клавиатуры, после клика и тапа её нет */
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }

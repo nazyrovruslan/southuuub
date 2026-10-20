@@ -4,7 +4,7 @@ const open = defineModel<boolean>('open', { default: false });
 
 const links = useRuntimeConfig().public;
 const asset = useAsset();
-const closeRef = ref<HTMLButtonElement | null>(null);
+const dialogRef = ref<HTMLElement | null>(null);
 
 const close = () => { open.value = false; };
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
@@ -14,7 +14,8 @@ watch(open, async (value) => {
     if (value) {
         window.addEventListener('keydown', onKey);
         await nextTick();
-        closeRef.value?.focus();
+        // фокус на сам диалог, а не на крестик: иначе Safari рисует вокруг крестика синюю рамку
+        dialogRef.value?.focus({ preventScroll: true });
     } else {
         window.removeEventListener('keydown', onKey);
     }
@@ -29,9 +30,9 @@ onBeforeUnmount(() => {
 <template>
     <Teleport to="body">
         <Transition name="about">
-            <div v-if="open" class="about" role="dialog" aria-modal="true" aria-labelledby="about-title" @click.self="close">
+            <div v-if="open" ref="dialogRef" class="about" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="about-title" @click.self="close">
                 <article class="about__panel">
-                    <button ref="closeRef" type="button" class="about__close" aria-label="Закрыть" @click="close">
+                    <button type="button" class="about__close" aria-label="Закрыть" @click="close">
                         <img :src="asset('icons/close.svg')" width="18" height="18" alt="">
                     </button>
 
@@ -58,6 +59,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.about:focus { outline: none; }
 .about {
     position: fixed;
     inset: 0;
