@@ -10,6 +10,7 @@ const VIDEO_DESKTOP = 'video/hero.mp4';
 const VIDEO_MOBILE = 'video/hero-mobile.mp4';
 const SCRUB_EASE = 0.12;   // насколько быстро кадр догоняет прокрутку
 const FREEZE_AT = 7.6;     // золотой кадр, на котором видео останавливается, когда фон уходит с экрана
+const STALL_MS = 1200;     // столько ждём окончания перемотки, потом перезагружаем видео
 const REVEAL_END = 0.85;   // к этой доле прокрутки проявляется последний элемент
 
 const menuOpen = ref(false);
@@ -85,13 +86,33 @@ const setupScrub = () => {
         });
     };
 
+    // Safari после простоя может выгрузить декодер: перемотка тогда «висит» (seeking не сбрасывается)
+    // и кадр больше не меняется. Если seeked не пришёл за STALL_MS, видео перезагружается из памяти.
+    let seekAt = 0;
+    let recovering = false;
+    const prime = () => video.play().then(() => video.pause()).catch(() => {}).finally(onScroll);
+    const recover = () => {
+        if (recovering) return;
+        recovering = true;
+        seekAt = 0;
+        video.addEventListener('loadeddata', () => { recovering = false; prime(); }, { once: true });
+        video.load();
+    };
+    video.addEventListener('seeked', () => { seekAt = 0; });
+
     const tick = () => {
         frame = 0;
-        if (!video.duration) return;
+        if (!video.duration || recovering) return;
         shown += (target - shown) * SCRUB_EASE;
         if (Math.abs(target - shown) < 0.002) shown = target;
         const time = shown * Math.min(FREEZE_AT, video.duration - 0.05);
-        if (Math.abs(video.currentTime - time) > 1 / 60 && !video.seeking) video.currentTime = time;
+        const now = performance.now();
+        if (video.seeking && !seekAt) seekAt = now;
+        if (seekAt && now - seekAt > STALL_MS) { recover(); return; }
+        if (Math.abs(video.currentTime - time) > 1 / 60 && !video.seeking) {
+            video.currentTime = time;
+            if (!seekAt) seekAt = now;
+        }
         if (shown !== target || video.seeking) frame = requestAnimationFrame(tick);
     };
 
@@ -109,12 +130,17 @@ const setupScrub = () => {
     const onReady = () => {
         videoReady.value = true;
         // iOS Safari отдаёт кадры при перемотке только после первого play()
-        video.play().then(() => video.pause()).catch(() => {}).finally(onScroll);
+        prime();
     };
+    // после возврата на вкладку или из сна Safari снова нужен play(), чтобы перемотка показывала кадры
+    const onWake = () => { if (document.visibilityState === 'visible' && video.readyState >= 2) prime(); };
 
     video.addEventListener('loadeddata', onReady, { once: true });
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize);
+    document.addEventListener('visibilitychange', onWake);
+    window.addEventListener('pageshow', onWake);
+    window.addEventListener('focus', onWake);
     layout();
     onScroll();
 
@@ -124,6 +150,9 @@ const setupScrub = () => {
         cancelAnimationFrame(frame);
         window.removeEventListener('scroll', onScroll);
         window.removeEventListener('resize', onResize);
+        document.removeEventListener('visibilitychange', onWake);
+        window.removeEventListener('pageshow', onWake);
+        window.removeEventListener('focus', onWake);
     };
 };
 
