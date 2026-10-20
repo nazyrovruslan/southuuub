@@ -211,8 +211,9 @@ onBeforeUnmount(() => {
                     <a :href="links.loginLink" target="_blank" rel="noopener" class="btn nav__login">
                         Войти
                     </a>
-                    <a :href="links.telegramInviteLink" target="_blank" rel="noopener" class="tg-box" aria-label="Telegram">
-                        <img :src="asset('icons/tg-box.svg')" width="51" height="51" alt="">
+                    <a :href="links.telegramInviteLink" target="_blank" rel="noopener" class="corners tg-box" aria-label="Telegram">
+                        <i /><i /><i /><i />
+                        <img :src="asset('icons/tg-plane.svg')" width="23" height="19" alt="">
                     </a>
                 </div>
             </div>
@@ -292,8 +293,9 @@ onBeforeUnmount(() => {
                         <a :href="links.loginLink" target="_blank" rel="noopener" class="btn nav__login">
                             Войти
                         </a>
-                        <a :href="links.telegramInviteLink" target="_blank" rel="noopener" class="tg-box" aria-label="Telegram">
-                            <img :src="asset('icons/tg-box.svg')" width="51" height="51" alt="">
+                        <a :href="links.telegramInviteLink" target="_blank" rel="noopener" class="corners tg-box" aria-label="Telegram">
+                            <i /><i /><i /><i />
+                            <img :src="asset('icons/tg-plane.svg')" width="23" height="19" alt="">
                         </a>
                     </div>
                 </div>
@@ -387,10 +389,8 @@ onBeforeUnmount(() => {
 .nav__links { display: flex; gap: calc(var(--u) * 40); font-size: 14px; line-height: 1; white-space: nowrap; }
 .nav__actions { display: flex; align-items: center; gap: 20px; }
 .nav__login { --btn-w: 150px; }
-.tg-box { display: block; width: 50px; height: 50px; transition: opacity .2s ease, transform .25s ease; }
-.tg-box img { width: 50px; height: 50px; }
-@media (hover: hover) { .tg-box:hover { transform: scale(1.06); } }
-.tg-box:active { opacity: .5; }
+.tg-box { display: flex; width: 50px; height: 50px; transition: opacity .2s ease; }
+.tg-box img { width: 23px; height: 19px; }
 .nav__burger { display: none; }
 
 /* ---------- первый экран ---------- */
