@@ -1,5 +1,8 @@
 // Анонс South HUB 2027. Статическая сборка: `npm run generate`.
 // Для GitHub Pages базовый путь задаётся переменной NUXT_APP_BASE_URL (например /southuuub/sh2027/).
+// абсолютный адрес обложки для превью ссылок (Telegram и соцсети не понимают относительные пути)
+const OG_IMAGE = (process.env.OG_BASE_URL || 'https://nazyrovruslan.github.io/southuuub/sh2027/') + 'og.jpg';
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-09-01',
   devtools: { enabled: false },
@@ -19,6 +22,11 @@ export default defineNuxtConfig({
         { property: 'og:type', content: 'website' },
         { property: 'og:title', content: 'South HUB 2027 — кэмп для C-level в технологиях' },
         { property: 'og:description', content: '9–13 июня 2027. Масштаб идей, людей и тёплых связей.' },
+        { property: 'og:image', content: OG_IMAGE },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: OG_IMAGE },
       ],
       link: [{ rel: 'icon', href: 'favicon.ico' }],
     },
