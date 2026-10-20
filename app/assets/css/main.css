@@ -37,95 +37,65 @@ img { display: block; }
     clip: rect(0 0 0 0); white-space: nowrap;
 }
 
-/* Кнопки как на главном сайте southhub.ru: строчный текст в скобках, без заливки.
-   При наведении скобки расходятся к краям (там кнопка расширяется). На телефоне наведения нет,
-   поэтому скобки слегка «дышат», а при нажатии отскакивают наружу. */
-.bracket, .btn {
-    --bracket-gap: 12px;
+/* Кнопки как на главном сайте southhub.ru: строчный текст Mont 16px (14px на планшете и телефоне)
+   между двумя угловыми скобками, без фона, высота 28px, ширина 235px. При наведении скобки за 0.5s
+   расходятся на 25px, как там кнопка расширяется с 235 до 260px. Здесь расходятся сами скобки,
+   а коробка кнопки не меняется, чтобы соседи в шапке и в меню не сдвигались.
+   Скобка — тот же SVG, что на главном (button-border-left.svg), только через маску:
+   так она берёт цвет текста. Правая скобка — отражённая левая. */
+.btn, .bracket {
+    --btn-w: 235px;
+    --btn-h: 28px;
+    --btn-spread: 0px;
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    height: 50px;
-    padding: 0 34px;
-    color: currentColor;
+    width: var(--btn-w);
+    height: var(--btn-h);
+    color: var(--white);
     background: transparent;
     font-size: 16px;
     line-height: 1;
     text-transform: lowercase;
     white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
     transition: opacity .2s ease;
 }
-.btn { color: var(--white); }
-.bracket::before, .bracket::after, .btn::before, .btn::after {
+.bracket { color: currentColor; }
+.btn::before, .btn::after, .bracket::before, .bracket::after {
     content: '';
     position: absolute;
-    top: 0; bottom: 0;
-    width: 12px;
-    border: 1px solid currentColor;
+    top: 0;
+    width: calc(var(--btn-h) * 12 / 28);
+    height: var(--btn-h);
+    background: currentColor;
     pointer-events: none;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg width='13' height='28' viewBox='0 0 13 28' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.214 12V6.107a5 5 0 0 1 5-5h5.893M12.106 26.893H6.213a5 5 0 0 1-5-5V16' stroke='%23000'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg width='13' height='28' viewBox='0 0 13 28' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.214 12V6.107a5 5 0 0 1 5-5h5.893M12.106 26.893H6.213a5 5 0 0 1-5-5V16' stroke='%23000'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
     transition: transform .5s ease-in-out;
-    -webkit-mask: linear-gradient(#000 0 0) top / 100% 15px no-repeat, linear-gradient(#000 0 0) bottom / 100% 15px no-repeat;
-    mask: linear-gradient(#000 0 0) top / 100% 15px no-repeat, linear-gradient(#000 0 0) bottom / 100% 15px no-repeat;
 }
-.bracket::before, .btn::before { left: 0; border-right: 0; border-radius: 10px 0 0 10px; transform: translateX(var(--bracket-gap)); }
-.bracket::after, .btn::after { right: 0; border-left: 0; border-radius: 0 10px 10px 0; transform: translateX(calc(var(--bracket-gap) * -1)); }
+.btn::before, .bracket::before { left: 0; transform: translateX(calc(var(--btn-spread) * -1)); }
+.btn::after, .bracket::after { right: 0; transform: translateX(var(--btn-spread)) scaleX(-1); }
 
 @media (hover: hover) {
-    .bracket:hover::before, .bracket:hover::after, .btn:hover::before, .btn:hover::after { transform: none; }
+    .btn:hover, .bracket:hover { --btn-spread: 12.5px; }
 }
-.bracket:active, .btn:active { opacity: .6; }
+.btn:active, .bracket:active { opacity: .6; }
 
-@media (hover: none) and (prefers-reduced-motion: no-preference) {
-    .bracket::before, .btn::before { animation: bracket-left 2.4s ease-in-out infinite; }
-    .bracket::after, .btn::after { animation: bracket-right 2.4s ease-in-out infinite; }
-    .bracket:active::before, .btn:active::before { animation: none; transform: translateX(-4px); transition-duration: .15s; }
-    .bracket:active::after, .btn:active::after { animation: none; transform: translateX(4px); transition-duration: .15s; }
-}
-@keyframes bracket-left { 50% { transform: none; } }
-@keyframes bracket-right { 50% { transform: none; } }
-
-/* «Купить билет» — белая кнопка из макета. Скобок у неё нет; на телефоне по ней
-   время от времени пробегает блик, а при нажатии она немного вдавливается */
-.btn--solid {
-    overflow: hidden;
-    padding: 0 30px;
-    border: 1px solid var(--white);
-    border-radius: 15px;
-    background: var(--white);
-    color: var(--black);
-    text-transform: none;
-    text-shadow: none;
-    transition: background-color .2s ease, color .2s ease, opacity .2s ease, transform .15s ease;
-}
-.btn--solid::after { display: none; }
-.btn--solid::before {
-    top: 0; bottom: 0; left: 0;
-    width: 40%;
-    border: 0;
-    border-radius: 0;
-    -webkit-mask: none;
-    mask: none;
-    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .9), transparent);
-    transform: translateX(-120%) skewX(-20deg);
-    opacity: 0;
-}
-@media (hover: hover) { .btn--solid:hover { background: transparent; color: var(--white); } }
-.btn--solid:active { opacity: 1; transform: scale(.97); }
-
-@media (hover: none) and (prefers-reduced-motion: no-preference) {
-    .btn--solid::before { opacity: 1; background: linear-gradient(100deg, transparent, rgba(0, 0, 0, .08), transparent); animation: btn-shine 3.2s ease-in-out infinite; }
-    .btn--solid:active::before { animation: none; transform: translateX(-120%) skewX(-20deg); }
-}
-@keyframes btn-shine {
-    0%, 55% { transform: translateX(-120%) skewX(-20deg); }
-    100% { transform: translateX(320%) skewX(-20deg); }
+@media (max-width: 1024px) {
+    .btn, .bracket { font-size: 14px; }
 }
 
-/* «Войти» в меню телефона: та же кнопка из макета, но прозрачная с белой обводкой */
-.btn--outline { background: transparent; color: var(--white); }
-@media (hover: hover) { .btn--outline:hover { background: var(--white); color: var(--black); } }
+/* На экранах шире 1920 главный сайт растягивает кнопку вместе с макетом (wide-screen.css) */
+@media (min-width: 1921px) {
+    .btn, .bracket {
+        --btn-w: calc(var(--u) * 235);
+        --btn-h: calc(var(--u) * 28);
+        font-size: calc(var(--u) * 16);
+    }
+    .btn:hover, .bracket:hover { --btn-spread: calc(var(--u) * 12.5); }
+}
 
 /* Текстовая ссылка: при наведении появляется стрелка, как в состояниях макета */
 .link-arrow {

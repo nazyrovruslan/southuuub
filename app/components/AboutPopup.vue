@@ -51,7 +51,7 @@ onBeforeUnmount(() => {
                         <p class="about__accent">Будущее создаётся между нами.</p>
                     </div>
 
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid about__cta">Купить билет</a>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn about__cta">Купить билет</a>
                 </article>
             </div>
         </Transition>
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
 }
 .about__accent { font-size: 22px; line-height: 1.3; }
 
-.about__cta { margin-top: 40px; width: 100%; max-width: 338px; }
+.about__cta { margin-top: 40px; }
 
 .about-enter-active, .about-leave-active { transition: opacity .3s ease; }
 .about-enter-active .about__panel, .about-leave-active .about__panel { transition: transform .3s ease; }
@@ -134,6 +134,5 @@ onBeforeUnmount(() => {
     .about__title span { font-size: 18px; }
     .about__text { margin-top: 30px; font-size: 16px; gap: 16px; }
     .about__accent { font-size: 18px; }
-    .about__cta { max-width: none; }
 }
 </style>

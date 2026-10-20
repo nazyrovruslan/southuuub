@@ -200,8 +200,7 @@ onBeforeUnmount(() => {
                     <a :href="links.askLink" target="_blank" rel="noopener" class="link-arrow">Задать вопрос</a>
                 </nav>
                 <div class="nav__actions">
-                    <a :href="links.loginLink" target="_blank" rel="noopener" class="btn btn--solid nav__login">
-                        <img :src="asset('icons/login.svg')" width="17" height="21" alt="" class="nav__login-icon">
+                    <a :href="links.loginLink" target="_blank" rel="noopener" class="btn nav__login">
                         Войти
                     </a>
                     <a :href="links.telegramInviteLink" target="_blank" rel="noopener" class="tg-box" aria-label="Telegram">
@@ -221,7 +220,7 @@ onBeforeUnmount(() => {
                 <span class="title__line title__line--2">
                     <span class="title__desk"><span class="w" data-reveal="3">Кэмп</span> <span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
                     <span class="title__mob"><span class="w" data-reveal="3">Кэмп</span></span>
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--desk" data-reveal="9">Купить билет</a>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn hero__cta hero__cta--desk" data-reveal="9">Купить билет</a>
                 </span>
                 <span class="title__line title__line--mob"><span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
                 <span class="title__line title__line--3"><span class="w" data-reveal="6">в</span> <span class="w" data-reveal="7">технологиях</span></span>
@@ -233,7 +232,7 @@ onBeforeUnmount(() => {
             </button>
 
             <div class="hero__bottom">
-                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob" data-reveal="9">Купить билет</a>
+                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn hero__cta hero__cta--mob" data-reveal="9">Купить билет</a>
 
                 <p class="chip" data-reveal="10">
                     <img :src="asset('icons/date.svg')" width="20" height="17" alt="" class="chip__icon">
@@ -280,10 +279,9 @@ onBeforeUnmount(() => {
                     </a>
                 </nav>
                 <div class="menu__bottom">
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid menu__cta">Купить билет</a>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn menu__cta">Купить билет</a>
                     <div class="menu__row">
-                        <a :href="links.loginLink" target="_blank" rel="noopener" class="btn btn--solid btn--outline nav__login">
-                            <img :src="asset('icons/login.svg')" width="17" height="21" alt="" class="nav__login-icon">
+                        <a :href="links.loginLink" target="_blank" rel="noopener" class="btn nav__login">
                             Войти
                         </a>
                         <a :href="links.telegramInviteLink" target="_blank" rel="noopener" class="tg-box" aria-label="Telegram">
@@ -379,11 +377,8 @@ onBeforeUnmount(() => {
     justify-content: space-between;
 }
 .nav__links { display: flex; gap: calc(var(--u) * 40); font-size: 14px; line-height: 1; white-space: nowrap; }
-.nav__actions { display: flex; gap: 20px; }
-.nav__login { padding: 0 20px 0 15px; }
-.nav__login-icon { width: 16px; height: 20px; }
-.btn--outline .nav__login-icon { filter: invert(1); }
-@media (hover: hover) { .btn--solid:not(.btn--outline):hover .nav__login-icon { filter: invert(1); } .btn--outline:hover .nav__login-icon { filter: none; } }
+.nav__actions { display: flex; align-items: center; gap: 20px; }
+.nav__login { --btn-w: 150px; }
 .tg-box { display: block; width: 50px; height: 50px; transition: opacity .2s ease, transform .25s ease; }
 .tg-box img { width: 50px; height: 50px; }
 @media (hover: hover) { .tg-box:hover { transform: scale(1.06); } }
@@ -415,10 +410,6 @@ onBeforeUnmount(() => {
     position: absolute;
     left: 0;
     top: calc(100% + var(--u) * 42);
-    width: max(240px, calc(var(--u) * 338));
-    font-size: 16px;
-    text-transform: none;
-    letter-spacing: 0;
 }
 .hero__cta--mob { display: none; }
 
@@ -592,8 +583,7 @@ onBeforeUnmount(() => {
 }
 .menu__links a { display: flex; align-items: center; justify-content: space-between; }
 .menu__links a:active { opacity: .5; }
-.menu__bottom { display: flex; flex-direction: column; gap: 20px; }
-.menu__cta { width: 100%; }
+.menu__bottom { display: flex; flex-direction: column; align-items: center; gap: 30px; }
 .menu__row { display: flex; justify-content: center; gap: 30px; }
 
 .menu-enter-active, .menu-leave-active { transition: opacity .3s ease; }
@@ -663,7 +653,7 @@ onBeforeUnmount(() => {
         flex-direction: column;
         align-items: center;
     }
-    .hero__cta--mob { display: flex; width: 100%; }
+    .hero__cta--mob { display: inline-flex; }
     .chip { margin-top: min(20px, 1.5svh); height: 40px; padding: 0 20px 0 12px; border: 0; font-size: 14px; }
     .chip__icon { width: 16px; height: 13px; }
 
