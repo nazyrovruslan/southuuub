@@ -33,8 +33,20 @@ const setupScrub = () => {
     }
 
     const portrait = window.matchMedia('(orientation: portrait)').matches;
-    video.src = asset(portrait ? VIDEO_MOBILE : VIDEO_DESKTOP);
-    video.load();
+    // Видео скачивается целиком и отдаётся плееру из памяти: иначе каждая перемотка в ещё
+    // не загруженное место ждёт сети, и картинка подвисает на скролле
+    const src = asset(portrait ? VIDEO_MOBILE : VIDEO_DESKTOP);
+    let blobUrl = '';
+    let stopped = false;
+    fetch(src)
+        .then((res) => (res.ok ? res.blob() : Promise.reject(res.status)))
+        .then((blob) => { blobUrl = URL.createObjectURL(blob); return blobUrl; })
+        .catch(() => src)
+        .then((url) => {
+            if (stopped) return;
+            video.src = url;
+            video.load();
+        });
 
     let target = 0;
     let shown = 0;
@@ -103,6 +115,8 @@ const setupScrub = () => {
     onScroll();
 
     stopScrub = () => {
+        stopped = true;
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
         cancelAnimationFrame(frame);
         window.removeEventListener('scroll', onScroll);
         window.removeEventListener('resize', onResize);
