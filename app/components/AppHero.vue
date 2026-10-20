@@ -1,5 +1,13 @@
 <script setup lang="ts">
 const links = useRuntimeConfig().public;
+
+// плашка с датой открывает создание события в Google Календаре (весь день, конец не включается)
+const calendarLink = 'https://calendar.google.com/calendar/render?' + new URLSearchParams({
+    action: 'TEMPLATE',
+    text: 'South HUB 2027',
+    dates: '20270609/20270614',
+    details: 'South HUB 2027 — кэмп для C-level в технологиях. https://southhub.ru',
+}).toString();
 const asset = useAsset();
 
 // Первый экран закреплён на время «сборки»: при прокрутке по очереди проявляются слова
@@ -234,10 +242,10 @@ onBeforeUnmount(() => {
             <div class="hero__bottom">
                 <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob" data-reveal="9">Купить билет</a>
 
-                <p class="chip" data-reveal="10">
+                <a :href="calendarLink" target="_blank" rel="noopener" class="chip chip--link" aria-label="Добавить South HUB 2027 в Google Календарь" data-reveal="10">
                     <img :src="asset('icons/date.svg')" width="20" height="17" alt="" class="chip__icon">
                     <time datetime="2027-06-09">09–13 июня, 2027</time>
-                </p>
+                </a>
 
                 <button type="button" class="card" aria-haspopup="dialog" data-reveal="11" @click="reelOpen = true">
                     <span class="card__thumb">
@@ -504,6 +512,8 @@ onBeforeUnmount(() => {
     white-space: nowrap;
 }
 .chip__icon { width: 19px; height: 16px; }
+.chip--link { color: inherit; text-decoration: none; transition: background .2s ease; }
+.chip--link:hover { background: rgba(0, 0, 0, .4); }
 
 .card {
     text-align: left;
