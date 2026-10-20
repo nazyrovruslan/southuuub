@@ -65,10 +65,10 @@ const setupScrub = () => {
         return distance > 0 ? Math.min(1, Math.max(0, passed / distance)) : 0;
     };
 
+    // проявленное остаётся на месте и при обратной прокрутке
     const reveal = (p: number) => {
         steps.forEach((els, i) => {
-            const shown = p >= (i / steps.length) * REVEAL_END;
-            els.forEach((el) => el.classList.toggle('is-in', shown));
+            if (p >= (i / steps.length) * REVEAL_END) els.forEach((el) => el.classList.add('is-in'));
         });
     };
 
@@ -170,7 +170,7 @@ onBeforeUnmount(() => {
 
         <div class="stage">
             <h1 class="title">
-                <span class="title__line title__line--1"><span class="w" data-reveal="1">South</span> <span class="w" data-reveal="2">HUB</span></span>
+                <span class="title__line title__line--1"><span class="w" data-reveal="1">South</span> <span class="w" data-reveal="1">HUB</span></span>
                 <span class="title__line title__line--2">
                     <span class="title__desk"><span class="w" data-reveal="3">Кэмп</span> <span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
                     <span class="title__mob"><span class="w" data-reveal="3">Кэмп</span></span>
@@ -523,12 +523,14 @@ onBeforeUnmount(() => {
         flex-direction: column;
     }
 
+    /* отступы и размеры завязаны на высоту окна (svh): экран закрепляется на время сборки
+       и должен целиком помещаться в окно Safari с панелями, иначе верх с заголовком уедет */
     .title {
         position: relative;
-        margin-top: 40px;
+        margin-top: min(40px, 3svh);
         display: flex;
         flex-direction: column;
-        font-size: min(10.26vw, 72px);
+        font-size: min(10.26vw, 72px, 5.6svh);
         line-height: 1.275;
     }
     .title__line { position: static; transform: none; }
@@ -545,7 +547,7 @@ onBeforeUnmount(() => {
         left: auto;
         top: auto;
         width: auto;
-        margin-top: 40px;
+        margin-top: min(40px, 3svh);
         max-width: 520px;
         font-size: 16px;
     }
@@ -554,23 +556,23 @@ onBeforeUnmount(() => {
         position: static;
         width: auto;
         margin-top: auto;
-        padding-top: 70px;
+        padding-top: min(70px, 3svh);
         display: flex;
         flex-direction: column;
         align-items: center;
     }
     .hero__cta--mob { display: flex; width: 100%; }
-    .chip { margin-top: 20px; height: 40px; padding: 0 20px 0 12px; border: 0; font-size: 14px; }
+    .chip { margin-top: min(20px, 1.5svh); height: 40px; padding: 0 20px 0 12px; border: 0; font-size: 14px; }
     .chip__icon { width: 16px; height: 13px; }
 
     .card {
         position: static;
-        margin-top: 46px;
+        margin-top: min(46px, 3svh);
         width: 100%;
         align-items: stretch;
         padding: 10px;
     }
-    .card__thumb { width: 144px; }
+    .card__thumb { width: min(144px, 14svh); }
     .card__body {
         flex-direction: column;
         align-items: stretch;
