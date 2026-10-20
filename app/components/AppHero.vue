@@ -220,7 +220,7 @@ onBeforeUnmount(() => {
                 <span class="title__line title__line--2">
                     <span class="title__desk"><span class="w" data-reveal="3">Кэмп</span> <span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
                     <span class="title__mob"><span class="w" data-reveal="3">Кэмп</span></span>
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn hero__cta hero__cta--desk" data-reveal="9">Купить билет</a>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--desk" data-reveal="9">Купить билет</a>
                 </span>
                 <span class="title__line title__line--mob"><span class="w" data-reveal="4">для</span> <span class="w" data-reveal="5">C-level</span></span>
                 <span class="title__line title__line--3"><span class="w" data-reveal="6">в</span> <span class="w" data-reveal="7">технологиях</span></span>
@@ -232,7 +232,7 @@ onBeforeUnmount(() => {
             </button>
 
             <div class="hero__bottom">
-                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn hero__cta hero__cta--mob" data-reveal="9">Купить билет</a>
+                <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob" data-reveal="9">Купить билет</a>
 
                 <p class="chip" data-reveal="10">
                     <img :src="asset('icons/date.svg')" width="20" height="17" alt="" class="chip__icon">
@@ -279,7 +279,7 @@ onBeforeUnmount(() => {
                     </a>
                 </nav>
                 <div class="menu__bottom">
-                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn menu__cta">Купить билет</a>
+                    <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid menu__cta">Купить билет</a>
                     <div class="menu__row">
                         <a :href="links.loginLink" target="_blank" rel="noopener" class="btn nav__login">
                             Войти
@@ -410,6 +410,10 @@ onBeforeUnmount(() => {
     position: absolute;
     left: 0;
     top: calc(100% + var(--u) * 42);
+    width: max(240px, calc(var(--u) * 338));
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: 0;
 }
 .hero__cta--mob { display: none; }
 
@@ -583,8 +587,9 @@ onBeforeUnmount(() => {
 }
 .menu__links a { display: flex; align-items: center; justify-content: space-between; }
 .menu__links a:active { opacity: .5; }
-.menu__bottom { display: flex; flex-direction: column; align-items: center; gap: 30px; }
-.menu__row { display: flex; justify-content: center; gap: 30px; }
+.menu__bottom { display: flex; flex-direction: column; gap: 20px; }
+.menu__cta { width: 100%; }
+.menu__row { display: flex; justify-content: center; align-items: center; gap: 30px; }
 
 .menu-enter-active, .menu-leave-active { transition: opacity .3s ease; }
 .menu-enter-from, .menu-leave-to { opacity: 0; }
@@ -653,7 +658,7 @@ onBeforeUnmount(() => {
         flex-direction: column;
         align-items: center;
     }
-    .hero__cta--mob { display: inline-flex; }
+    .hero__cta--mob { display: flex; width: 100%; }
     .chip { margin-top: min(20px, 1.5svh); height: 40px; padding: 0 20px 0 12px; border: 0; font-size: 14px; }
     .chip__icon { width: 16px; height: 13px; }
 
