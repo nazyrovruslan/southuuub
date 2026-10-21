@@ -7,7 +7,8 @@ const TEXT = 'масштаб идей, людей и тёплых связей';
 
 const row = (n: number, kind: Cell['kind'] = 'u'): Cell[] => Array.from({ length: n }, () => ({ kind }));
 
-// Десктоп: 5 рядов по 12 ячеек
+// Десктоп: 5 рядов по 12 ячеек. Первый ряд, как на Snow BASE, не в сетке: логотип слева,
+// а буквы распределяются по оставшейся ширине своим шагом, поэтому не встают в колонки других рядов
 const desktopRows: Cell[][] = [
     [{ kind: 'logo' }, ...row(11)],
     row(12),
@@ -18,7 +19,7 @@ const desktopRows: Cell[][] = [
 
 // Телефон: 7 рядов по 6 ячеек
 const mobileRows: Cell[][] = [
-    [{ kind: 'logo' }, { kind: 'empty' }, ...row(4)],
+    [{ kind: 'logo' }, ...row(4)],
     row(6),
     row(6),
     [{ kind: 'u' }, { kind: 'text', span: 5 }],
@@ -55,9 +56,11 @@ onMounted(() => {
             return { x: r.left - rect.left + r.width / 2, y: r.top - rect.top + r.height / 2 };
         });
         current = letters.map(() => 1);
-        const first = centers[0];
-        const second = centers.find((c) => first && c.y === first.y && c.x > first.x);
-        pitch = first && second ? second.x - first.x : 100;
+        // шаг сетки берётся по последнему ряду: первый ряд стоит не в сетке
+        const last = centers[centers.length - 1];
+        const sameRow = centers.filter((c) => last && c.y === last.y).sort((a, b) => a.x - b.x);
+        const prev = sameRow[sameRow.length - 2];
+        pitch = last && prev ? last.x - prev.x : 100;
     };
 
     const tick = () => {
@@ -117,7 +120,7 @@ onBeforeUnmount(() => cleanup?.());
 <template>
     <section ref="blockRef" class="pattern" aria-label="Масштаб идей, людей и тёплых связей">
         <div v-for="(layout, key) in { desk: desktopRows, mob: mobileRows }" :key="key" :class="['pattern__grid', `pattern__grid--${key}`]">
-            <div v-for="(cells, r) in layout" :key="r" class="pattern__row">
+            <div v-for="(cells, r) in layout" :key="r" :class="['pattern__row', { 'pattern__row--first': r === 0 }]">
                 <template v-for="(cell, c) in cells" :key="c">
                     <img v-if="cell.kind === 'logo'" :src="asset('icons/southu.svg')" width="119" height="20" alt="SOUTHU" class="pattern__logo">
                     <img v-else-if="cell.kind === 'u'" :src="asset('icons/u.svg')" width="19" height="20" alt="" class="pattern__letter" data-wave>
@@ -152,6 +155,9 @@ onBeforeUnmount(() => cleanup?.());
     align-items: center;
     height: 20px;
 }
+
+/* первый ряд: логотип у левого края, буквы разложены по остатку ширины своим шагом, как на Snow BASE */
+.pattern__row--first { display: flex; justify-content: space-between; }
 
 .pattern__grid--mob { display: none; }
 
