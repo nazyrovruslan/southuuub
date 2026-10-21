@@ -11,6 +11,9 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/fonts.css', '~/assets/css/main.css'],
 
+  // без отдельного _payload.json: данные страницы лежат прямо в index.html (нужно для сборки `npm run static`)
+  experimental: { payloadExtraction: false },
+
   app: {
     head: {
       htmlAttrs: { lang: 'ru' },
