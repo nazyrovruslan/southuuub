@@ -7,7 +7,7 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "generate": "nuxt generate",
-    "static": "NUXT_APP_BASE_URL=./ nuxt generate && node scripts/static.mjs",
+    "static": "NUXT_APP_BASE_URL=./ nuxt generate && node scripts/static.mjs sh2027",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },

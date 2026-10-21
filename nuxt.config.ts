@@ -11,8 +11,13 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/fonts.css', '~/assets/css/main.css'],
 
-  // без отдельного _payload.json: данные страницы лежат прямо в index.html (нужно для сборки `npm run static`)
-  experimental: { payloadExtraction: false },
+  // для сборки `npm run static`: данные страницы прямо в index.html (без _payload.json),
+  // без манифеста сборки (builds/*.json) и без importmap в <head>
+  experimental: { payloadExtraction: false, appManifest: false, entryImportMap: false },
+
+  // весь клиентский JS одним файлом, без import внутри: так статику проще отдавать
+  // из чужого бэкенда (Django и т. п.), где файлы раскладывает не Nuxt
+  vite: { $client: { build: { rollupOptions: { output: { inlineDynamicImports: true } } } } },
 
   app: {
     head: {
@@ -31,7 +36,6 @@ export default defineNuxtConfig({
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:image', content: OG_IMAGE },
       ],
-      link: [{ rel: 'icon', href: 'favicon.ico' }],
     },
   },
 
