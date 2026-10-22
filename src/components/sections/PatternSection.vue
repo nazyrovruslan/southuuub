@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import southuIcon from '../../assets/icons/southu.svg'
+import uIcon from '../../assets/icons/u.svg'
+import bIcon from '../../assets/icons/b.svg'
 // Чёрный блок с буквами U, как на southhub.ru: буквы под курсором (на телефоне — под пальцем)
 // плавно увеличиваются вместе с соседями и медленно возвращаются.
 type Cell = { kind: 'logo' | 'u' | 'b' | 'text' | 'empty'; span?: number };
@@ -33,7 +37,6 @@ const WAVE_RADIUS = 1.1;   // радиус влияния в шагах сетк
 const WAVE_GROW = 0.22;    // скорость увеличения за кадр
 const WAVE_FADE = 0.06;    // скорость затухания за кадр
 
-const asset = useAsset();
 const blockRef = ref<HTMLElement | null>(null);
 let cleanup: (() => void) | undefined;
 
@@ -122,9 +125,9 @@ onBeforeUnmount(() => cleanup?.());
         <div v-for="(layout, key) in { desk: desktopRows, mob: mobileRows }" :key="key" :class="['pattern__grid', `pattern__grid--${key}`]">
             <div v-for="(cells, r) in layout" :key="r" :class="['pattern__row', { 'pattern__row--first': r === 0 }]">
                 <template v-for="(cell, c) in cells" :key="c">
-                    <img v-if="cell.kind === 'logo'" :src="asset('icons/southu.svg')" width="119" height="20" alt="SOUTHU" class="pattern__logo">
-                    <img v-else-if="cell.kind === 'u'" :src="asset('icons/u.svg')" width="19" height="20" alt="" class="pattern__letter" data-wave>
-                    <img v-else-if="cell.kind === 'b'" :src="asset('icons/b.svg')" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img v-if="cell.kind === 'logo'" :src="southuIcon" width="119" height="20" alt="SOUTHU" class="pattern__logo">
+                    <img v-else-if="cell.kind === 'u'" :src="uIcon" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img v-else-if="cell.kind === 'b'" :src="bIcon" width="19" height="20" alt="" class="pattern__letter" data-wave>
                     <p v-else-if="cell.kind === 'text'" class="pattern__text" :style="{ gridColumn: `span ${cell.span}` }">{{ TEXT }}</p>
                     <span v-else />
                 </template>

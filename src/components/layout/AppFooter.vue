@@ -1,13 +1,18 @@
 <script setup lang="ts">
-const links = useRuntimeConfig().public;
-const asset = useAsset();
+import { useSiteConfig } from '../../composables/useSiteConfig'
+import medianIcon from '../../assets/icons/median.svg'
+import logoBlackIcon from '../../assets/icons/logo-black.svg'
+import youtubeIcon from '../../assets/icons/youtube.svg'
+import linkedinIcon from '../../assets/icons/linkedin.svg'
+import telegramBlackIcon from '../../assets/icons/telegram-black.svg'
+const links = useSiteConfig();
 </script>
 
 <template>
     <footer class="footer">
         <div class="median">
             <a :href="links.medianLink" target="_blank" rel="noopener" class="median__logo fade" aria-label="median.agency">
-                <img :src="asset('icons/median.svg')" width="186" height="80" alt="median.agency">
+                <img :src="medianIcon" width="186" height="80" alt="median.agency">
             </a>
             <span class="median__line" />
             <div class="median__made">
@@ -20,7 +25,7 @@ const asset = useAsset();
 
         <div class="bottom">
             <a :href="links.siteLink" target="_blank" rel="noopener" class="bottom__logo fade" aria-label="South HUB">
-                <img :src="asset('icons/logo-black.svg')" width="186" height="21" alt="SOUTHUUUB">
+                <img :src="logoBlackIcon" width="186" height="21" alt="SOUTHUUUB">
             </a>
 
             <div class="bottom__contacts">
@@ -40,13 +45,13 @@ const asset = useAsset();
 
             <div class="bottom__social">
                 <a :href="links.youtubeLink" target="_blank" rel="noopener" class="fade" aria-label="YouTube">
-                    <img :src="asset('icons/youtube.svg')" width="22" height="16" alt="">
+                    <img :src="youtubeIcon" width="22" height="16" alt="">
                 </a>
                 <a :href="links.linkedinLink" target="_blank" rel="noopener" class="fade" aria-label="LinkedIn">
-                    <img :src="asset('icons/linkedin.svg')" width="20" height="20" alt="">
+                    <img :src="linkedinIcon" width="20" height="20" alt="">
                 </a>
                 <a :href="links.telegramChannelLink" target="_blank" rel="noopener" class="fade" aria-label="Telegram">
-                    <img :src="asset('icons/telegram-black.svg')" width="23" height="19" alt="">
+                    <img :src="telegramBlackIcon" width="23" height="19" alt="">
                 </a>
             </div>
         </div>

@@ -1,6 +1,5 @@
 node_modules
-.nuxt
-.output
-.data
 dist
+django-build
+dsfc-smoke-out
 .DS_Store

@@ -1,0 +1,29 @@
+{
+  "name": "sh2027",
+  "title": "South HUB 2027 — анонс",
+  "lang": "ru",
+  "seo": {
+    "title": "South HUB 2027 — кэмп для C-level в технологиях",
+    "description": "South HUB 2027 — кэмп для C-level в технологиях. 9–13 июня 2027. Масштаб идей, людей и тёплых связей.",
+    "ogImage": "public/og.jpg"
+  },
+  "config": {
+    "ticketLink": { "type": "url", "label": "Ссылка «Купить билет»", "default": "https://lk.southhub.ru/" },
+    "loginLink": { "type": "url", "label": "Ссылка «Войти»", "default": "https://lk.southhub.ru/accounts/login/" },
+    "askLink": { "type": "url", "label": "Ссылка «Задать вопрос» и Telegram в контактах", "default": "https://t.me/southhub_com" },
+    "telegramInviteLink": { "type": "url", "label": "Кнопка Telegram в шапке", "default": "https://t.me/+Up2b6jqa30xhYzMy?utm_source=SB&utm_medium=landing&utm_campaign=invite" },
+    "telegramChannelLink": { "type": "url", "label": "Telegram-канал в подвале", "default": "https://t.me/+A-vMV8yq_6M3ZjFi" },
+    "contactUsLink": { "type": "url", "label": "Кнопка «Связаться» (median.agency)", "default": "https://t.me/+F8Vk0GiQ_Mk1MDgy" },
+    "youtubeLink": { "type": "url", "label": "YouTube", "default": "https://www.youtube.com/@sthhb" },
+    "linkedinLink": { "type": "url", "label": "LinkedIn", "default": "https://www.linkedin.com/company/south-hub/" },
+    "medianLink": { "type": "url", "label": "Сайт median.agency", "default": "https://median.agency/" },
+    "siteLink": { "type": "url", "label": "Главный сайт (логотип)", "default": "https://southhub.ru/" },
+    "confidentialLink": { "type": "url", "label": "Политика конфиденциальности", "default": "https://lk.southhub.ru/confidential" },
+    "cookiesLink": { "type": "url", "label": "Политика cookie", "default": "https://lk.southhub.ru/cookies" },
+    "pdLink": { "type": "url", "label": "Политика обработки персональных данных", "default": "https://lk.southhub.ru/pd" },
+    "ticketsApiUrl": { "type": "url", "label": "API билетов (пусто = виджет скрыт)", "default": "" },
+    "ticketsEventId": { "type": "text", "label": "ID события для API билетов", "default": "sh2027" }
+  },
+  "requires": { "csrf": false },
+  "externalOrigins": []
+}

@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { useSiteConfig } from '../../composables/useSiteConfig'
+import { useMounted } from '../../composables/useMounted'
+import closeThinIcon from '../../assets/icons/close-thin.svg'
 // Попап с полным текстом о кэмпе, открывается по подводке в первом экране. Закрывается крестиком, кликом по фону и Esc.
 const open = defineModel<boolean>('open', { default: false });
+// попап только в браузере: Teleport в body при пререндере даёт расхождение при гидратации
+const mounted = useMounted();
 
-const links = useRuntimeConfig().public;
-const asset = useAsset();
+const links = useSiteConfig();
 const dialogRef = ref<HTMLElement | null>(null);
 
 const close = () => { open.value = false; };
@@ -28,13 +33,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
         <Transition name="about">
             <div v-if="open" ref="dialogRef" class="about" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="about-title" @click.self="close">
                 <article class="about__panel">
                     <button type="button" class="corners about__close" aria-label="Закрыть" @click="close">
                         <i /><i /><i /><i />
-                        <img :src="asset('icons/close-thin.svg')" width="14" height="14" alt="">
+                        <img :src="closeThinIcon" width="14" height="14" alt="">
                     </button>
 
                     <h2 id="about-title" class="about__title">South HUB Camp 2027<span>Coworking</span></h2>

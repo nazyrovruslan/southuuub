@@ -1,10 +1,16 @@
 <script setup lang="ts">
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { useMounted } from '../../composables/useMounted'
+import closeThinIcon from '../../assets/icons/close-thin.svg'
+import recap2026Video from '../../assets/video/recap-2026.mp4'
+import recap2026Webp from '../../assets/img/recap-2026.webp'
 // Ролик «Как прошёл South HUB'2026» во весь экран, плеер как на демо Snow BASE 2027: стартует без звука,
 // звук включается кнопкой «Включить звук» или нажатием на видео, после этого появляются обычные контролы.
 // Закрывается крестиком, кликом по фону и Esc.
 const open = defineModel<boolean>('open', { default: false });
+// попап только в браузере: Teleport в body при пререндере даёт расхождение при гидратации
+const mounted = useMounted();
 
-const asset = useAsset();
 const videoRef = ref<HTMLVideoElement | null>(null);
 const dialogRef = ref<HTMLElement | null>(null);
 const muted = ref(true);
@@ -40,19 +46,19 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
         <Transition name="reel">
             <div v-if="open" ref="dialogRef" class="reel" tabindex="-1" role="dialog" aria-modal="true" aria-label="Как прошёл South HUB'2026" @click.self="close">
                 <button type="button" class="corners reel__close" aria-label="Закрыть" @click="close">
                     <i /><i /><i /><i />
-                    <img :src="asset('icons/close-thin.svg')" width="14" height="14" alt="">
+                    <img :src="closeThinIcon" width="14" height="14" alt="">
                 </button>
                 <div class="reel__frame">
                     <video
                         ref="videoRef"
                         class="reel__video"
-                        :src="asset('video/recap-2026.mp4')"
-                        :poster="asset('img/recap-2026.webp')"
+                        :src="recap2026Video"
+                        :poster="recap2026Webp"
                         :controls="!muted"
                         muted
                         autoplay

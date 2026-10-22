@@ -1,5 +1,24 @@
 <script setup lang="ts">
-const links = useRuntimeConfig().public;
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useSiteConfig } from '../../composables/useSiteConfig'
+import AboutPopup from '../popups/AboutPopup.vue'
+import VideoPopup from '../popups/VideoPopup.vue'
+import heroMobileWebp from '../../assets/img/hero-mobile.webp'
+import heroWebp from '../../assets/img/hero.webp'
+import heroJpg from '../../assets/img/hero.jpg'
+import logoIcon from '../../assets/icons/logo.svg'
+import tgPlaneIcon from '../../assets/icons/tg-plane.svg'
+import burgerIcon from '../../assets/icons/burger.svg'
+import menuArrowIcon from '../../assets/icons/menu-arrow.svg'
+import dateIcon from '../../assets/icons/date.svg'
+import recap2026PreviewVideo from '../../assets/video/recap-2026-preview.mp4'
+import recap2026Webp from '../../assets/img/recap-2026.webp'
+import playIcon from '../../assets/icons/play.svg'
+import arrowIcon from '../../assets/icons/arrow.svg'
+import closeIcon from '../../assets/icons/close.svg'
+import heroVideo from '../../assets/video/hero.mp4'
+import heroMobileVideo from '../../assets/video/hero-mobile.mp4'
+const links = useSiteConfig();
 
 // плашка с датой открывает создание события в Google Календаре (весь день, конец не включается)
 const calendarLink = 'https://calendar.google.com/calendar/render?' + new URLSearchParams({
@@ -8,14 +27,13 @@ const calendarLink = 'https://calendar.google.com/calendar/render?' + new URLSea
     dates: '20270609/20270614',
     details: 'South HUB 2027 — кэмп для C-level в технологиях. https://southhub.ru',
 }).toString();
-const asset = useAsset();
 
 // Первый экран закреплён на время «сборки»: при прокрутке по очереди проявляются слова
 // заголовка, подводка, кнопка и карточка с видео, а фоновое видео проматывается
 // до золотого кадра горы. Потом экран уезжает обычной прокруткой.
 // На вертикальных экранах берётся отдельная вертикальная нарезка.
-const VIDEO_DESKTOP = 'video/hero.mp4';
-const VIDEO_MOBILE = 'video/hero-mobile.mp4';
+const VIDEO_DESKTOP = heroVideo;
+const VIDEO_MOBILE = heroMobileVideo;
 const SCRUB_EASE = 0.12;   // насколько быстро кадр догоняет прокрутку
 const FREEZE_AT = 7.6;     // золотой кадр, на котором видео останавливается, когда фон уходит с экрана
 const STALL_MS = 1200;     // столько ждём окончания перемотки, потом перезагружаем видео
@@ -45,7 +63,7 @@ const setupScrub = () => {
     const portrait = window.matchMedia('(orientation: portrait)').matches;
     // Видео скачивается целиком и отдаётся плееру из памяти: иначе каждая перемотка в ещё
     // не загруженное место ждёт сети, и картинка подвисает на скролле
-    const src = asset(portrait ? VIDEO_MOBILE : VIDEO_DESKTOP);
+    const src = portrait ? VIDEO_MOBILE : VIDEO_DESKTOP;
     let blobUrl = '';
     let stopped = false;
     fetch(src)
@@ -194,9 +212,9 @@ onBeforeUnmount(() => {
     <div class="hero__track">
         <div class="hero__bg" aria-hidden="true">
             <picture>
-                <source media="(orientation: portrait)" :srcset="asset('img/hero-mobile.webp')" type="image/webp">
-                <source :srcset="asset('img/hero.webp')" type="image/webp">
-                <img :src="asset('img/hero.jpg')" alt="" fetchpriority="high">
+                <source media="(orientation: portrait)" :srcset="heroMobileWebp" type="image/webp">
+                <source :srcset="heroWebp" type="image/webp">
+                <img :src="heroJpg" alt="" fetchpriority="high">
             </picture>
             <video ref="videoRef" :class="{ 'is-ready': videoReady }" muted playsinline preload="auto" disablepictureinpicture />
         </div>
@@ -205,7 +223,7 @@ onBeforeUnmount(() => {
 
         <header class="nav">
             <a :href="links.siteLink" class="nav__logo" aria-label="South HUB">
-                <img :src="asset('icons/logo.svg')" width="178" height="20" alt="SOUTHUUUB">
+                <img :src="logoIcon" width="178" height="20" alt="SOUTHUUUB">
             </a>
 
             <div class="nav__right">
@@ -218,13 +236,13 @@ onBeforeUnmount(() => {
                     </a>
                     <a :href="links.telegramInviteLink" target="_blank" rel="noopener" class="corners tg-box" aria-label="Telegram">
                         <i /><i /><i /><i />
-                        <img :src="asset('icons/tg-plane.svg')" width="23" height="19" alt="">
+                        <img :src="tgPlaneIcon" width="23" height="19" alt="">
                     </a>
                 </div>
             </div>
 
             <button class="nav__burger" type="button" aria-label="Открыть меню" @click="toggleMenu(true)">
-                <img :src="asset('icons/burger.svg')" width="50" height="14" alt="">
+                <img :src="burgerIcon" width="50" height="14" alt="">
             </button>
         </header>
 
@@ -242,22 +260,22 @@ onBeforeUnmount(() => {
 
             <button type="button" class="hero__lead" :data-open="aboutOpen || undefined" aria-haspopup="dialog" data-reveal="2" @click="aboutOpen = true">
                 <span class="hero__lead-text">От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.</span>
-                <span class="hero__lead-badge"><img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="" class="hero__lead-arrow"></span>
+                <span class="hero__lead-badge"><img :src="menuArrowIcon" width="18" height="18" alt="" class="hero__lead-arrow"></span>
             </button>
 
             <div class="hero__bottom">
                 <a :href="links.ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob" data-reveal="3">Купить билет</a>
 
                 <a :href="calendarLink" target="_blank" rel="noopener" class="chip chip--link" aria-label="Добавить South HUB 2027 в Google Календарь" data-reveal="4">
-                    <img :src="asset('icons/date.svg')" width="20" height="17" alt="" class="chip__icon">
+                    <img :src="dateIcon" width="20" height="17" alt="" class="chip__icon">
                     <time datetime="2027-06-09">09–13 июня, 2027</time>
                 </a>
 
                 <button type="button" class="card" aria-haspopup="dialog" data-reveal="5" @click="reelOpen = true">
                     <span class="card__thumb">
                         <video
-                            :src="asset('video/recap-2026-preview.mp4')"
-                            :poster="asset('img/recap-2026.webp')"
+                            :src="recap2026PreviewVideo"
+                            :poster="recap2026Webp"
                             muted
                             loop
                             autoplay
@@ -267,12 +285,12 @@ onBeforeUnmount(() => {
                             aria-hidden="true"
                         />
                         <span class="card__play">
-                            <img :src="asset('icons/play.svg')" width="30" height="30" alt="">
+                            <img :src="playIcon" width="30" height="30" alt="">
                         </span>
                     </span>
                     <span class="card__body">
                         <span class="card__title">Как прошёл<br class="card__br"> South HUB'2026</span>
-                        <img :src="asset('icons/arrow.svg')" width="11" height="11" alt="" class="card__arrow">
+                        <img :src="arrowIcon" width="11" height="11" alt="" class="card__arrow">
                     </span>
                 </button>
             </div>
@@ -281,15 +299,15 @@ onBeforeUnmount(() => {
         <Transition name="menu">
             <div v-if="menuOpen" class="menu" role="dialog" aria-modal="true" aria-label="Меню">
                 <div class="menu__head">
-                    <img :src="asset('icons/logo.svg')" width="178" height="20" alt="SOUTHUUUB">
+                    <img :src="logoIcon" width="178" height="20" alt="SOUTHUUUB">
                     <button type="button" class="menu__close" aria-label="Закрыть меню" @click="toggleMenu(false)">
-                        <img :src="asset('icons/close.svg')" width="18" height="18" alt="">
+                        <img :src="closeIcon" width="18" height="18" alt="">
                     </button>
                 </div>
                 <nav class="menu__links">
                     <a :href="links.askLink" target="_blank" rel="noopener">
                         Задать вопрос
-                        <img :src="asset('icons/menu-arrow.svg')" width="18" height="18" alt="">
+                        <img :src="menuArrowIcon" width="18" height="18" alt="">
                     </a>
                 </nav>
                 <div class="menu__bottom">
@@ -300,7 +318,7 @@ onBeforeUnmount(() => {
                         </a>
                         <a :href="links.telegramInviteLink" target="_blank" rel="noopener" class="corners tg-box" aria-label="Telegram">
                             <i /><i /><i /><i />
-                            <img :src="asset('icons/tg-plane.svg')" width="23" height="19" alt="">
+                            <img :src="tgPlaneIcon" width="23" height="19" alt="">
                         </a>
                     </div>
                 </div>
