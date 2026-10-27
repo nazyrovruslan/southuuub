@@ -1,46 +1,70 @@
-# South HUB 2027 — анонс
+# South HUB 2027 — анонс (HTML + CSS + JS)
 
-Одностраничный сайт-анонс по макету Figma «South HUB App», страница «Анонс SH 2027»
-(десктоп 1920, мобильная версия 390 и мобильное меню).
-
-Стек: **Vue 3 (Composition API, `<script setup>`) + Vite + TypeScript + vite-ssg** (Static Site Generation).
-Без Nuxt и vue-router; Node.js нужен только для разработки и сборки. Сборка соответствует контракту
-DSFC/1 (Django Static Frontend Contract) и встраивается в Django/Wagtail как обычный шаблон, см. [DJANGO.md](DJANGO.md).
-
-```bash
-npm install
-npm run dev          # http://localhost:5173/__DSFC_BASE__/
-npm run typecheck    # vue-tsc
-npm run build        # dist/: index.html с готовой разметкой, assets/, public/, dsfc-manifest.json
-npm run check        # tools/dsfc_check.py + tools/dsfc_smoke.mjs (браузерная проверка гидратации)
-npm run django       # django-build/: templates/sh2027/index.html + static/sh2027/
-npm run preview      # http://localhost:4173/__DSFC_BASE__/ — готовая сборка без dev-сервера
-```
-
-## Что где
+Одностраничный сайт-анонс по макету Figma «South HUB App», страница «Анонс SH 2027».
+Обычные файлы без фреймворков, без Node.js и без сборки: их можно просто положить на любой хостинг
+(nginx, Apache, GitHub Pages, папка статики Django) и открыть `index.html`.
 
 ```text
-index.html                      оболочка страницы: SEO по умолчанию (data-dsfc="seo") и маркеры <!--dsfc:*-->
-dsfc.config.json                имя сборки, SEO по умолчанию и настройки, которые Django может менять (ссылки, API билетов)
-src/main.ts                     ViteSSG(App, { hydration: true, useHead: false })
-src/App.vue                     страница: герой → блок с буквами → виджет билетов → подвал
-src/components/sections/        HeroSection (первый экран, шапка, мобильное меню, видео по скроллу), PatternSection (буквы U)
-src/components/layout/          AppFooter
-src/components/popups/          AboutPopup (полный текст), VideoPopup (ролик 2026) — только в браузере
-src/components/widgets/         TicketWidget — тарифы из API Django, состояния loading / error / empty
-src/composables/useSiteConfig   настройки из Django (#dsfc-config), применяются после монтирования
-src/services/api.ts             fetch с таймаутом, CSRF для POST, ошибки без падения страницы
-src/assets/                     шрифт, иконки, картинки, видео: попадают в сборку с хешем в имени
-public/                         og.jpg и favicon.ico: постоянные имена
-scripts/dsfc-postbuild.mjs      после vite-ssg: public/ в dist/public, экранирование {{ {% {#, манифест
-scripts/prepare-django.mjs      из dist/ делает Django-шаблон + папку статики
-tools/                          проверки контракта DSFC/1
+index.html          вся разметка страницы: первый экран, блок с буквами, виджет билетов, подвал, меню и попапы
+css/style.css       все стили
+js/main.js          видео по скроллу, проявление первого экрана, меню и попапы, волна букв, виджет билетов
+assets/fonts/       шрифт Mont (woff2)
+assets/icons/       иконки и логотипы (svg)
+assets/img/         картинки: фон первого экрана, обложка ролика
+assets/video/       фоновое видео (горизонтальное и вертикальное), ролик 2026 и его превью
+favicon.ico, og.jpg иконка вкладки и картинка для соцсетей
 ```
 
-## Правила, которые держат гидратацию
+Все пути относительные, поэтому сайт работает в любой папке (`/`, `/sh2027/`, `/static/sh2027/`).
 
-- Первый рендер одинаков при пререндере и в браузере: всё, что зависит от `window`, размера экрана, времени,
-  запускается в `onMounted` (анимации, видео по скроллу, волна букв).
-- Значения из Django применяются только после монтирования (`useSiteConfig`).
-- Попапы рендерятся только в браузере (`Teleport` в `body` внутри `v-if="mounted"`).
-- `<head>` из JS не меняется: заголовок и мета-теги ведёт Django.
+## Посмотреть локально
+
+```bash
+python3 -m http.server 8000     # потом http://localhost:8000/
+```
+
+Можно открыть `index.html` и двойным кликом, но тогда фоновое видео не загружается в память заранее,
+и перемотка по скроллу может подтормаживать. Для проверки лучше через любой локальный сервер.
+
+## Что поменять при выкладке
+
+- **Картинка для соцсетей.** Telegram и соцсети берут `og:image` только по полному адресу:
+  в `<head>` замените `og.jpg` в `og:image` и `twitter:image` на `https://<домен>/<папка>/og.jpg`.
+- **Ссылки** («Купить билет», «Войти», Telegram, политики и т. д.) стоят прямо в `index.html`.
+  У каждой есть атрибут `data-link`, например `data-link="ticketLink"`.
+
+## Ссылки и билеты без правки разметки (например, из Django)
+
+Перед `</body>` можно вставить настройки, и скрипт сам заменит ссылки с таким `data-link`:
+
+```html
+<script id="site-config" type="application/json">
+  {"ticketLink": "https://lk.southhub.ru/…", "loginLink": "https://lk.southhub.ru/accounts/login/"}
+</script>
+```
+
+В Django это `{{ frontend_config|json_script:"site-config" }}`.
+
+Ключи: `ticketLink`, `loginLink`, `askLink`, `telegramInviteLink`, `telegramChannelLink`, `contactUsLink`,
+`youtubeLink`, `linkedinLink`, `medianLink`, `siteLink`, `confidentialLink`, `cookiesLink`, `pdLink`.
+
+Если добавить `"ticketsApiUrl"` (и при желании `"ticketsEventId"`, по умолчанию `sh2027`), появится блок
+«Билеты» с тарифами из API: `GET <ticketsApiUrl>?event=<ticketsEventId>` →
+
+```json
+{ "tickets": [{ "id": "standard", "title": "Стандарт", "price": 150000, "currency": "RUB",
+                "description": "…", "url": "https://lk.southhub.ru/…", "available": true }] }
+```
+
+Без `ticketsApiUrl` блок скрыт и никаких запросов нет.
+
+## Как устроено
+
+- **Первый экран** закреплён (`position: sticky`) на время прокрутки запаса высотой 160svh. По прокрутке
+  по очереди проявляются заголовок, подводка, кнопка, дата и карточка ролика, а фоновое видео проматывается
+  до «золотого» кадра. Видео скачивается целиком и играется из памяти, чтобы перемотка не ждала сети;
+  для Safari есть восстановление, если декодер «засыпает».
+- **Подводка** открывает попап с полным текстом, **карточка** — ролик 2026 (стартует без звука, кнопка
+  «Включить звук»), **бургер** на телефоне — меню. Закрываются крестиком, Esc и кликом по фону.
+- **Блок с буквами U**: буквы под курсором или пальцем увеличиваются и медленно возвращаются.
+- При `prefers-reduced-motion` анимации и видео выключены, всё видно сразу. Без JS первый экран тоже виден.

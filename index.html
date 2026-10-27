@@ -1,28 +1,360 @@
 <!doctype html>
 <html lang="ru">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
-    <title data-dsfc="seo">South HUB 2027 — кэмп для C-level в технологиях</title>
-    <meta data-dsfc="seo" name="description" content="South HUB 2027 — кэмп для C-level в технологиях. 9–13 июня 2027. Масштаб идей, людей и тёплых связей.">
-    <meta data-dsfc="seo" property="og:type" content="website">
-    <meta data-dsfc="seo" property="og:title" content="South HUB 2027 — кэмп для C-level в технологиях">
-    <meta data-dsfc="seo" property="og:description" content="9–13 июня 2027. Масштаб идей, людей и тёплых связей.">
-    <meta data-dsfc="seo" property="og:image" content="/__DSFC_BASE__/public/og.jpg">
-    <meta data-dsfc="seo" property="og:image:width" content="1200">
-    <meta data-dsfc="seo" property="og:image:height" content="630">
-    <meta data-dsfc="seo" name="twitter:card" content="summary_large_image">
-    <meta data-dsfc="seo" name="twitter:image" content="/__DSFC_BASE__/public/og.jpg">
+    <title>South HUB 2027 — кэмп для C-level в технологиях</title>
+    <meta name="description" content="South HUB 2027 — кэмп для C-level в технологиях. 9–13 июня 2027. Масштаб идей, людей и тёплых связей.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="South HUB 2027 — кэмп для C-level в технологиях">
+    <meta property="og:description" content="9–13 июня 2027. Масштаб идей, людей и тёплых связей.">
+    <!-- соцсети и Telegram берут картинку только по полному адресу: при выкладке замените og.jpg на https://<домен>/<папка>/og.jpg -->
+    <meta property="og:image" content="og.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="og.jpg">
+    <link rel="icon" href="favicon.ico">
+    <link rel="preload" href="assets/fonts/Mont-Book.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/style.css">
     <!-- без JS элементы первого экрана, которые проявляются по скроллу, видны сразу -->
     <noscript><style>[data-reveal]{opacity:1!important;filter:none!important;translate:none!important}</style></noscript>
-    <link rel="icon" href="/__DSFC_BASE__/public/favicon.ico">
-    <!--dsfc:head-->
-  </head>
-  <body>
-    <!--dsfc:body-start-->
-    <div id="app" data-dsfc-root=""></div>
-    <script type="module" src="/src/main.ts"></script>
-    <!--dsfc:body-end-->
-  </body>
+    <script src="js/main.js" defer></script>
+</head>
+<body>
+<main>
+    <div class="hero-scroll" data-hero-scroll>
+        <div class="hero__track">
+            <div class="hero__bg" aria-hidden="true">
+                <picture>
+                    <source media="(orientation: portrait)" srcset="assets/img/hero-mobile.webp" type="image/webp">
+                    <source srcset="assets/img/hero.webp" type="image/webp">
+                    <img src="assets/img/hero.jpg" alt="" fetchpriority="high">
+                </picture>
+                <!-- адреса видео: горизонтальное и вертикальное, скрипт выбирает по ориентации экрана -->
+                <video data-hero-video data-src="assets/video/hero.mp4" data-src-portrait="assets/video/hero-mobile.mp4" muted playsinline preload="auto" disablepictureinpicture></video>
+            </div>
+        </div>
+        <section class="hero" data-hero>
+
+            <header class="nav">
+                <a href="https://southhub.ru/" data-link="siteLink" class="nav__logo" aria-label="South HUB">
+                    <img src="assets/icons/logo.svg" width="178" height="20" alt="SOUTHUUUB">
+                </a>
+
+                <div class="nav__right">
+                    <nav class="nav__links">
+                        <a href="https://t.me/southhub_com" data-link="askLink" target="_blank" rel="noopener" class="link-arrow">Задать вопрос</a>
+                    </nav>
+                    <div class="nav__actions">
+                        <a href="https://lk.southhub.ru/accounts/login/" data-link="loginLink" target="_blank" rel="noopener" class="btn nav__login">Войти</a>
+                        <a href="https://t.me/+Up2b6jqa30xhYzMy?utm_source=SB&amp;utm_medium=landing&amp;utm_campaign=invite" data-link="telegramInviteLink" target="_blank" rel="noopener" class="corners tg-box" aria-label="Telegram">
+                            <i></i><i></i><i></i><i></i>
+                            <img src="assets/icons/tg-plane.svg" width="23" height="19" alt="">
+                        </a>
+                    </div>
+                </div>
+
+                <button class="nav__burger" type="button" aria-label="Открыть меню" aria-haspopup="dialog" data-open="menu">
+                    <img src="assets/icons/burger.svg" width="50" height="14" alt="">
+                </button>
+            </header>
+
+            <div class="stage">
+                <h1 class="title">
+                    <span class="title__line title__line--1"><span class="w" data-reveal="1">South</span> <span class="w" data-reveal="1">HUB</span></span>
+                    <span class="title__line title__line--2">
+                        <span class="title__desk"><span class="w" data-reveal="1">Кэмп</span> <span class="w" data-reveal="1">для</span> <span class="w" data-reveal="1">C-level</span></span>
+                        <span class="title__mob"><span class="w" data-reveal="1">Кэмп</span></span>
+                        <a href="https://lk.southhub.ru/" data-link="ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--desk" data-reveal="3">Купить билет</a>
+                    </span>
+                    <span class="title__line title__line--mob"><span class="w" data-reveal="1">для</span> <span class="w" data-reveal="1">C-level</span></span>
+                    <span class="title__line title__line--3"><span class="w" data-reveal="1">в</span> <span class="w" data-reveal="1">технологиях</span></span>
+                </h1>
+
+                <button type="button" class="hero__lead" aria-haspopup="dialog" data-open="about" data-reveal="2">
+                    <span class="hero__lead-text">От тёплых связей к большим совместным проектам. Масштаб людей и идей, объединённых созиданием.</span>
+                    <span class="hero__lead-badge"><img src="assets/icons/menu-arrow.svg" width="18" height="18" alt="" class="hero__lead-arrow"></span>
+                </button>
+
+                <div class="hero__bottom">
+                    <a href="https://lk.southhub.ru/" data-link="ticketLink" target="_blank" rel="noopener" class="btn btn--solid hero__cta hero__cta--mob" data-reveal="3">Купить билет</a>
+
+                    <!-- плашка с датой открывает создание события в Google Календаре (весь день, конец не включается) -->
+                    <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=South+HUB+2027&amp;dates=20270609%2F20270614&amp;details=South+HUB+2027+%E2%80%94+%D0%BA%D1%8D%D0%BC%D0%BF+%D0%B4%D0%BB%D1%8F+C-level+%D0%B2+%D1%82%D0%B5%D1%85%D0%BD%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F%D1%85.+https%3A%2F%2Fsouthhub.ru" target="_blank" rel="noopener" class="chip chip--link" aria-label="Добавить South HUB 2027 в Google Календарь" data-reveal="4">
+                        <img src="assets/icons/date.svg" width="20" height="17" alt="" class="chip__icon">
+                        <time datetime="2027-06-09">09–13 июня, 2027</time>
+                    </a>
+
+                    <button type="button" class="card" aria-haspopup="dialog" data-open="reel" data-reveal="5">
+                        <span class="card__thumb">
+                            <video src="assets/video/recap-2026-preview.mp4" poster="assets/img/recap-2026.webp" muted loop autoplay playsinline preload="metadata" disablepictureinpicture aria-hidden="true"></video>
+                            <span class="card__play">
+                                <img src="assets/icons/play.svg" width="30" height="30" alt="">
+                            </span>
+                        </span>
+                        <span class="card__body">
+                            <span class="card__title">Как прошёл<br class="card__br"> South HUB'2026</span>
+                            <img src="assets/icons/arrow.svg" width="11" height="11" alt="" class="card__arrow">
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Чёрный блок с буквами U, как на southhub.ru: буквы под курсором (на телефоне — под пальцем) увеличиваются -->
+    <section class="pattern" data-pattern aria-label="Масштаб идей, людей и тёплых связей">
+            <div class="pattern__grid pattern__grid--desk">
+                <div class="pattern__row pattern__row--first">
+                    <img src="assets/icons/southu.svg" width="119" height="20" alt="SOUTHU" class="pattern__logo">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <p class="pattern__text" style="grid-column: span 4">масштаб идей, людей и тёплых связей</p>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/b.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+            </div>
+            <div class="pattern__grid pattern__grid--mob">
+                <div class="pattern__row pattern__row--first">
+                    <img src="assets/icons/southu.svg" width="119" height="20" alt="SOUTHU" class="pattern__logo">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <p class="pattern__text" style="grid-column: span 5">масштаб идей, людей и тёплых связей</p>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+                <div class="pattern__row">
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/u.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                    <img src="assets/icons/b.svg" width="19" height="20" alt="" class="pattern__letter" data-wave>
+                </div>
+            </div>
+    </section>
+
+    <!-- Виджет продажи билетов: скрыт, пока не задан адрес API (ticketsApiUrl в #site-config, см. README) -->
+    <section class="tickets" data-tickets hidden aria-labelledby="tickets-title">
+        <h2 id="tickets-title" class="tickets__title">Билеты</h2>
+        <div data-tickets-body></div>
+    </section>
+
+    <footer class="footer">
+        <div class="median">
+            <a href="https://median.agency/" data-link="medianLink" target="_blank" rel="noopener" class="median__logo fade" aria-label="median.agency">
+                <img src="assets/icons/median.svg" width="186" height="80" alt="median.agency">
+            </a>
+            <span class="median__line"></span>
+            <div class="median__made">
+                <a href="https://t.me/+F8Vk0GiQ_Mk1MDgy" data-link="contactUsLink" target="_blank" rel="noopener" class="bracket median__contact">Связаться</a>
+                <p class="median__text">made by median.agency<br>Команда, которая мечтает. думает. делает.</p>
+            </div>
+        </div>
+
+        <span class="footer__line"></span>
+
+        <div class="bottom">
+            <a href="https://southhub.ru/" data-link="siteLink" target="_blank" rel="noopener" class="bottom__logo fade" aria-label="South HUB">
+                <img src="assets/icons/logo-black.svg" width="186" height="21" alt="SOUTHUUUB">
+            </a>
+
+            <div class="bottom__contacts">
+                <p>Контакты:</p>
+                <p>Email: <a href="mailto:mail@southhub.ru" class="u-link">mail@southhub.ru</a></p>
+                <p>Telegram: <a href="https://t.me/southhub_com" data-link="askLink" target="_blank" rel="noopener" class="u-link">+7 862 29 59 977</a></p>
+            </div>
+
+            <p class="bottom__legal">
+                ООО «Высокие люди»<br>
+                ИНН 2320134913<br>
+                <a href="https://lk.southhub.ru/confidential" data-link="confidentialLink" target="_blank" rel="noopener" class="legal-link">Политика конфиденциальности</a><br>
+                <a href="https://lk.southhub.ru/cookies" data-link="cookiesLink" target="_blank" rel="noopener" class="legal-link">Политика обработки файлов cookie</a><br>
+                <a href="https://lk.southhub.ru/pd" data-link="pdLink" target="_blank" rel="noopener" class="legal-link">Политика обработки персональных данных</a><br>
+                © 2022-2026 South HUB. Все права защищены
+            </p>
+
+            <div class="bottom__social">
+                <a href="https://www.youtube.com/@sthhb" data-link="youtubeLink" target="_blank" rel="noopener" class="fade" aria-label="YouTube">
+                    <img src="assets/icons/youtube.svg" width="22" height="16" alt="">
+                </a>
+                <a href="https://www.linkedin.com/company/south-hub/" data-link="linkedinLink" target="_blank" rel="noopener" class="fade" aria-label="LinkedIn">
+                    <img src="assets/icons/linkedin.svg" width="20" height="20" alt="">
+                </a>
+                <a href="https://t.me/+A-vMV8yq_6M3ZjFi" data-link="telegramChannelLink" target="_blank" rel="noopener" class="fade" aria-label="Telegram">
+                    <img src="assets/icons/telegram-black.svg" width="23" height="19" alt="">
+                </a>
+            </div>
+        </div>
+    </footer>
+</main>
+
+<!-- Мобильное меню -->
+<div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Меню" tabindex="-1" hidden>
+    <div class="menu__head">
+        <img src="assets/icons/logo.svg" width="178" height="20" alt="SOUTHUUUB">
+        <button type="button" class="menu__close" aria-label="Закрыть меню" data-close>
+            <img src="assets/icons/close.svg" width="18" height="18" alt="">
+        </button>
+    </div>
+    <nav class="menu__links">
+        <a href="https://t.me/southhub_com" data-link="askLink" target="_blank" rel="noopener">
+            Задать вопрос
+            <img src="assets/icons/menu-arrow.svg" width="18" height="18" alt="">
+        </a>
+    </nav>
+    <div class="menu__bottom">
+        <a href="https://lk.southhub.ru/" data-link="ticketLink" target="_blank" rel="noopener" class="btn btn--solid menu__cta">Купить билет</a>
+        <div class="menu__row">
+            <a href="https://lk.southhub.ru/accounts/login/" data-link="loginLink" target="_blank" rel="noopener" class="btn nav__login">Войти</a>
+            <a href="https://t.me/+Up2b6jqa30xhYzMy?utm_source=SB&amp;utm_medium=landing&amp;utm_campaign=invite" data-link="telegramInviteLink" target="_blank" rel="noopener" class="corners tg-box" aria-label="Telegram">
+                <i></i><i></i><i></i><i></i>
+                <img src="assets/icons/tg-plane.svg" width="23" height="19" alt="">
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Попап с полным текстом о кэмпе: открывается по подводке на первом экране -->
+<div class="about" id="about" role="dialog" aria-modal="true" aria-labelledby="about-title" tabindex="-1" data-backdrop hidden>
+    <article class="about__panel">
+        <button type="button" class="corners about__close" aria-label="Закрыть" data-close>
+            <i></i><i></i><i></i><i></i>
+            <img src="assets/icons/close-thin.svg" width="14" height="14" alt="">
+        </button>
+
+        <h2 id="about-title" class="about__title">South HUB Camp 2027<span>Coworking</span></h2>
+
+        <div class="about__text">
+            <p class="about__accent">В прошлом году мы мечтали вместе. В этом — создаём вместе.</p>
+            <p>SOUTH HUB — масштаб людей, идей и тёплых связей.</p>
+            <p>Сообщество, построенное на философии нетворминга. Здесь знакомства перерастают в доверие, доверие — в партнёрства, а идеи — в совместные проекты.</p>
+            <p>
+                В этом году мы делаем следующий шаг.<br>
+                От общей мечты — к совместному созиданию.<br>
+                Объединяем лидеров, команды, корпорации и страны, чтобы не просто обсуждать будущее, а создавать его вместе.
+            </p>
+            <p>SOUTH HUB CAMP 2027 — COWORKING.</p>
+            <p class="about__accent">Будущее создаётся между нами.</p>
+        </div>
+
+        <a href="https://lk.southhub.ru/" data-link="ticketLink" target="_blank" rel="noopener" class="btn btn--solid about__cta">Купить билет</a>
+    </article>
+</div>
+
+<!-- Ролик «Как прошёл South HUB'2026»: стартует без звука, звук включается кнопкой или нажатием на видео -->
+<div class="reel" id="reel" role="dialog" aria-modal="true" aria-label="Как прошёл South HUB'2026" tabindex="-1" data-backdrop hidden>
+    <button type="button" class="corners reel__close" aria-label="Закрыть" data-close>
+        <i></i><i></i><i></i><i></i>
+        <img src="assets/icons/close-thin.svg" width="14" height="14" alt="">
+    </button>
+    <div class="reel__frame">
+        <!-- видео подгружается только при открытии попапа -->
+        <video class="reel__video" data-src="assets/video/recap-2026.mp4" poster="assets/img/recap-2026.webp" muted playsinline preload="none"></video>
+        <button type="button" class="reel__sound">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <path d="M4 9v6h4l5 4V5L8 9H4z"/>
+                <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>
+            </svg>
+            Включить звук
+        </button>
+    </div>
+</div>
+</body>
 </html>
