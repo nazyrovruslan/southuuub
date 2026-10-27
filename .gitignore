@@ -1,6 +1,1 @@
-node_modules
-dist
-django-build
-dsfc-smoke-out
 .DS_Store
-static-build
